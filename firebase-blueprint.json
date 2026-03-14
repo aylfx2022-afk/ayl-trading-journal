@@ -30,7 +30,8 @@
         "email": { "type": "string", "format": "email" },
         "displayName": { "type": "string" },
         "photoURL": { "type": "string" },
-        "role": { "type": "string", "enum": ["user", "admin"] }
+        "role": { "type": "string", "enum": ["user", "admin"] },
+        "geminiApiKey": { "type": "string", "description": "User-provided Gemini API key" }
       },
       "required": ["email", "role"]
     }

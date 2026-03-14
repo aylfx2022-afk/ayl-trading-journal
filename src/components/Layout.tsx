@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, Upload, LogOut, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, History, Upload, LogOut, TrendingUp, Settings as SettingsIcon } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 
@@ -55,6 +55,17 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
           >
             <Upload size={20} />
             <span className="font-medium">Import History</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              activeTab === 'settings' 
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5'
+            }`}
+          >
+            <SettingsIcon size={20} />
+            <span className="font-medium">Settings</span>
           </button>
         </nav>
 

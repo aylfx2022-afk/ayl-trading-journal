@@ -1,8 +1,10 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || "" });
-
-export async function parseTradeHistory(htmlContent: string) {
+export async function parseTradeHistory(htmlContent: string, apiKey?: string) {
+  const key = apiKey || process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("Gemini API key is missing. Please provide one in Settings.");
+  
+  const ai = new GoogleGenAI({ apiKey: key });
   const model = "gemini-3-flash-preview";
   
   const response = await ai.models.generateContent({
@@ -61,7 +63,11 @@ export async function parseTradeHistory(htmlContent: string) {
   }
 }
 
-export async function getTradeInsights(trades: any[]) {
+export async function getTradeInsights(trades: any[], apiKey?: string) {
+  const key = apiKey || process.env.GEMINI_API_KEY;
+  if (!key) return "Gemini API key is missing. Please provide one in Settings to get AI insights.";
+  
+  const ai = new GoogleGenAI({ apiKey: key });
   const model = "gemini-3-flash-preview";
   
   const response = await ai.models.generateContent({

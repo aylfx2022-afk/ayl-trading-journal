@@ -5,7 +5,11 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, Timestamp, query, where, getDocs } from 'firebase/firestore';
 import { motion, AnimatePresence } from 'motion/react';
 
-export default function TradeUpload() {
+interface TradeUploadProps {
+  geminiApiKey?: string;
+}
+
+export default function TradeUpload({ geminiApiKey }: TradeUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [status, setStatus] = useState<'idle' | 'parsing' | 'saving' | 'success' | 'error'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +27,7 @@ export default function TradeUpload() {
 
     try {
       const text = await file.text();
-      const trades = await parseTradeHistory(text);
+      const trades = await parseTradeHistory(text, geminiApiKey);
 
       if (!trades || trades.length === 0) {
         throw new Error('No trades found in the file. Make sure it is a valid MT4/5 history report.');

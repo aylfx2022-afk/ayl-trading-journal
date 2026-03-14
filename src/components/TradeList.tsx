@@ -1,8 +1,10 @@
 import React from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { ArrowUpRight, ArrowDownRight, Search, MessageSquare, Image as ImageIcon } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Search, MessageSquare, Image as ImageIcon, Trash2, AlertCircle } from 'lucide-react';
 import TradeModal from './TradeModal';
+import { db, auth } from '../firebase';
+import { deleteDoc, doc, writeBatch, collection, query, where, getDocs } from 'firebase/firestore';
 
 interface TradeListProps {
   trades: Trade[];
@@ -14,6 +16,43 @@ export default function TradeList({ trades }: TradeListProps) {
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
   const [selectedTrade, setSelectedTrade] = React.useState<Trade | null>(null);
+  const [isDeletingAll, setIsDeletingAll] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+
+  const handleDeleteTrade = async (e: React.MouseEvent, tradeId: string) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this trade?')) return;
+    
+    try {
+      await deleteDoc(doc(db, 'trades', tradeId));
+    } catch (error) {
+      console.error("Error deleting trade:", error);
+      alert("Failed to delete trade. Please check your permissions.");
+    }
+  };
+
+  const handleDeleteAll = async () => {
+    if (!auth.currentUser) return;
+    setIsDeletingAll(true);
+    
+    try {
+      const q = query(collection(db, 'trades'), where('userId', '==', auth.currentUser.uid));
+      const snapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error("Error deleting all trades:", error);
+      alert("Failed to delete trades. Please check your permissions.");
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
 
   const filteredTrades = trades.filter(t => {
     const matchesSearch = t.item.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -30,7 +69,18 @@ export default function TradeList({ trades }: TradeListProps) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h2 className="text-2xl font-bold">Closed Positions</h2>
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold">Closed Positions</h2>
+          {trades.length > 0 && (
+            <button 
+              onClick={() => setShowDeleteConfirm(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-wider border border-red-500/20"
+            >
+              <Trash2 size={14} />
+              Clear History
+            </button>
+          )}
+        </div>
         
         <div className="flex flex-wrap items-center gap-3">
           {/* Search Symbol */}
@@ -89,6 +139,7 @@ export default function TradeList({ trades }: TradeListProps) {
               <th className="px-6 py-4 font-semibold">Open Time</th>
               <th className="px-6 py-4 font-semibold">Close Time</th>
               <th className="px-6 py-4 font-semibold">Journal</th>
+              <th className="px-6 py-4 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -138,11 +189,20 @@ export default function TradeList({ trades }: TradeListProps) {
                     {trade.chartUrls && trade.chartUrls.length > 0 && <ImageIcon size={14} className="text-blue-500/50" />}
                   </div>
                 </td>
+                <td className="px-6 py-4 text-right">
+                  <button 
+                    onClick={(e) => handleDeleteTrade(e, trade.id)}
+                    className="p-2 rounded-lg text-zinc-600 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                    title="Delete Trade"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </td>
               </tr>
             ))}
             {filteredTrades.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-6 py-12 text-center text-zinc-600 italic">
+                <td colSpan={10} className="px-6 py-12 text-center text-zinc-600 italic">
                   No trades found matching your search.
                 </td>
               </tr>
@@ -150,6 +210,41 @@ export default function TradeList({ trades }: TradeListProps) {
           </tbody>
         </table>
       </div>
+
+      {/* Delete All Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#141414] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
+            <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 mx-auto">
+              <AlertCircle className="text-red-500 w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-center mb-2">Clear All History?</h3>
+            <p className="text-zinc-500 text-center text-sm mb-8">
+              This action cannot be undone. All your trading history will be permanently deleted.
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleDeleteAll}
+                disabled={isDeletingAll}
+                className="w-full py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {isDeletingAll ? (
+                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                ) : (
+                  'Yes, Delete Everything'
+                )}
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeletingAll}
+                className="w-full py-3 rounded-xl bg-white/5 text-zinc-300 font-bold hover:bg-white/10 transition-all"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedTrade && (
         <TradeModal 

@@ -18,23 +18,42 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradeList from './components/TradeList';
 import TradeUpload from './components/TradeUpload';
+import Settings from './components/Settings';
 import { getTradeInsights } from './services/geminiService';
 import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [trades, setTrades] = useState<Trade[]>([]);
   const [insights, setInsights] = useState<string>('Analyzing your trading performance...');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    let unsubscribeProfile: (() => void) | undefined;
+
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
       setUser(user);
+      if (user) {
+        unsubscribeProfile = onSnapshot(doc(db, 'users', user.uid), (doc) => {
+          if (doc.exists()) {
+            setUserProfile(doc.data());
+          }
+        });
+      } else {
+        setUserProfile(null);
+        if (unsubscribeProfile) unsubscribeProfile();
+      }
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribeAuth();
+      if (unsubscribeProfile) unsubscribeProfile();
+    };
   }, []);
 
   useEffect(() => {
@@ -63,14 +82,14 @@ export default function App() {
   useEffect(() => {
     if (trades.length > 0) {
       const fetchInsights = async () => {
-        const text = await getTradeInsights(trades);
+        const text = await getTradeInsights(trades, userProfile?.geminiApiKey);
         setInsights(text);
       };
       fetchInsights();
     } else {
       setInsights('Import your trading history to get AI-powered insights.');
     }
-  }, [trades.length]);
+  }, [trades.length, userProfile?.geminiApiKey]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -144,7 +163,8 @@ export default function App() {
         >
           {activeTab === 'dashboard' && <Dashboard trades={trades} insights={insights} />}
           {activeTab === 'history' && <TradeList trades={trades} />}
-          {activeTab === 'upload' && <TradeUpload />}
+          {activeTab === 'upload' && <TradeUpload geminiApiKey={userProfile?.geminiApiKey} />}
+          {activeTab === 'settings' && <Settings />}
         </motion.div>
       </AnimatePresence>
     </Layout>

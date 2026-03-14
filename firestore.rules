@@ -11,6 +11,7 @@ service cloud.firestore {
     //   - displayName: string (optional)
     //   - photoURL: string (optional)
     //   - role: string (required, ['user', 'admin'])
+    //   - geminiApiKey: string (optional)
     //
     // Collection: trades
     // Fields:
@@ -47,7 +48,8 @@ service cloud.firestore {
     function isValidUser(data) {
       return data.keys().hasAll(['email', 'role']) &&
              data.email is string &&
-             data.role in ['user', 'admin'];
+             data.role in ['user', 'admin'] &&
+             (!('geminiApiKey' in data) || (data.geminiApiKey is string && data.geminiApiKey.size() < 100));
     }
 
     function isValidTrade(data) {
