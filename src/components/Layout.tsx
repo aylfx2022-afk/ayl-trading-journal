@@ -19,7 +19,7 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
           <div className="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
             <TrendingUp className="text-black w-6 h-6" />
           </div>
-          <span className="font-bold text-xl tracking-tight">TradeLog AI</span>
+          <span className="font-bold text-xl tracking-tight">AYL Trading Journal</span>
         </div>
 
         <nav className="mt-8 px-4 space-y-2">

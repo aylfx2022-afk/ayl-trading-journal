@@ -1,5 +1,5 @@
 {
-  "name": "AI Trading Journal",
+  "name": "AYL Trading Journal",
   "description": "Automated trading journal that parses MT4/5 HTML history using AI to log and analyze trades.",
   "requestFramePermissions": []
 }

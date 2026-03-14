@@ -105,7 +105,7 @@ export default function App() {
             <TrendingUp className="text-black w-10 h-10" />
           </div>
           
-          <h1 className="text-5xl font-bold tracking-tight mb-4">TradeLog AI</h1>
+          <h1 className="text-5xl font-bold tracking-tight mb-4">AYL Trading Journal</h1>
           <p className="text-zinc-500 text-lg mb-12">
             The modern trading journal. Automated logging with AI parsing for MT4/5 history.
           </p>
