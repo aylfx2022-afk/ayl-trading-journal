@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { Key, Save, CheckCircle2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -9,6 +9,7 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -32,15 +33,27 @@ export default function Settings() {
     if (!auth.currentUser) return;
     setSaving(true);
     setStatus('idle');
+    setErrorMessage('');
+
     try {
-      await updateDoc(doc(db, 'users', auth.currentUser.uid), {
+      await setDoc(doc(db, 'users', auth.currentUser.uid), {
         geminiApiKey: apiKey
-      });
+      }, { merge: true });
       setStatus('success');
       setTimeout(() => setStatus('idle'), 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving settings:", error);
       setStatus('error');
+      
+      // Detailed error info for debugging
+      const errorInfo = {
+        message: error.message,
+        code: error.code,
+        userId: auth.currentUser.uid,
+        email: auth.currentUser.email
+      };
+      setErrorMessage(error.message || 'Permission denied. Please try logging out and back in.');
+      console.error('Firestore Permission Error Details:', JSON.stringify(errorInfo));
     } finally {
       setSaving(false);
     }
@@ -119,10 +132,13 @@ export default function Settings() {
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 text-red-500 text-sm font-medium"
+              className="flex flex-col gap-1 text-red-500 text-sm font-medium"
             >
-              <AlertCircle size={16} />
-              Failed to save settings. Please try again.
+              <div className="flex items-center gap-2">
+                <AlertCircle size={16} />
+                <span>Failed to save settings.</span>
+              </div>
+              {errorMessage && <p className="text-xs opacity-70 ml-6">{errorMessage}</p>}
             </motion.div>
           )}
         </div>

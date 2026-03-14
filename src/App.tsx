@@ -22,7 +22,7 @@ import Settings from './components/Settings';
 import { getTradeInsights } from './services/geminiService';
 import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,10 +35,27 @@ export default function App() {
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
 
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
-        unsubscribeProfile = onSnapshot(doc(db, 'users', user.uid), (doc) => {
+        // Initialize user profile if it doesn't exist
+        const userDocRef = doc(db, 'users', user.uid);
+        try {
+          const userDoc = await getDoc(userDocRef);
+          if (!userDoc.exists()) {
+            await setDoc(userDocRef, {
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+              role: 'user',
+              createdAt: serverTimestamp()
+            });
+          }
+        } catch (error) {
+          console.error("Error initializing user profile:", error);
+        }
+
+        unsubscribeProfile = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
             setUserProfile(doc.data());
           }
