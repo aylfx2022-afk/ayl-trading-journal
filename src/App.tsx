@@ -1,0 +1,161 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  onAuthStateChanged, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  User
+} from 'firebase/auth';
+import { 
+  collection, 
+  query, 
+  where, 
+  onSnapshot,
+  orderBy
+} from 'firebase/firestore';
+import { auth, db } from './firebase';
+import { Trade } from './types';
+import Layout from './components/Layout';
+import Dashboard from './components/Dashboard';
+import TradeList from './components/TradeList';
+import TradeUpload from './components/TradeUpload';
+import { getTradeInsights } from './services/geminiService';
+import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+export default function App() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [insights, setInsights] = useState<string>('Analyzing your trading performance...');
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) {
+      setTrades([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'trades'),
+      where('userId', '==', user.uid),
+      orderBy('closeTime', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const tradeData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Trade[];
+      setTrades(tradeData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (trades.length > 0) {
+      const fetchInsights = async () => {
+        const text = await getTradeInsights(trades);
+        setInsights(text);
+      };
+      fetchInsights();
+    } else {
+      setInsights('Import your trading history to get AI-powered insights.');
+    }
+  }, [trades.length]);
+
+  const handleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Login failed", error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+        {/* Background Glows */}
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full"></div>
+
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full text-center relative z-10"
+        >
+          <div className="w-20 h-20 rounded-3xl bg-emerald-500 mx-auto flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-8">
+            <TrendingUp className="text-black w-10 h-10" />
+          </div>
+          
+          <h1 className="text-5xl font-bold tracking-tight mb-4">TradeLog AI</h1>
+          <p className="text-zinc-500 text-lg mb-12">
+            The modern trading journal. Automated logging with AI parsing for MT4/5 history.
+          </p>
+
+          <div className="space-y-4 mb-12">
+            <FeatureItem icon={<Zap className="text-emerald-500" />} text="Instant MT4/5 HTML parsing" />
+            <FeatureItem icon={<ShieldCheck className="text-emerald-500" />} text="Secure cloud storage" />
+            <FeatureItem icon={<TrendingUp className="text-emerald-500" />} text="AI-powered performance insights" />
+          </div>
+
+          <button
+            onClick={handleLogin}
+            className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl"
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            Get Started with Google
+          </button>
+          
+          <p className="mt-6 text-xs text-zinc-600">
+            By signing in, you agree to our Terms of Service and Privacy Policy.
+          </p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user}>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.2 }}
+        >
+          {activeTab === 'dashboard' && <Dashboard trades={trades} insights={insights} />}
+          {activeTab === 'history' && <TradeList trades={trades} />}
+          {activeTab === 'upload' && <TradeUpload />}
+        </motion.div>
+      </AnimatePresence>
+    </Layout>
+  );
+}
+
+function FeatureItem({ icon, text }: { icon: React.ReactNode, text: string }) {
+  return (
+    <div className="flex items-center gap-3 text-zinc-400 justify-center">
+      {icon}
+      <span className="text-sm font-medium">{text}</span>
+    </div>
+  );
+}

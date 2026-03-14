@@ -1,0 +1,80 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - email: string (required)
+    //   - displayName: string (optional)
+    //   - photoURL: string (optional)
+    //   - role: string (required, ['user', 'admin'])
+    //
+    // Collection: trades
+    // Fields:
+    //   - ticket: string (required)
+    //   - openTime: timestamp (required)
+    //   - type: string (required, ['buy', 'sell'])
+    //   - size: number (required)
+    //   - item: string (required)
+    //   - openPrice: number (required)
+    //   - closeTime: timestamp (required)
+    //   - closePrice: number (required)
+    //   - profit: number (required)
+    //   - comment: string (optional)
+    //   - userId: string (required)
+    //   - createdAt: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.userId;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'role']) &&
+             data.email is string &&
+             data.role in ['user', 'admin'];
+    }
+
+    function isValidTrade(data) {
+      return data.keys().hasAll(['ticket', 'openTime', 'type', 'size', 'item', 'openPrice', 'closeTime', 'closePrice', 'profit', 'userId', 'createdAt']) &&
+             data.ticket is string &&
+             data.type in ['buy', 'sell'] &&
+             data.size is number &&
+             data.item is string &&
+             data.openPrice is number &&
+             data.closePrice is number &&
+             data.profit is number &&
+             (!('notes' in data) || data.notes is string) &&
+             (!('chartUrls' in data) || (data.chartUrls is list && data.chartUrls.size() <= 5)) &&
+             data.userId == request.auth.uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == resource.data.role;
+    }
+
+    match /trades/{tradeId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidTrade(request.resource.data);
+      allow update: if isDocOwner() && isValidTrade(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+  }
+}

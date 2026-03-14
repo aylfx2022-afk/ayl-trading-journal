@@ -1,0 +1,48 @@
+{
+  "entities": {
+    "Trade": {
+      "title": "Trade",
+      "description": "A single trading position log",
+      "type": "object",
+      "properties": {
+        "ticket": { "type": "string", "description": "MT4/5 ticket number" },
+        "openTime": { "type": "string", "format": "date-time", "description": "Time the trade was opened" },
+        "type": { "type": "string", "enum": ["buy", "sell"], "description": "Trade type" },
+        "size": { "type": "number", "description": "Position size in lots" },
+        "item": { "type": "string", "description": "Trading symbol" },
+        "openPrice": { "type": "number", "description": "Price at entry" },
+        "closeTime": { "type": "string", "format": "date-time", "description": "Time the trade was closed" },
+        "closePrice": { "type": "number", "description": "Price at exit" },
+        "profit": { "type": "number", "description": "Profit or loss in currency" },
+        "comment": { "type": "string", "description": "Trade comment" },
+        "notes": { "type": "string", "description": "Personal trade notes/journal" },
+        "chartUrls": { "type": "array", "items": { "type": "string" }, "description": "TradingView chart image URLs" },
+        "userId": { "type": "string", "description": "Owner UID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Log creation time" }
+      },
+      "required": ["ticket", "openTime", "type", "size", "item", "openPrice", "closeTime", "closePrice", "profit", "userId", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile and settings",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "admin"] }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/trades/{tradeId}": {
+      "schema": "Trade",
+      "description": "Collection of trade logs"
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    }
+  }
+}
