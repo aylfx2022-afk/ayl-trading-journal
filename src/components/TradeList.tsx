@@ -2,20 +2,19 @@ import React from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
 import { ArrowUpRight, ArrowDownRight, Search, MessageSquare, Image as ImageIcon, Trash2, AlertCircle } from 'lucide-react';
-import TradeModal from './TradeModal';
 import { db, auth } from '../firebase';
 import { deleteDoc, doc, writeBatch, collection, query, where, getDocs } from 'firebase/firestore';
 
 interface TradeListProps {
   trades: Trade[];
+  onSelectTrade: (trade: Trade) => void;
 }
 
-export default function TradeList({ trades }: TradeListProps) {
+export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
   const [startDate, setStartDate] = React.useState('');
   const [endDate, setEndDate] = React.useState('');
-  const [selectedTrade, setSelectedTrade] = React.useState<Trade | null>(null);
   const [isDeletingAll, setIsDeletingAll] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
 
@@ -146,7 +145,7 @@ export default function TradeList({ trades }: TradeListProps) {
             {filteredTrades.map((trade) => (
               <tr 
                 key={trade.id} 
-                onClick={() => setSelectedTrade(trade)}
+                onClick={() => onSelectTrade(trade)}
                 className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
               >
                 <td className="px-6 py-4">
@@ -244,13 +243,6 @@ export default function TradeList({ trades }: TradeListProps) {
             </div>
           </div>
         </div>
-      )}
-
-      {selectedTrade && (
-        <TradeModal 
-          trade={selectedTrade} 
-          onClose={() => setSelectedTrade(null)} 
-        />
       )}
     </div>
   );

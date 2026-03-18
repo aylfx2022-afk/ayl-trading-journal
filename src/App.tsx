@@ -19,6 +19,7 @@ import Dashboard from './components/Dashboard';
 import TradeList from './components/TradeList';
 import TradeUpload from './components/TradeUpload';
 import Settings from './components/Settings';
+import TradeDetails from './components/TradeDetails';
 import { getTradeInsights } from './services/geminiService';
 import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -29,6 +30,7 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
   const [insights, setInsights] = useState<string>('Analyzing your trading performance...');
 
@@ -179,9 +181,10 @@ export default function App() {
           transition={{ duration: 0.2 }}
         >
           {activeTab === 'dashboard' && <Dashboard trades={trades} insights={insights} />}
-          {activeTab === 'history' && <TradeList trades={trades} />}
+          {activeTab === 'history' && <TradeList trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
           {activeTab === 'upload' && <TradeUpload geminiApiKey={userProfile?.geminiApiKey} />}
           {activeTab === 'settings' && <Settings />}
+          {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab('history')} />}
         </motion.div>
       </AnimatePresence>
     </Layout>
