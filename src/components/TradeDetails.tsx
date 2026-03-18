@@ -14,7 +14,28 @@ interface TradeDetailsProps {
 export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [notes, setNotes] = useState(trade.notes || '');
   const [chartUrls, setChartUrls] = useState<string[]>(trade.chartUrls || ['']);
-  const [isSaving, setIsSaving] = useState(false);
+  const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
+    }
+  }, [notes]);
+
+  const isInitialRender = React.useRef(true);
+
+  React.useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [notes, chartUrls]);
 
   const handleAddChart = () => {
     if (chartUrls.length < 5) {
@@ -35,7 +56,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
   const handleSave = async () => {
     if (!trade.id) return;
-    setIsSaving(true);
+    setSavingStatus('saving');
     try {
       const tradeRef = doc(db, 'trades', trade.id);
       const filteredUrls = chartUrls.filter(url => url.trim() !== '');
@@ -43,11 +64,11 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         notes,
         chartUrls: filteredUrls
       });
-      // Show success message or redirect
+      setSavingStatus('saved');
+      setTimeout(() => setSavingStatus('idle'), 2000);
     } catch (error) {
       console.error("Error updating trade:", error);
-    } finally {
-      setIsSaving(false);
+      setSavingStatus('idle');
     }
   };
 
@@ -93,10 +114,11 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             Trade Notes & Journal
           </label>
           <textarea
+            ref={textareaRef}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Why did you take this trade? What did you learn?"
-            className="w-full h-32 p-4 rounded-2xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all resize-none"
+            className="w-full min-h-[128px] p-4 rounded-2xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all resize-none overflow-hidden"
           />
         </div>
 
@@ -165,19 +187,11 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
           </div>
         </div>
 
-        <div className="flex justify-end pt-4">
-          <button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="px-8 py-3 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all flex items-center gap-2 disabled:opacity-50"
-          >
-            {isSaving ? 'Saving...' : (
-              <>
-                <Save size={18} />
-                Save Changes
-              </>
-            )}
-          </button>
+        <div className="flex justify-between items-center pt-4">
+          <div className="text-sm text-zinc-500">
+            {savingStatus === 'saving' && 'Saving...'}
+            {savingStatus === 'saved' && 'Saved'}
+          </div>
         </div>
       </div>
     </div>
