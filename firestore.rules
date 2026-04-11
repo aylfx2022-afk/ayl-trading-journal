@@ -28,6 +28,15 @@ service cloud.firestore {
     //   - userId: string (required)
     //   - createdAt: timestamp (required)
     //
+    // Collection: daily_journals
+    // Fields:
+    //   - date: string (required)
+    //   - marketAnalysis: string (required)
+    //   - feelings: string (optional)
+    //   - chartUrls: list (optional)
+    //   - userId: string (required)
+    //   - createdAt: timestamp (required)
+    //
     // ===============================================================
 
     // ===============================================================
@@ -72,6 +81,16 @@ service cloud.firestore {
              data.userId == request.auth.uid;
     }
 
+    function isValidDailyJournal(data) {
+      return data.keys().hasAll(['date', 'marketAnalysis', 'userId', 'createdAt']) &&
+             data.date is string &&
+             data.marketAnalysis is string && data.marketAnalysis.size() < 5000 &&
+             (!('feelings' in data) || (data.feelings is string && data.feelings.size() < 5000)) &&
+             (!('chartUrls' in data) || (data.chartUrls is list && data.chartUrls.size() <= 5)) &&
+             data.userId == request.auth.uid &&
+             data.createdAt is timestamp;
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
@@ -84,6 +103,13 @@ service cloud.firestore {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isAuthenticated() && isValidTrade(request.resource.data);
       allow update: if isDocOwner() && isValidTrade(request.resource.data);
+      allow delete: if isDocOwner();
+    }
+
+    match /daily_journals/{journalId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && isValidDailyJournal(request.resource.data);
+      allow update: if isDocOwner() && isValidDailyJournal(request.resource.data);
       allow delete: if isDocOwner();
     }
   }

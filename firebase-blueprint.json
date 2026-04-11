@@ -1,5 +1,19 @@
 {
   "entities": {
+    "DailyJournal": {
+      "title": "DailyJournal",
+      "description": "General daily market analysis and personal journal",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date", "description": "Date of the journal entry" },
+        "marketAnalysis": { "type": "string", "description": "General market analysis" },
+        "feelings": { "type": "string", "description": "Personal feelings or psychological notes" },
+        "chartUrls": { "type": "array", "items": { "type": "string" }, "description": "TradingView chart image URLs" },
+        "userId": { "type": "string", "description": "Owner UID" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Entry creation time" }
+      },
+      "required": ["date", "marketAnalysis", "userId", "createdAt"]
+    },
     "Trade": {
       "title": "Trade",
       "description": "A single trading position log",
@@ -37,6 +51,10 @@
     }
   },
   "firestore": {
+    "/daily_journals/{journalId}": {
+      "schema": "DailyJournal",
+      "description": "Collection of daily journal entries"
+    },
     "/trades/{tradeId}": {
       "schema": "Trade",
       "description": "Collection of trade logs"
