@@ -1,15 +1,5 @@
 import { Timestamp } from 'firebase/firestore';
 
-export interface DailyJournal {
-  id?: string;
-  date: string;
-  marketAnalysis: string;
-  feelings?: string;
-  chartUrls?: string[];
-  userId: string;
-  createdAt: Timestamp;
-}
-
 export interface Trade {
   id?: string;
   ticket: string;

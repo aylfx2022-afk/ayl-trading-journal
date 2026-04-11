@@ -20,7 +20,6 @@ import TradeList from './components/TradeList';
 import TradeUpload from './components/TradeUpload';
 import Settings from './components/Settings';
 import TradeDetails from './components/TradeDetails';
-import DailyJournal from './components/DailyJournal';
 import { getTradeInsights } from './services/geminiService';
 import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -183,7 +182,6 @@ export default function App() {
         >
           {activeTab === 'dashboard' && <Dashboard trades={trades} insights={insights} />}
           {activeTab === 'history' && <TradeList trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
-          {activeTab === 'daily-journal' && <DailyJournal user={user} />}
           {activeTab === 'upload' && <TradeUpload geminiApiKey={userProfile?.geminiApiKey} />}
           {activeTab === 'settings' && <Settings />}
           {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab('history')} />}
