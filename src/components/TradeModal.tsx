@@ -65,7 +65,7 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
               Trade Details <span className="text-zinc-500 text-sm font-normal">#{trade.ticket}</span>
             </h3>
             <p className="text-xs text-zinc-500 mt-1">
-              {trade.item} • {trade.type.toUpperCase()} • {format(trade.closeTime.toDate(), 'PPP p')}
+              {trade.item} • {trade.type.toUpperCase()}
             </p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors">

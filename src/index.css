@@ -1,1 +1,132 @@
 @import "tailwindcss";
+@import "react-calendar/dist/Calendar.css";
+
+/* Custom Calendar Styles - Matching provided image */
+.react-calendar {
+  background-color: #1a1a1a !important;
+  border: 1px solid #ffffff08 !important;
+  border-radius: 16px !important;
+  font-family: inherit !important;
+  width: 320px !important;
+  padding: 8px !important;
+}
+
+.react-calendar__navigation {
+  display: flex !important;
+  height: 44px !important;
+  margin-bottom: 8px !important;
+  border-bottom: 1px solid #ffffff08 !important;
+}
+
+.react-calendar__navigation button {
+  min-width: 32px !important;
+  background: none !important;
+  color: #eeeeee !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background-color: #ffffff05 !important;
+}
+
+.react-calendar__month-view__weekdays {
+  color: #888888 !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+  text-transform: capitalize !important;
+  margin-bottom: 8px !important;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+  color: #444444 !important;
+}
+
+.react-calendar__tile {
+  background: none !important;
+  color: #eeeeee !important;
+  padding: 10px !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  border-radius: 8px !important;
+  height: 48px !important;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: #ffffff08 !important;
+}
+
+.react-calendar__tile--now {
+  background: none !important;
+  color: #1D72F2 !important;
+  font-weight: 800 !important;
+}
+
+.react-calendar__tile--active {
+  background-color: #1D72F2 !important;
+  color: white !important;
+  border-radius: 8px !important;
+}
+
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+  background-color: #1D72F2 !important;
+}
+
+/* Ant Design Calendar Overrides */
+.antd-calendar-wrapper .ant-picker-calendar-full .ant-picker-panel {
+  background: transparent !important;
+}
+
+.antd-calendar-wrapper .ant-picker-cell {
+  padding: 0 !important;
+}
+
+.antd-calendar-wrapper .ant-picker-cell-inner {
+  height: 120px !important;
+  width: 100% !important;
+  border-radius: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid #ffffff05 !important;
+}
+
+.antd-calendar-wrapper .ant-picker-cell::before {
+  display: none !important;
+}
+
+.antd-calendar-wrapper .ant-picker-cell-selected .ant-picker-cell-inner {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.antd-calendar-wrapper .ant-picker-calendar-date-value,
+.antd-calendar-wrapper .ant-picker-calendar-date-content {
+  display: none !important;
+}
+
+/* Scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #ffffff10;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ffffff20;
+}

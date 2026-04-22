@@ -17,10 +17,10 @@ import { Trade } from './types';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradeList from './components/TradeList';
-import TradeUpload from './components/TradeUpload';
+import CalendarView from './components/CalendarView';
 import Settings from './components/Settings';
 import TradeDetails from './components/TradeDetails';
-import { getTradeInsights } from './services/geminiService';
+import AddTrade from './components/AddTrade';
 import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -30,9 +30,9 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [previousTab, setPreviousTab] = useState('dashboard');
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
-  const [insights, setInsights] = useState<string>('Analyzing your trading performance...');
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
@@ -98,18 +98,6 @@ export default function App() {
     return () => unsubscribe();
   }, [user]);
 
-  useEffect(() => {
-    if (trades.length > 0) {
-      const fetchInsights = async () => {
-        const text = await getTradeInsights(trades, userProfile?.geminiApiKey);
-        setInsights(text);
-      };
-      fetchInsights();
-    } else {
-      setInsights('Import your trading history to get AI-powered insights.');
-    }
-  }, [trades.length, userProfile?.geminiApiKey]);
-
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -143,7 +131,7 @@ export default function App() {
             <TrendingUp className="text-black w-10 h-10" />
           </div>
           
-          <h1 className="text-5xl font-bold tracking-tight mb-4">AYL Trading Journal</h1>
+          <h1 className="text-5xl font-bold tracking-tight mb-4">Trading Journal</h1>
           <p className="text-zinc-500 text-lg mb-12">
             The modern trading journal. Automated logging with AI parsing for MT4/5 history.
           </p>
@@ -171,7 +159,10 @@ export default function App() {
   }
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab} user={user}>
+    <Layout activeTab={activeTab} setActiveTab={(tab) => {
+        if (tab !== 'trade-details') setPreviousTab(tab);
+        setActiveTab(tab);
+    }} user={user}>
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -180,11 +171,13 @@ export default function App() {
           exit={{ opacity: 0, x: -10 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === 'dashboard' && <Dashboard trades={trades} insights={insights} />}
-          {activeTab === 'history' && <TradeList trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
-          {activeTab === 'upload' && <TradeUpload geminiApiKey={userProfile?.geminiApiKey} />}
+          {activeTab === 'dashboard' && <Dashboard trades={trades} />}
+          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
+          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades} />}
+          {activeTab === 'add-trade' && <AddTrade onBack={() => setActiveTab('dashboard')} />}
           {activeTab === 'settings' && <Settings />}
-          {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab('history')} />}
+          {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab(previousTab)} />}
         </motion.div>
       </AnimatePresence>
     </Layout>

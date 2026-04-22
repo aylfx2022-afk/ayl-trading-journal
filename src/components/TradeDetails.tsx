@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { Trade } from '../types';
 import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X } from 'lucide-react';
 import { motion } from 'motion/react';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
+
+import DatePicker from './ui/DatePicker';
 
 interface TradeDetailsProps {
   trade: Trade;
@@ -14,8 +16,37 @@ interface TradeDetailsProps {
 export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [notes, setNotes] = useState(trade.notes || '');
   const [chartUrls, setChartUrls] = useState<string[]>(trade.chartUrls || ['']);
+  const [entryPrice, setEntryPrice] = useState(trade.entryPrice?.toString() || '');
+  const [slPrice, setSlPrice] = useState(trade.slPrice?.toString() || '');
+  const [tpPrice, setTpPrice] = useState(trade.tpPrice?.toString() || '');
+  const [exitPrice, setExitPrice] = useState(trade.exitPrice?.toString() || '');
+  const [rr, setRr] = useState(trade.rr?.toString() || '');
+  const [entryDateTime, setEntryDateTime] = useState<Date | null>(trade.openTime ? trade.openTime.toDate() : null);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+
+  React.useEffect(() => {
+    const entry = parseFloat(entryPrice);
+    const sl = parseFloat(slPrice);
+    const exit = parseFloat(exitPrice);
+    
+    if (isNaN(entry) || isNaN(sl) || isNaN(exit)) {
+      setRr('');
+      return;
+    }
+
+    const risk = Math.abs(entry - sl);
+    if (risk === 0) {
+      setRr('0');
+      return;
+    }
+    
+    const profit = trade.type === 'buy' 
+      ? exit - entry
+      : entry - exit;
+      
+    setRr((profit / risk).toFixed(2));
+  }, [trade.type, entryPrice, slPrice, exitPrice]);
 
   React.useEffect(() => {
     if (textareaRef.current) {
@@ -23,19 +54,6 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
     }
   }, [notes]);
-
-  const isInitialRender = React.useRef(true);
-
-  React.useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false;
-      return;
-    }
-    const timer = setTimeout(() => {
-      handleSave();
-    }, 1000);
-    return () => clearTimeout(timer);
-  }, [notes, chartUrls]);
 
   const handleAddChart = () => {
     if (chartUrls.length < 5) {
@@ -54,6 +72,19 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
     setChartUrls(newUrls);
   };
 
+  const isInitialRender = React.useRef(true);
+
+  React.useEffect(() => {
+    if (isInitialRender.current) {
+      isInitialRender.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [notes, chartUrls, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime]);
+
   const handleSave = async () => {
     if (!trade.id) return;
     setSavingStatus('saving');
@@ -62,7 +93,14 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       const filteredUrls = chartUrls.filter(url => url.trim() !== '');
       await updateDoc(tradeRef, {
         notes,
-        chartUrls: filteredUrls
+        chartUrls: filteredUrls,
+        entryPrice: Number(entryPrice) || 0,
+        slPrice: Number(slPrice) || 0,
+        tpPrice: Number(tpPrice) || 0,
+        exitPrice: exitPrice !== '' ? Number(exitPrice) : null,
+        rr: rr !== '' ? Number(rr) : null,
+        openTime: entryDateTime ? Timestamp.fromDate(entryDateTime) : trade.openTime,
+        closeTime: null
       });
       setSavingStatus('saved');
       setTimeout(() => setSavingStatus('idle'), 2000);
@@ -74,7 +112,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 text-left">
         <button onClick={onBack} className="p-2 hover:bg-white/5 rounded-full transition-colors">
           <ArrowLeft size={24} />
         </button>
@@ -83,27 +121,40 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             Trade Details <span className="text-zinc-500 text-sm font-normal">#{trade.ticket}</span>
           </h2>
           <p className="text-zinc-500 mt-1">
-            {trade.item} • {trade.type.toUpperCase()} • {format(trade.closeTime.toDate(), 'PPP p')}
+            {trade.item} • {trade.type.toUpperCase()}
           </p>
         </div>
       </div>
 
-      <div className="bg-[#0F0F0F] border border-white/10 rounded-3xl p-8 space-y-8">
+      <div className="bg-[#0F0F0F] border border-white/10 rounded-3xl p-8 space-y-8 text-left">
         {/* Trade Summary Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Profit/Loss</p>
-            <p className={`text-lg font-bold ${trade.profit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-              ${trade.profit.toLocaleString()}
-            </p>
+            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">RR</p>
+            <input type="number" step="0.01" value={rr} readOnly className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
           </div>
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
             <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Entry Price</p>
-            <p className="text-lg font-bold text-zinc-200">{trade.openPrice}</p>
+            <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
+          </div>
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-center">
+            <DatePicker 
+              label="Entry Time"
+              value={entryDateTime}
+              onChange={setEntryDateTime}
+            />
+          </div>
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">SL Price</p>
+            <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
+          </div>
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">TP Price</p>
+            <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
           </div>
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
             <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Exit Price</p>
-            <p className="text-lg font-bold text-zinc-200">{trade.closePrice}</p>
+            <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
           </div>
         </div>
 

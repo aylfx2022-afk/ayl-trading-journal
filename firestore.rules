@@ -15,16 +15,14 @@ service cloud.firestore {
     //
     // Collection: trades
     // Fields:
-    //   - ticket: string (required)
-    //   - openTime: timestamp (required)
+    //   - pair: string (required)
     //   - type: string (required, ['buy', 'sell'])
-    //   - size: number (required)
-    //   - item: string (required)
-    //   - openPrice: number (required)
-    //   - closeTime: timestamp (required)
-    //   - closePrice: number (required)
-    //   - profit: number (required)
-    //   - comment: string (optional)
+    //   - entryPrice: number (required)
+    //   - slPrice: number (required)
+    //   - tpPrice: number (required)
+    //   - exitPrice: number (optional)
+    //   - rr: number (optional)
+    //   - notes: string (optional)
     //   - userId: string (required)
     //   - createdAt: timestamp (required)
     //
@@ -59,16 +57,15 @@ service cloud.firestore {
     }
 
     function isValidTrade(data) {
-      return data.keys().hasAll(['ticket', 'openTime', 'type', 'size', 'item', 'openPrice', 'closeTime', 'closePrice', 'profit', 'userId', 'createdAt']) &&
-             data.ticket is string &&
+      return data.keys().hasAll(['pair', 'type', 'entryPrice', 'slPrice', 'tpPrice', 'userId', 'createdAt']) &&
+             data.pair is string &&
              data.type in ['buy', 'sell'] &&
-             data.size is number &&
-             data.item is string &&
-             data.openPrice is number &&
-             data.closePrice is number &&
-             data.profit is number &&
+             data.entryPrice is number &&
+             data.slPrice is number &&
+             data.tpPrice is number &&
+             (!('exitPrice' in data) || data.exitPrice is number || data.exitPrice == null) &&
+             (!('rr' in data) || data.rr is number || data.rr == null) &&
              (!('notes' in data) || data.notes is string) &&
-             (!('chartUrls' in data) || (data.chartUrls is list && data.chartUrls.size() <= 5)) &&
              data.userId == request.auth.uid;
     }
 

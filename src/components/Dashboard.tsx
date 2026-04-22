@@ -1,48 +1,60 @@
 import React, { useMemo } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
 import { Trade } from '../types';
-import { TrendingUp, TrendingDown, Target, Zap, BrainCircuit } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface DashboardProps {
   trades: Trade[];
-  insights: string;
 }
 
 const COLORS = ['#10b981', '#ef4444'];
 
-export default function Dashboard({ trades, insights }: DashboardProps) {
+export default function Dashboard({ trades }: DashboardProps) {
   const stats = useMemo(() => {
     if (trades.length === 0) return null;
 
     const totalProfit = trades.reduce((acc, t) => acc + t.profit, 0);
-    const wins = trades.filter(t => t.profit > 0);
-    const losses = trades.filter(t => t.profit <= 0);
-    const winRate = (wins.length / trades.length) * 100;
+    const closedTrades = trades.filter(t => t.exitPrice !== null && t.exitPrice !== undefined);
+    const totalRR = closedTrades.reduce((acc, t) => acc + (t.rr || 0), 0);
+    const wins = closedTrades.filter(t => (t.rr || 0) > 0);
+    const losses = closedTrades.filter(t => (t.rr || 0) <= 0);
+    const winRate = closedTrades.length > 0 ? (wins.length / closedTrades.length) * 100 : 0;
     
     // Equity curve data
-    let currentEquity = 0;
-    const equityData = trades
-      .sort((a, b) => a.closeTime.toMillis() - b.closeTime.toMillis())
+    let cumulativeRR = 0;
+    const equityData = closedTrades
+      .sort((a, b) => (a.openTime?.toMillis() || 0) - (b.openTime?.toMillis() || 0))
       .map(t => {
-        currentEquity += t.profit;
+        cumulativeRR += (t.rr || 0);
         return {
-          date: format(t.closeTime.toDate(), 'MMM dd'),
-          equity: currentEquity
+          date: t.openTime ? format(t.openTime.toDate(), 'MMM dd') : 'N/A',
+          rr: cumulativeRR
         };
       });
 
+    // Monthly RR data
+    const monthlyRR: Record<string, number> = {};
+    closedTrades.forEach(t => {
+      const month = t.openTime ? format(t.openTime.toDate(), 'MMM yyyy') : 'N/A';
+      monthlyRR[month] = (monthlyRR[month] || 0) + (t.rr || 0);
+    });
+    const monthlyRRData = Object.entries(monthlyRR).map(([month, rr]) => ({ month, rr }));
+
     return {
       totalProfit,
+      totalRR,
       winRate,
       totalTrades: trades.length,
+      closedTrades: closedTrades.length,
       wins: wins.length,
       losses: losses.length,
       equityData,
-      avgProfit: totalProfit / trades.length
+      monthlyRRData,
+      avgProfit: closedTrades.length > 0 ? totalProfit / closedTrades.length : 0
     };
   }, [trades]);
 
@@ -61,39 +73,30 @@ export default function Dashboard({ trades, insights }: DashboardProps) {
   return (
     <div className="space-y-8">
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard 
-          title="Total Profit" 
-          value={`$${stats.totalProfit.toLocaleString(undefined, { minimumFractionDigits: 2 })}`} 
-          icon={<TrendingUp className={stats.totalProfit >= 0 ? 'text-emerald-500' : 'text-red-500'} />}
-          trend={stats.totalProfit >= 0 ? 'positive' : 'negative'}
+          title="Total RR" 
+          value={stats.totalRR.toFixed(2)} 
+          icon={<Target className="text-emerald-500" />}
+          trend={stats.totalRR >= 0 ? 'positive' : 'negative'}
+        />
+        <StatCard 
+          title="Closed Trades" 
+          value={stats.closedTrades.toString()} 
+          icon={<Target className="text-blue-500" />}
         />
         <StatCard 
           title="Win Rate" 
           value={`${stats.winRate.toFixed(1)}%`} 
           icon={<Target className="text-blue-500" />}
         />
-        <StatCard 
-          title="Total Trades" 
-          value={stats.totalTrades.toString()} 
-          icon={<Zap className="text-amber-500" />}
-        />
-        <StatCard 
-          title="Avg. Trade" 
-          value={`$${stats.avgProfit.toFixed(2)}`} 
-          icon={<TrendingUp className="text-purple-500" />}
-        />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Equity Curve */}
-        <div className="lg:col-span-2 p-8 rounded-3xl bg-[#0F0F0F] border border-white/5">
+        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-semibold">Equity Growth</h3>
-            <div className="flex items-center gap-2 text-xs text-zinc-500">
-              <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-              Cumulative Profit
-            </div>
+            <h3 className="text-lg font-semibold">RR Growth</h3>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -105,39 +108,44 @@ export default function Dashboard({ trades, insights }: DashboardProps) {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis 
-                  dataKey="date" 
-                  stroke="#52525b" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                />
-                <YAxis 
-                  stroke="#52525b" 
-                  fontSize={10} 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(v) => `$${v}`}
-                />
+                <XAxis dataKey="date" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }} 
                   itemStyle={{ color: '#10b981' }}
+                  cursor={false}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="equity" 
-                  stroke="#10b981" 
-                  strokeWidth={2}
-                  fillOpacity={1} 
-                  fill="url(#colorEquity)" 
-                />
+                <Area type="monotone" dataKey="rr" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" activeDot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
+        {/* Monthly RR Chart */}
+        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-lg font-semibold">Monthly RR</h3>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={stats.monthlyRRData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <XAxis dataKey="month" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                  cursor={false}
+                />
+                <Bar dataKey="rr" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8">
         {/* Win/Loss Ratio */}
-        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col">
+        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
           <h3 className="text-lg font-semibold mb-8">Win/Loss Ratio</h3>
           <div className="flex-1 flex items-center justify-center">
             <div className="h-[200px] w-full">
@@ -159,6 +167,7 @@ export default function Dashboard({ trades, insights }: DashboardProps) {
                   </Pie>
                   <Tooltip 
                     contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                    cursor={false}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -178,19 +187,6 @@ export default function Dashboard({ trades, insights }: DashboardProps) {
       </div>
 
       {/* AI Insights */}
-      <div className="p-8 rounded-3xl bg-emerald-500/5 border border-emerald-500/10">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-            <BrainCircuit className="text-emerald-500 w-6 h-6" />
-          </div>
-          <h3 className="text-xl font-bold text-emerald-400">AI Trading Insights</h3>
-        </div>
-        <div className="prose prose-invert max-w-none text-zinc-400 leading-relaxed">
-          {insights.split('\n').map((line, i) => (
-            <p key={i} className="mb-2">{line}</p>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

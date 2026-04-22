@@ -4,11 +4,11 @@ export interface Trade {
   id?: string;
   ticket: string;
   openTime: Timestamp;
+  closeTime?: Timestamp | null;
   type: 'buy' | 'sell';
   size: number;
   item: string;
   openPrice: number;
-  closeTime: Timestamp;
   closePrice: number;
   profit: number;
   comment?: string;
@@ -16,6 +16,15 @@ export interface Trade {
   chartUrls?: string[];
   userId: string;
   createdAt: Timestamp;
+  // New fields
+  pair?: string;
+  entryPrice?: number;
+  slPrice?: number;
+  tpPrice?: number;
+  exitPrice?: number;
+  rr?: number;
+  entryDateTime?: Timestamp;
+  exitDateTime?: Timestamp;
 }
 
 export interface UserProfile {
