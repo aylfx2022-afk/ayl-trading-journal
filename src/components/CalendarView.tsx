@@ -14,6 +14,28 @@ export default function CalendarView({ trades }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
   const [panelDate, setPanelDate] = useState<Dayjs>(dayjs());
 
+  // Optimize: Group trades by date and pre-calculate totals to avoid repeated iteration in cell renders
+  const tradesByDate = React.useMemo(() => {
+    const map: Record<string, { trades: Trade[], totalRR: number, isPositive: boolean }> = {};
+    trades.forEach(trade => {
+      if (trade.openTime) {
+        const dateKey = format(trade.openTime.toDate(), 'yyyy-MM-dd');
+        if (!map[dateKey]) {
+          map[dateKey] = { trades: [], totalRR: 0, isPositive: false };
+        }
+        map[dateKey].trades.push(trade);
+        map[dateKey].totalRR += (trade.rr || 0);
+      }
+    });
+
+    // Finalize isPositive for each day
+    Object.values(map).forEach(day => {
+      day.isPositive = day.totalRR >= 0;
+    });
+
+    return map;
+  }, [trades]);
+
   const onSelect = (date: Dayjs) => {
     if (selectedDate && date.isSame(selectedDate, 'day')) {
       setSelectedDate(null);
@@ -36,35 +58,41 @@ export default function CalendarView({ trades }: CalendarViewProps) {
       const weekStart = startOfCalendar.add(i, 'week');
       const weekEnd = weekStart.endOf('week');
       
-      const weeklyTrades = trades.filter(trade => {
-        if (!trade.openTime) return false;
-        const tradeDate = trade.openTime.toDate();
-        return tradeDate >= weekStart.toDate() && tradeDate <= weekEnd.toDate();
-      });
+      let weeklyTradesCount = 0;
+      let weeklyTotalRR = 0;
 
-      const totalRR = weeklyTrades.reduce((acc, t) => acc + (t.rr || 0), 0);
+      // Efficiently aggregate weekly data using pre-calculated map
+      for (let d = 0; d < 7; d++) {
+        const currentDay = weekStart.add(d, 'day');
+        const dateKey = currentDay.format('YYYY-MM-DD');
+        const dayData = tradesByDate[dateKey];
+        if (dayData) {
+          weeklyTradesCount += dayData.trades.length;
+          weeklyTotalRR += dayData.totalRR;
+        }
+      }
       
       weeks.push({
         start: weekStart,
-        tradesCount: weeklyTrades.length,
-        totalRR: totalRR,
-        isPositive: totalRR >= 0
+        tradesCount: weeklyTradesCount,
+        totalRR: weeklyTotalRR,
+        isPositive: weeklyTotalRR >= 0
       });
     }
     return weeks;
-  }, [panelDate, trades]);
+  }, [panelDate, tradesByDate]);
 
-  const tradesForDate = trades.filter(trade => 
-    selectedDate && trade.openTime && isSameDay(trade.openTime.toDate(), selectedDate.toDate())
-  );
+  const dateKey = selectedDate ? selectedDate.format('YYYY-MM-DD') : null;
+  const tradesForDate = dateKey ? (tradesByDate[dateKey]?.trades || []) : [];
 
   const fullCellRender = (value: Dayjs, info: any) => {
     if (info.type !== 'date') return info.originNode;
 
-    const date = value.toDate();
-    const tradesOnDay = trades.filter(trade => trade.openTime && isSameDay(trade.openTime.toDate(), date));
-    const totalRR = tradesOnDay.length > 0 ? tradesOnDay.reduce((acc, t) => acc + (t.rr || 0), 0) : null;
-    const isPositive = totalRR !== null && totalRR >= 0;
+    const currentKey = value.format('YYYY-MM-DD');
+    const dayData = tradesByDate[currentKey];
+    const tradesOnDay = dayData?.trades || [];
+    const totalRR = dayData ? dayData.totalRR : null;
+    const isPositive = dayData ? dayData.isPositive : false;
     const isSelected = selectedDate && value.isSame(selectedDate, 'day');
     const isToday = value.isSame(dayjs(), 'day');
 

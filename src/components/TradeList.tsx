@@ -1,7 +1,10 @@
 import React from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { ArrowUpRight, ArrowDownRight, Search, MessageSquare, Image as ImageIcon, Trash2, AlertCircle } from 'lucide-react';
+import { 
+  ArrowUpRight, ArrowDownRight, Search, MessageSquare, 
+  Trash2, AlertCircle, ChevronUp, ChevronDown, Edit3, Copy, Check
+} from 'lucide-react';
 import { db, auth } from '../firebase';
 import { deleteDoc, doc, writeBatch, collection, query, where, getDocs } from 'firebase/firestore';
 
@@ -12,6 +15,9 @@ interface TradeListProps {
   onSelectTrade: (trade: Trade) => void;
 }
 
+type SortField = 'date' | 'pair' | 'rr' | 'type';
+type SortOrder = 'asc' | 'desc';
+
 export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const [searchTerm, setSearchTerm] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
@@ -19,6 +25,22 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const [endDate, setEndDate] = React.useState<Date | null>(null);
   const [isDeletingAll, setIsDeletingAll] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
+  const [copiedId, setCopiedId] = React.useState<string | null>(null);
+
+  const handleSort = (field: SortField) => {
+    setSortConfig(prev => ({
+      field,
+      order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const handleCopyTicket = (e: React.MouseEvent, ticket: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(ticket);
+    setCopiedId(ticket);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const handleDeleteTrade = async (e: React.MouseEvent, tradeId: string) => {
     e.stopPropagation();
@@ -55,29 +77,61 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
     }
   };
 
-  const filteredTrades = trades.filter(t => {
-    const matchesSearch = t.pair.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = typeFilter === 'all' || t.type === typeFilter;
-    
-    const tradeCreatedAt = t.createdAt?.toDate() || new Date();
-    const matchesStartDate = !startDate || tradeCreatedAt >= startDate;
-    const matchesEndDate = !endDate || tradeCreatedAt <= new Date(endDate.setHours(23, 59, 59, 999));
-    
-    return matchesSearch && matchesType && matchesStartDate && matchesEndDate;
-  }).sort((a, b) => (b.createdAt?.toMillis() || 0) - (a.createdAt?.toMillis() || 0));
+  const filteredTrades = React.useMemo(() => {
+    return trades.filter(t => {
+      const pair = t.pair || t.item || '';
+      const matchesSearch = pair.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                           t.ticket?.toString().includes(searchTerm);
+      const matchesType = typeFilter === 'all' || t.type === typeFilter;
+      
+      const tradeCreatedAt = t.createdAt?.toDate() || new Date();
+      const matchesStartDate = !startDate || tradeCreatedAt >= startDate;
+      const matchesEndDate = !endDate || tradeCreatedAt <= new Date(endDate.setHours(23, 59, 59, 999));
+      
+      return matchesSearch && matchesType && matchesStartDate && matchesEndDate;
+    }).sort((a, b) => {
+      let comparison = 0;
+      switch (sortConfig.field) {
+        case 'date':
+          comparison = (b.openTime?.toMillis() || 0) - (a.openTime?.toMillis() || 0);
+          break;
+        case 'pair':
+          comparison = (a.pair || a.item || '').localeCompare(b.pair || b.item || '');
+          break;
+        case 'rr':
+          comparison = (a.rr || 0) - (b.rr || 0);
+          break;
+        case 'type':
+          comparison = a.type.localeCompare(b.type);
+          break;
+      }
+      return sortConfig.order === 'desc' ? comparison : -comparison;
+    });
+  }, [trades, searchTerm, typeFilter, startDate, endDate, sortConfig]);
+
+  const getStatusBadge = (rr: number) => {
+    if (rr > 0) return <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">PROFIT</span>;
+    if (rr < 0) return <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-500 text-[10px] font-bold">LOSS</span>;
+    return <span className="px-2 py-0.5 rounded-full bg-zinc-500/10 text-zinc-500 text-[10px] font-bold">BE</span>;
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortConfig.field !== field) return null;
+    return sortConfig.order === 'desc' ? <ChevronDown size={14} /> : <ChevronUp size={14} />;
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold capitalize">Positions</h2>
+          <h2 className="text-2xl font-bold capitalize">Trade History</h2>
           {trades.length > 0 && (
             <button 
               onClick={() => setShowDeleteConfirm(true)}
               className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-wider border border-red-500/20"
             >
               <Trash2 size={14} />
-              Clear History
+              Clear All
             </button>
           )}
         </div>
@@ -88,7 +142,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
             <input 
               type="text" 
-              placeholder="Pair name..."
+              placeholder="Search pair or ticket..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/5 focus:border-emerald-500/50 focus:outline-none text-sm w-48 transition-all"
@@ -108,7 +162,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
 
           {/* Created Time Filter */}
           <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 h-10">
-            <span className="text-[10px] uppercase font-bold text-zinc-500">Created</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-500">Range</span>
             <div className="w-32">
               <DatePicker 
                 value={startDate}
@@ -129,17 +183,24 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
       <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#0F0F0F]">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-white/5 text-zinc-500 text-xs uppercase tracking-wider">
-              <th className="px-6 py-4 font-semibold">Pair</th>
-              <th className="px-6 py-4 font-semibold">Type</th>
-              <th className="px-6 py-4 font-semibold">Entry</th>
-              <th className="px-6 py-4 font-semibold">Entry Time</th>
-              <th className="px-6 py-4 font-semibold">SL</th>
-              <th className="px-6 py-4 font-semibold">TP</th>
-              <th className="px-6 py-4 font-semibold">Exit</th>
-              <th className="px-6 py-4 font-semibold">RR</th>
-              <th className="px-6 py-4 font-semibold">Journal</th>
-              <th className="px-6 py-4 font-semibold text-right">Actions</th>
+            <tr className="border-b border-white/5 text-zinc-500 text-[10px] uppercase tracking-wider">
+              <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('pair')}>
+                <div className="flex items-center gap-1">Pair <SortIcon field="pair" /></div>
+              </th>
+              <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('type')}>
+                <div className="flex items-center gap-1">Type <SortIcon field="type" /></div>
+              </th>
+              <th className="px-6 py-4 font-bold">Entry Price</th>
+              <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('date')}>
+                <div className="flex items-center gap-1">Entry Date <SortIcon field="date" /></div>
+              </th>
+              <th className="px-6 py-4 font-bold">Exit Price</th>
+              <th className="px-6 py-4 font-bold">Status</th>
+              <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('rr')}>
+                <div className="flex items-center gap-1">RR <SortIcon field="rr" /></div>
+              </th>
+              <th className="px-6 py-4 font-bold">Journal</th>
+              <th className="px-6 py-4 font-bold text-right">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -149,9 +210,19 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 onClick={() => onSelectTrade(trade)}
                 className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
               >
-                <td className="px-6 py-4 font-bold text-zinc-200">{trade.pair}</td>
                 <td className="px-6 py-4">
-                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                  <div className="flex flex-col">
+                    <span className="font-bold text-zinc-200">{trade.pair || trade.item}</span>
+                    <button 
+                      onClick={(e) => handleCopyTicket(e, trade.ticket)}
+                      className="text-[9px] text-zinc-600 flex items-center gap-1 mt-0.5 hover:text-zinc-400"
+                    >
+                      #{trade.ticket} {copiedId === trade.ticket ? <Check size={8} /> : <Copy size={8} />}
+                    </button>
+                  </div>
+                </td>
+                <td className="px-6 py-4">
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
                     trade.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                   }`}>
                     {trade.type === 'buy' ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
@@ -159,35 +230,55 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.entryPrice?.toFixed(5)}</td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.openTime ? format(trade.openTime.toDate(), 'dd/MM HH:mm') : '-'}</td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.slPrice?.toFixed(5)}</td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.tpPrice?.toFixed(5)}</td>
+                <td className="px-6 py-4 text-sm font-medium text-zinc-400">
+                  {trade.openTime ? format(trade.openTime.toDate(), 'dd/MM/yyyy') : '-'}
+                </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.exitPrice?.toFixed(5) || '-'}</td>
-                <td className="px-6 py-4 text-sm font-bold text-zinc-400">{trade.rr?.toFixed(2) || '-'}</td>
                 <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    {trade.notes && <MessageSquare size={14} className="text-emerald-500/50" />}
-                  </div>
+                  {getStatusBadge(trade.rr || 0)}
+                </td>
+                <td className="px-6 py-4 text-sm font-black text-zinc-200">{trade.rr?.toFixed(2) || '0.00'}</td>
+                <td className="px-6 py-4">
+                  {trade.notes && (
+                    <div className="flex items-center gap-1.5 text-emerald-500/50">
+                      <MessageSquare size={14} />
+                      <span className="text-[10px] font-bold">NOTES</span>
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-right">
-                  <button 
-                    onClick={(e) => handleDeleteTrade(e, trade.id!)}
-                    className="p-2 rounded-lg text-zinc-600 hover:text-red-500 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
-                    title="Delete Trade"
-                  >
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                    <button 
+                      className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
+                      title="View Details"
+                    >
+                      <Edit3 size={16} />
+                    </button>
+                    <button 
+                      onClick={(e) => handleDeleteTrade(e, trade.id!)}
+                      className="p-2 rounded-lg text-zinc-500 hover:text-red-500 hover:bg-red-500/10"
+                      title="Delete Trade"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
             {filteredTrades.length === 0 && (
               <tr>
-                <td colSpan={10} className="px-6 py-12 text-center text-zinc-600 italic">
-                  No trades found matching your search.
+                <td colSpan={9} className="px-6 py-20 text-center">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+                      <Search className="text-zinc-700 w-6 h-6" />
+                    </div>
+                    <p className="text-zinc-500 text-sm italic max-w-xs mx-auto">
+                      No trades found matching your search. Try adjusting your filters or search terms.
+                    </p>
+                  </div>
                 </td>
               </tr>
-            )
-          }
+            )}
           </tbody>
         </table>
       </div>
