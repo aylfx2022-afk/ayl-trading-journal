@@ -113,24 +113,29 @@
   display: none !important;
 }
 
+:root {
+  color-scheme: dark;
+}
+
 /* Global Modern Scrollbar Styling */
-* {
+html, body {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
 
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #0A0A0A;
 }
 
 ::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
+  border: 2px solid #0A0A0A;
   transition: all 0.3s ease;
 }
 
@@ -139,5 +144,5 @@
 }
 
 ::-webkit-scrollbar-corner {
-  background: transparent;
+  background: #0A0A0A;
 }
