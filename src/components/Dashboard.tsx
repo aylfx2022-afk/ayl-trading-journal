@@ -24,17 +24,30 @@ export default function Dashboard({ trades }: DashboardProps) {
     const losses = closedTrades.filter(t => (t.rr || 0) <= 0);
     const winRate = closedTrades.length > 0 ? (wins.length / closedTrades.length) * 100 : 0;
     
-    // Equity curve data
+    // Equity curve data - Aggregated by day
+    const dailyAgg: Record<string, { totalRR: number, dateObj: Date }> = {};
+    
+    closedTrades.forEach(t => {
+      if (!t.openTime) return;
+      const d = t.openTime.toDate();
+      const dateKey = format(d, 'yyyy-MM-dd');
+      if (!dailyAgg[dateKey]) {
+        dailyAgg[dateKey] = { totalRR: 0, dateObj: d };
+      }
+      dailyAgg[dateKey].totalRR += (t.rr || 0);
+    });
+
+    const sortedDates = Object.values(dailyAgg)
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+
     let cumulativeRR = 0;
-    const equityData = closedTrades
-      .sort((a, b) => (a.openTime?.toMillis() || 0) - (b.openTime?.toMillis() || 0))
-      .map(t => {
-        cumulativeRR += (t.rr || 0);
-        return {
-          date: t.openTime ? format(t.openTime.toDate(), 'MMM dd') : 'N/A',
-          rr: cumulativeRR
-        };
-      });
+    const equityData = sortedDates.map(day => {
+      cumulativeRR += day.totalRR;
+      return {
+        date: format(day.dateObj, 'MMM dd'),
+        rr: cumulativeRR
+      };
+    });
 
     // Monthly RR data
     const monthlyRR: Record<string, number> = {};
@@ -114,6 +127,7 @@ export default function Dashboard({ trades }: DashboardProps) {
                   contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }} 
                   itemStyle={{ color: '#10b981' }}
                   cursor={false}
+                  formatter={(value: any) => [Number(value).toFixed(2), "RR"]}
                 />
                 <Area type="monotone" dataKey="rr" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" activeDot={false} />
               </AreaChart>
@@ -135,8 +149,9 @@ export default function Dashboard({ trades }: DashboardProps) {
                 <Tooltip 
                   contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
                   cursor={false}
+                  formatter={(value: any) => [Number(value).toFixed(2), "RR"]}
                 />
-                <Bar dataKey="rr" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="rr" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>

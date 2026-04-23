@@ -111,11 +111,6 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
       <main className="pl-64 min-h-screen">
         <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-10">
           <h1 className="text-2xl font-semibold capitalize">{activeTab.replace('-', ' ')}</h1>
-          <div className="flex items-center gap-4">
-            <div className="px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
-              Live Market Data Active
-            </div>
-          </div>
         </header>
         <div className="p-8">
           {children}

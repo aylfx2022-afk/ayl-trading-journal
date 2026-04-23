@@ -175,16 +175,12 @@ export default function AddTrade({ onBack }: AddTradeProps) {
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-zinc-400">TradingView Chart Links (Max 5)</label>
-            {formData.chartUrls.length < 5 && (
-              <button 
-                type="button"
-                onClick={handleAddChart}
-                className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
-              >
-                + Add Another Chart
-              </button>
-            )}
+            <div className="flex flex-col gap-1">
+              <label className="block text-sm font-medium text-zinc-400">TradingView Chart Links (Max 5)</label>
+              <p className="text-[10px] text-zinc-500 italic">
+                Tip: Use TradingView "Share Image" links. Notion links expire after 1 hour.
+              </p>
+            </div>
           </div>
           {formData.chartUrls.map((url, index) => (
             <div key={index} className="flex gap-2">
@@ -206,6 +202,15 @@ export default function AddTrade({ onBack }: AddTradeProps) {
               )}
             </div>
           ))}
+          {formData.chartUrls.length < 5 && (
+            <button 
+              type="button"
+              onClick={handleAddChart}
+              className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors w-fit px-1"
+            >
+              + Add Another Chart
+            </button>
+          )}
         </div>
         <div className="flex gap-4">
           <button type="button" onClick={onBack} className="flex-1 py-3 rounded-xl bg-white/5 text-zinc-300 font-bold hover:bg-white/10 transition-all">Cancel</button>

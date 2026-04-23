@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
 
 import DatePicker from './ui/DatePicker';
+import ImageViewer from './ImageViewer';
 
 interface TradeDetailsProps {
   trade: Trade;
@@ -23,6 +24,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [rr, setRr] = useState(trade.rr?.toString() || '');
   const [entryDateTime, setEntryDateTime] = useState<Date | null>(trade.openTime ? trade.openTime.toDate() : null);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   React.useEffect(() => {
@@ -110,6 +112,8 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
     }
   };
 
+  const validChartUrls = chartUrls.filter(url => url.trim() !== '');
+
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       <div className="flex items-center gap-4 text-left">
@@ -176,18 +180,15 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         {/* Chart Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-              <ImageIcon size={16} className="text-emerald-500" />
-              TradingView Chart Links (Max 5)
-            </label>
-            {chartUrls.length < 5 && (
-              <button 
-                onClick={handleAddChart}
-                className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
-              >
-                + Add Another Chart
-              </button>
-            )}
+            <div className="flex flex-col gap-1">
+              <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
+                <ImageIcon size={16} className="text-emerald-500" />
+                TradingView Chart Links (Max 5)
+              </label>
+              <p className="text-[10px] text-zinc-500 italic">
+                Tip: Use TradingView "Share Image" links or direct URLs (Imgur, Discord). Notion links may expire.
+              </p>
+            </div>
           </div>
           
           <div className="space-y-3">
@@ -202,14 +203,12 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                     className="flex-1 p-3 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all"
                   />
                   {url && (
-                    <a 
-                      href={url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
+                    <button 
+                      onClick={() => setViewerIndex(validChartUrls.indexOf(url))}
                       className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
                     >
-                      <ExternalLink size={18} />
-                    </a>
+                      <Maximize2 size={18} />
+                    </button>
                   )}
                   {chartUrls.length > 1 && (
                     <button 
@@ -221,20 +220,44 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                   )}
                 </div>
                 {url && (
-                  <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center">
+                  <div 
+                    className="rounded-2xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center cursor-pointer group relative"
+                    onClick={() => setViewerIndex(validChartUrls.indexOf(url))}
+                  >
                     <img 
                       src={url} 
                       alt={`Trade Chart ${index + 1}`} 
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          const errorMsg = document.createElement('div');
+                          errorMsg.className = 'text-center p-4 text-zinc-500 text-xs italic';
+                          errorMsg.innerText = 'Unable to load image. If this is a Notion link, it may have expired. Try TradingView "Share Image" links instead.';
+                          parent.appendChild(errorMsg);
+                        }
                       }}
                     />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="bg-white/10 backdrop-blur-md p-3 rounded-full border border-white/20">
+                        <Maximize2 className="text-white w-6 h-6" />
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
             ))}
+            {chartUrls.length < 5 && (
+              <button 
+                onClick={handleAddChart}
+                className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors w-fit px-1"
+              >
+                + Add Another Chart
+              </button>
+            )}
           </div>
         </div>
 
@@ -245,6 +268,16 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {viewerIndex !== null && (
+          <ImageViewer 
+            images={validChartUrls}
+            initialIndex={viewerIndex}
+            onClose={() => setViewerIndex(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
