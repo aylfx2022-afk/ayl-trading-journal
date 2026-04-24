@@ -146,3 +146,16 @@ html, body {
 ::-webkit-scrollbar-corner {
   background: #0A0A0A;
 }
+
+/* Remove Recharts Focus Outline */
+.recharts-wrapper:focus, 
+.recharts-surface:focus,
+.recharts-legend-wrapper:focus,
+.recharts-sector:focus,
+.recharts-pie:focus {
+  outline: none !important;
+}
+
+svg:focus {
+  outline: none !important;
+}

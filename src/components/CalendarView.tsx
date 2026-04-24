@@ -8,9 +8,10 @@ import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface CalendarViewProps {
   trades: Trade[];
+  onSelectTrade: (trade: Trade) => void;
 }
 
-export default function CalendarView({ trades }: CalendarViewProps) {
+export default function CalendarView({ trades, onSelectTrade }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
   const [panelDate, setPanelDate] = useState<Dayjs>(dayjs());
 
@@ -95,6 +96,7 @@ export default function CalendarView({ trades }: CalendarViewProps) {
     const isPositive = dayData ? dayData.isPositive : false;
     const isSelected = selectedDate && value.isSame(selectedDate, 'day');
     const isToday = value.isSame(dayjs(), 'day');
+    const hasNotes = tradesOnDay.some(t => t.notes);
 
     return (
       <div className={`ant-picker-cell-inner ant-picker-calendar-date transition-all duration-300 h-full flex flex-col cursor-pointer group relative
@@ -115,24 +117,29 @@ export default function CalendarView({ trades }: CalendarViewProps) {
             <span className={`text-sm font-bold ${isToday ? 'bg-emerald-500 text-black w-6 h-6 rounded-full flex items-center justify-center p-0' : 'text-zinc-400'}`}>
               {value.date()}
             </span>
-            {totalRR !== null && (
-              <Badge 
-                count={tradesOnDay.length} 
-                style={{ 
-                  backgroundColor: isPositive ? '#10b981' : '#ef4444',
-                  fontSize: '9px',
-                  height: '14px',
-                  minWidth: '14px',
-                  lineHeight: '14px',
-                  padding: '0 3px',
-                  borderRadius: '4px',
-                  boxShadow: 'none',
-                  border: 'none',
-                  color: '#000',
-                  fontWeight: 'bold'
-                }} 
-              />
-            )}
+            <div className="flex items-center gap-1">
+              {hasNotes && (
+                <div className="w-1 h-1 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.5)]" title="Day has journal notes" />
+              )}
+              {totalRR !== null && (
+                <Badge 
+                  count={tradesOnDay.length} 
+                  style={{ 
+                    backgroundColor: isPositive ? '#10b981' : '#ef4444',
+                    fontSize: '9px',
+                    height: '14px',
+                    minWidth: '14px',
+                    lineHeight: '14px',
+                    padding: '0 3px',
+                    borderRadius: '4px',
+                    boxShadow: 'none',
+                    border: 'none',
+                    color: '#000',
+                    fontWeight: 'bold'
+                  }} 
+                />
+              )}
+            </div>
           </div>
           <div className="flex-1 flex items-end p-2">
             {totalRR !== null && (
@@ -364,16 +371,20 @@ export default function CalendarView({ trades }: CalendarViewProps) {
 
               <div className="space-y-3">
                 {tradesForDate.map(trade => (
-                  <div key={trade.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center group hover:bg-white/[0.08] transition-all cursor-pointer">
+                  <div 
+                    key={trade.id} 
+                    onClick={() => onSelectTrade(trade)}
+                    className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center group hover:bg-white/[0.08] transition-all cursor-pointer"
+                  >
                     <div>
                       <p className="font-bold text-zinc-200">{trade.item}</p>
                       <p className="text-[10px] font-black uppercase text-zinc-500">{trade.type} • {trade.entryPrice}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-black text-sm ${trade.profit >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {trade.profit >= 0 ? '+' : ''}{trade.profit.toFixed(2)}
+                      <p className={`font-black text-sm ${(trade.rr || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                        {(trade.rr || 0) >= 0 ? '+' : ''}{trade.rr?.toFixed(2) || '0.00'}
                       </p>
-                      <p className="text-[10px] text-zinc-600 font-bold">RR: {trade.rr?.toFixed(2) || '0.00'}</p>
+                      <p className="text-[10px] text-zinc-600 font-bold uppercase">RR</p>
                     </div>
                   </div>
                 ))}

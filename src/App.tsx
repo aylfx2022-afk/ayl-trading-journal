@@ -10,7 +10,13 @@ import {
   query, 
   where, 
   onSnapshot,
-  orderBy
+  orderBy,
+  writeBatch,
+  getDocs,
+  doc, 
+  getDoc, 
+  setDoc, 
+  serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { Trade } from './types';
@@ -21,9 +27,8 @@ import CalendarView from './components/CalendarView';
 import Settings from './components/Settings';
 import TradeDetails from './components/TradeDetails';
 import AddTrade from './components/AddTrade';
-import { TrendingUp, ShieldCheck, Zap } from 'lucide-react';
+import { TrendingUp, Trash2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -33,6 +38,8 @@ export default function App() {
   const [previousTab, setPreviousTab] = useState('dashboard');
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeletingAll, setIsDeletingAll] = useState(false);
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
@@ -107,6 +114,29 @@ export default function App() {
     }
   };
 
+  const handleClearAll = async () => {
+    if (!user) return;
+    setIsDeletingAll(true);
+    
+    try {
+      const q = query(collection(db, 'trades'), where('userId', '==', user.uid));
+      const snapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+      setShowDeleteConfirm(false);
+    } catch (error) {
+      console.error("Error deleting all trades:", error);
+      alert("Failed to delete trades. Please check your permissions.");
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
@@ -133,14 +163,8 @@ export default function App() {
           
           <h1 className="text-5xl font-bold tracking-tight mb-4">Trading Journal</h1>
           <p className="text-zinc-500 text-lg mb-12">
-            The modern trading journal. Automated logging with AI parsing for MT4/5 history.
+            သင့်ရဲ့ Trading ခရီးလမ်းကို ပိုမိုကောင်းမွန်စေမယ့် အဆင့်မြင့် Trading Journal။
           </p>
-
-          <div className="space-y-4 mb-12">
-            <FeatureItem icon={<Zap className="text-emerald-500" />} text="Instant MT4/5 HTML parsing" />
-            <FeatureItem icon={<ShieldCheck className="text-emerald-500" />} text="Secure cloud storage" />
-            <FeatureItem icon={<TrendingUp className="text-emerald-500" />} text="AI-powered performance insights" />
-          </div>
 
           <button
             onClick={handleLogin}
@@ -158,11 +182,26 @@ export default function App() {
     );
   }
 
+  const headerActions = activeTab === 'history' && trades.length > 0 ? (
+    <button 
+      onClick={() => setShowDeleteConfirm(true)}
+      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-widest border border-red-500/20 group"
+    >
+      <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+      Clear All History
+    </button>
+  ) : null;
+
   return (
-    <Layout activeTab={activeTab} setActiveTab={(tab) => {
+    <Layout 
+      activeTab={activeTab} 
+      setActiveTab={(tab) => {
         if (tab !== 'trade-details') setPreviousTab(tab);
         setActiveTab(tab);
-    }} user={user}>
+      }} 
+      user={user}
+      headerActions={headerActions}
+    >
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
@@ -174,21 +213,59 @@ export default function App() {
           {activeTab === 'dashboard' && <Dashboard trades={trades} />}
           {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
           {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
-          {activeTab === 'calendar' && <CalendarView trades={trades} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
           {activeTab === 'add-trade' && <AddTrade onBack={() => setActiveTab('dashboard')} />}
           {activeTab === 'settings' && <Settings />}
           {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab(previousTab)} />}
         </motion.div>
       </AnimatePresence>
-    </Layout>
-  );
-}
 
-function FeatureItem({ icon, text }: { icon: React.ReactNode, text: string }) {
-  return (
-    <div className="flex items-center gap-3 text-zinc-400 justify-center">
-      {icon}
-      <span className="text-sm font-medium">{text}</span>
-    </div>
+      {/* Delete All Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-[#141414] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 mx-auto">
+                <AlertCircle className="text-red-500 w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-bold text-center mb-2">Clear All History?</h3>
+              <p className="text-zinc-500 text-center text-sm mb-8">
+                This action cannot be undone. All your trading history will be permanently deleted.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleClearAll}
+                  disabled={isDeletingAll}
+                  className="w-full py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isDeletingAll ? (
+                    <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    'Yes, Delete Everything'
+                  )}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeletingAll}
+                  className="w-full py-3 rounded-xl bg-white/5 text-zinc-300 font-bold hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Layout>
   );
 }

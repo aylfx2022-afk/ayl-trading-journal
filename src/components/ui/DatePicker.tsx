@@ -6,11 +6,13 @@ import { motion, AnimatePresence } from 'motion/react';
 
 interface DatePickerProps {
   value: Date | string | null;
-  onChange: (date: Date) => void;
+  onChange: (date: Date | null) => void;
   label?: string;
+  compact?: boolean;
+  placeholder?: string;
 }
 
-export default function DatePicker({ value, onChange, label }: DatePickerProps) {
+export default function DatePicker({ value, onChange, label, compact, placeholder }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -36,16 +38,18 @@ export default function DatePicker({ value, onChange, label }: DatePickerProps) 
   return (
     <div className="relative w-full" ref={containerRef}>
       {label && <label className="block text-sm font-medium text-zinc-400 mb-2 text-left">{label}</label>}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-zinc-200 hover:border-emerald-500/30 transition-all text-left"
-      >
-        <span className="truncate">
-          {dateValue ? format(dateValue, 'MMM dd, yyyy') : 'Select date...'}
-        </span>
-        <CalendarIcon size={18} className="text-zinc-500 shrink-0" />
-      </button>
+      <div className="relative flex items-center group">
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className={`w-full flex items-center justify-between bg-white/[0.02] border border-white/5 rounded-xl ${compact ? 'px-2 py-1.5 h-8' : 'px-4 py-3'} text-zinc-200 hover:border-emerald-500/30 transition-all text-left overflow-hidden`}
+        >
+          <span className={`truncate ${compact ? 'text-[11px]' : 'text-sm'}`}>
+            {dateValue ? format(dateValue, compact ? 'dd/MM/yy' : 'MMM dd, yyyy') : (placeholder || 'Select date...')}
+          </span>
+          {!compact && <CalendarIcon size={18} className="text-zinc-500 shrink-0 ml-2" />}
+        </button>
+      </div>
 
       <AnimatePresence>
         {isOpen && (

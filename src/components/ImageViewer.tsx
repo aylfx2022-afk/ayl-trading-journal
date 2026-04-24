@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   X, 
   ZoomIn, 
@@ -21,34 +21,83 @@ export default function ImageViewer({ images, initialIndex, onClose }: ImageView
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [startPan, setStartPan] = useState({ x: 0, y: 0 });
+  const isDraggedRef = useRef(false);
 
   const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % images.length);
     setZoom(1);
     setIsZoomed(false);
+    setPosition({ x: 0, y: 0 });
   }, [images.length]);
 
   const handlePrev = useCallback(() => {
     setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
     setZoom(1);
     setIsZoomed(false);
+    setPosition({ x: 0, y: 0 });
   }, [images.length]);
 
-  const toggleZoom = () => {
+  const toggleZoom = (e: React.MouseEvent) => {
+    // If we were dragging, don't toggle zoom
+    if (isDraggedRef.current) {
+      isDraggedRef.current = false;
+      return;
+    }
+    
     if (isZoomed) {
       setZoom(1);
       setIsZoomed(false);
+      setPosition({ x: 0, y: 0 });
     } else {
       setZoom(2);
       setIsZoomed(true);
     }
   };
 
-  const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.5, 5));
-  const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.5, 1));
+  const handleZoomIn = () => {
+    setZoom(prev => Math.min(prev + 0.5, 5));
+    setIsZoomed(true);
+  };
+  
+  const handleZoomOut = () => {
+    const newZoom = Math.max(zoom - 0.5, 1);
+    setZoom(newZoom);
+    if (newZoom === 1) {
+      setIsZoomed(false);
+      setPosition({ x: 0, y: 0 });
+    }
+  };
+
   const handleReset = () => {
     setZoom(1);
     setIsZoomed(false);
+    setPosition({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoom > 1) {
+      setIsDragging(true);
+      isDraggedRef.current = false;
+      setStartPan({ x: e.clientX - position.x, y: e.clientY - position.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoom > 1) {
+      isDraggedRef.current = true;
+      setPosition({
+        x: e.clientX - startPan.x,
+        y: e.clientY - startPan.y
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    // Note: We don't reset isDraggedRef here because toggleZoom needs to check it
   };
 
   useEffect(() => {
@@ -67,6 +116,9 @@ export default function ImageViewer({ images, initialIndex, onClose }: ImageView
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-[200] bg-[#000000f2] flex flex-col items-center justify-center select-none"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseUp}
     >
       {/* Top Control Bar */}
       <div className="fixed top-6 right-6 z-[210] flex items-center gap-2">
@@ -114,15 +166,20 @@ export default function ImageViewer({ images, initialIndex, onClose }: ImageView
 
       {/* Image Display */}
       <div 
-        className="w-full h-full p-12 overflow-hidden flex items-center justify-center cursor-zoom-in"
+        className={`w-full h-full p-12 overflow-hidden flex items-center justify-center ${zoom > 1 ? (isDragging ? 'cursor-grabbing' : 'cursor-grab') : 'cursor-zoom-in'}`}
         onClick={toggleZoom}
+        onMouseDown={handleMouseDown}
       >
         <motion.img
           key={currentIndex}
           src={images[currentIndex]}
           alt={`Trade Chart ${currentIndex + 1}`}
-          animate={{ scale: zoom }}
-          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+          animate={{ 
+            scale: zoom,
+            x: position.x,
+            y: position.y
+          }}
+          transition={isDragging ? { duration: 0 } : { type: "spring", damping: 25, stiffness: 200 }}
           className="max-w-full max-h-full object-contain shadow-2xl pointer-events-none"
           referrerPolicy="no-referrer"
         />

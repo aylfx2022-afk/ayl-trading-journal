@@ -8,9 +8,10 @@ interface LayoutProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   user: any;
+  headerActions?: React.ReactNode;
 }
 
-export default function Layout({ children, activeTab, setActiveTab, user }: LayoutProps) {
+export default function Layout({ children, activeTab, setActiveTab, user, headerActions }: LayoutProps) {
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-emerald-500/30">
       {/* Sidebar */}
@@ -109,8 +110,9 @@ export default function Layout({ children, activeTab, setActiveTab, user }: Layo
 
       {/* Main Content */}
       <main className="pl-64 min-h-screen">
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-10">
+        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
           <h1 className="text-2xl font-semibold capitalize">{activeTab.replace('-', ' ')}</h1>
+          {headerActions && <div>{headerActions}</div>}
         </header>
         <div className="p-8">
           {children}

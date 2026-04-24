@@ -1,12 +1,9 @@
 import React from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { 
-  ArrowUpRight, ArrowDownRight, Search, MessageSquare, 
-  Trash2, AlertCircle, ChevronUp, ChevronDown, Edit3, Copy, Check
-} from 'lucide-react';
-import { db, auth } from '../firebase';
-import { deleteDoc, doc, writeBatch, collection, query, where, getDocs } from 'firebase/firestore';
+import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Copy, Check, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { db } from '../firebase';
+import { deleteDoc, doc } from 'firebase/firestore';
 
 import DatePicker from './ui/DatePicker';
 
@@ -23,8 +20,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
   const [startDate, setStartDate] = React.useState<Date | null>(null);
   const [endDate, setEndDate] = React.useState<Date | null>(null);
-  const [isDeletingAll, setIsDeletingAll] = React.useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
   const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
@@ -54,29 +49,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
     }
   };
 
-  const handleDeleteAll = async () => {
-    if (!auth.currentUser) return;
-    setIsDeletingAll(true);
-    
-    try {
-      const q = query(collection(db, 'trades'), where('userId', '==', auth.currentUser.uid));
-      const snapshot = await getDocs(q);
-      
-      const batch = writeBatch(db);
-      snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
-      });
-      
-      await batch.commit();
-      setShowDeleteConfirm(false);
-    } catch (error) {
-      console.error("Error deleting all trades:", error);
-      alert("Failed to delete trades. Please check your permissions.");
-    } finally {
-      setIsDeletingAll(false);
-    }
-  };
-
   const filteredTrades = React.useMemo(() => {
     return trades.filter(t => {
       const pair = t.pair || t.item || '';
@@ -84,9 +56,16 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                            t.ticket?.toString().includes(searchTerm);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       
-      const tradeCreatedAt = t.createdAt?.toDate() || new Date();
-      const matchesStartDate = !startDate || tradeCreatedAt >= startDate;
-      const matchesEndDate = !endDate || tradeCreatedAt <= new Date(endDate.setHours(23, 59, 59, 999));
+      const tradeDate = t.openTime?.toDate() || t.createdAt?.toDate() || new Date();
+      
+      const matchesStartDate = !startDate || tradeDate >= startDate;
+      
+      let matchesEndDate = true;
+      if (endDate) {
+        const endOfDay = new Date(endDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        matchesEndDate = tradeDate <= endOfDay;
+      }
       
       return matchesSearch && matchesType && matchesStartDate && matchesEndDate;
     }).sort((a, b) => {
@@ -125,15 +104,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold capitalize">Trade History</h2>
-          {trades.length > 0 && (
-            <button 
-              onClick={() => setShowDeleteConfirm(true)}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-wider border border-red-500/20"
-            >
-              <Trash2 size={14} />
-              Clear All
-            </button>
-          )}
         </div>
         
         <div className="flex flex-wrap items-center gap-3">
@@ -161,21 +131,38 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
           </select>
 
           {/* Created Time Filter */}
-          <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 h-10">
-            <span className="text-[10px] uppercase font-bold text-zinc-500">Range</span>
-            <div className="w-32">
-              <DatePicker 
-                value={startDate}
-                onChange={setStartDate}
-              />
+          <div className="flex items-center gap-1.5 bg-white/5 border border-white/5 rounded-xl px-2.5 h-10 group/range">
+            <CalendarIcon size={14} className="text-zinc-600 group-hover/range:text-emerald-500 transition-colors" />
+            
+            <div className="flex items-center gap-1">
+              <div className="w-24">
+                <DatePicker 
+                  value={startDate}
+                  onChange={setStartDate}
+                  compact={true}
+                  placeholder="Start"
+                />
+              </div>
+              <span className="text-zinc-700 text-[10px] font-bold">-</span>
+              <div className="w-24">
+                <DatePicker 
+                  value={endDate}
+                  onChange={setEndDate}
+                  compact={true}
+                  placeholder="End"
+                />
+              </div>
             </div>
-            <span className="text-zinc-700">to</span>
-            <div className="w-32">
-              <DatePicker 
-                value={endDate}
-                onChange={setEndDate}
-              />
-            </div>
+
+            {(startDate || endDate) && (
+              <button 
+                onClick={() => { setStartDate(null); setEndDate(null); }}
+                className="p-1 rounded-md text-zinc-600 hover:text-white hover:bg-white/10 transition-all ml-1"
+                title="Clear Dates"
+              >
+                <X size={12} />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -272,9 +259,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                     <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
                       <Search className="text-zinc-700 w-6 h-6" />
                     </div>
-                    <p className="text-zinc-500 text-sm italic max-w-xs mx-auto">
-                      No trades found matching your search. Try adjusting your filters or search terms.
-                    </p>
                   </div>
                 </td>
               </tr>
@@ -282,41 +266,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
           </tbody>
         </table>
       </div>
-
-      {/* Delete All Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#141414] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl">
-            <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 mx-auto">
-              <AlertCircle className="text-red-500 w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-bold text-center mb-2">Clear All History?</h3>
-            <p className="text-zinc-500 text-center text-sm mb-8">
-              This action cannot be undone. All your trading history will be permanently deleted.
-            </p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleDeleteAll}
-                disabled={isDeletingAll}
-                className="w-full py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {isDeletingAll ? (
-                  <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                ) : (
-                  'Yes, Delete Everything'
-                )}
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={isDeletingAll}
-                className="w-full py-3 rounded-xl bg-white/5 text-zinc-300 font-bold hover:bg-white/10 transition-all"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
