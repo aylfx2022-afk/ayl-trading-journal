@@ -9,10 +9,10 @@ import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 interface CalendarViewProps {
   trades: Trade[];
   onSelectTrade: (trade: Trade) => void;
+  onSelectDay: (date: Dayjs) => void;
 }
 
-export default function CalendarView({ trades, onSelectTrade }: CalendarViewProps) {
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(dayjs());
+export default function CalendarView({ trades, onSelectTrade, onSelectDay }: CalendarViewProps) {
   const [panelDate, setPanelDate] = useState<Dayjs>(dayjs());
 
   // Optimize: Group trades by date and pre-calculate totals to avoid repeated iteration in cell renders
@@ -38,11 +38,7 @@ export default function CalendarView({ trades, onSelectTrade }: CalendarViewProp
   }, [trades]);
 
   const onSelect = (date: Dayjs) => {
-    if (selectedDate && date.isSame(selectedDate, 'day')) {
-      setSelectedDate(null);
-    } else {
-      setSelectedDate(date);
-    }
+    onSelectDay(date);
   };
 
   const onPanelChange = (value: Dayjs) => {
@@ -83,9 +79,6 @@ export default function CalendarView({ trades, onSelectTrade }: CalendarViewProp
     return weeks;
   }, [panelDate, tradesByDate]);
 
-  const dateKey = selectedDate ? selectedDate.format('YYYY-MM-DD') : null;
-  const tradesForDate = dateKey ? (tradesByDate[dateKey]?.trades || []) : [];
-
   const fullCellRender = (value: Dayjs, info: any) => {
     if (info.type !== 'date') return info.originNode;
 
@@ -94,7 +87,6 @@ export default function CalendarView({ trades, onSelectTrade }: CalendarViewProp
     const tradesOnDay = dayData?.trades || [];
     const totalRR = dayData ? dayData.totalRR : null;
     const isPositive = dayData ? dayData.isPositive : false;
-    const isSelected = selectedDate && value.isSame(selectedDate, 'day');
     const isToday = value.isSame(dayjs(), 'day');
     const hasNotes = tradesOnDay.some(t => t.notes);
 
@@ -105,13 +97,7 @@ export default function CalendarView({ trades, onSelectTrade }: CalendarViewProp
           : 'hover:bg-white/[0.03]'
         } 
         border border-white/[0.03]
-        ${isSelected ? 'ring-2 ring-inset ring-zinc-500/50 z-10' : ''}
       `}>
-        {/* Selection Highlight Overlay (10% white tint) */}
-        {isSelected && (
-          <div className="absolute inset-0 bg-white/10 pointer-events-none z-0" />
-        )}
-        
         <div className="relative z-10 flex flex-col h-full">
           <div className="flex justify-between items-start p-2">
             <span className={`text-sm font-bold ${isToday ? 'bg-emerald-500 text-black w-6 h-6 rounded-full flex items-center justify-center p-0' : 'text-zinc-400'}`}>
@@ -275,7 +261,6 @@ export default function CalendarView({ trades, onSelectTrade }: CalendarViewProp
             <div className="flex-1 antd-calendar-wrapper custom-calendar">
               <Calendar 
                 fullscreen={true}
-                value={selectedDate || undefined}
                 onSelect={onSelect}
                 onPanelChange={onPanelChange}
                 fullCellRender={fullCellRender}
@@ -335,69 +320,6 @@ export default function CalendarView({ trades, onSelectTrade }: CalendarViewProp
               </div>
             </div>
           </div>
-        </div>
-        
-        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 min-h-[400px]">
-          <div className="flex flex-col gap-1 mb-8">
-            <h3 className="text-xl font-bold">
-              {selectedDate ? selectedDate.format('MMM DD, YYYY') : 'Select a date'}
-            </h3>
-            <p className="text-zinc-500 text-sm">
-              {selectedDate ? 'Daily Performance Summary' : 'Click a date to see trade details'}
-            </p>
-          </div>
-
-          {!selectedDate ? (
-            <div className="py-20 text-center">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 grayscale opacity-20">
-                <CalendarDays className="text-zinc-400 w-8 h-8" />
-              </div>
-              <p className="text-zinc-500 text-sm italic">Choose a specific date on the calendar above to view your trading performance for that day.</p>
-            </div>
-          ) : tradesForDate.length > 0 ? (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 mb-2">
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <p className="text-[10px] text-zinc-500 uppercase font-black mb-1">Trades</p>
-                  <p className="text-lg font-bold">{tradesForDate.length}</p>
-                </div>
-                <div className="p-3 rounded-2xl bg-white/5 border border-white/5">
-                  <p className="text-[10px] text-zinc-500 uppercase font-black mb-1">Total RR</p>
-                  <p className={`text-lg font-bold ${tradesForDate.reduce((acc, t) => acc + (t.rr || 0), 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {tradesForDate.reduce((acc, t) => acc + (t.rr || 0), 0).toFixed(2)}
-                  </p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {tradesForDate.map(trade => (
-                  <div 
-                    key={trade.id} 
-                    onClick={() => onSelectTrade(trade)}
-                    className="p-4 rounded-2xl bg-white/5 border border-white/5 flex justify-between items-center group hover:bg-white/[0.08] transition-all cursor-pointer"
-                  >
-                    <div>
-                      <p className="font-bold text-zinc-200">{trade.item}</p>
-                      <p className="text-[10px] font-black uppercase text-zinc-500">{trade.type} • {trade.entryPrice}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-black text-sm ${(trade.rr || 0) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                        {(trade.rr || 0) >= 0 ? '+' : ''}{trade.rr?.toFixed(2) || '0.00'}
-                      </p>
-                      <p className="text-[10px] text-zinc-600 font-bold uppercase">RR</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="py-20 text-center">
-              <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                <Badge status="default" />
-              </div>
-              <p className="text-zinc-500 text-sm italic">No trading activity recorded for this date.</p>
-            </div>
-          )}
         </div>
       </div>
     </ConfigProvider>

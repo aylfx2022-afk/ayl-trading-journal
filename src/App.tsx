@@ -26,7 +26,10 @@ import TradeList from './components/TradeList';
 import CalendarView from './components/CalendarView';
 import Settings from './components/Settings';
 import TradeDetails from './components/TradeDetails';
+import DayDetails from './components/DayDetails';
 import AddTrade from './components/AddTrade';
+import { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { TrendingUp, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -37,6 +40,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [previousTab, setPreviousTab] = useState('dashboard');
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
+  const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
@@ -190,7 +194,7 @@ export default function App() {
       <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
       Clear All History
     </button>
-  ) : (activeTab === 'trade-details' || activeTab === 'add-trade') ? (
+  ) : (activeTab === 'trade-details' || activeTab === 'add-trade' || activeTab === 'day-details') ? (
     <button 
       onClick={() => setActiveTab(activeTab === 'add-trade' ? 'dashboard' : previousTab)}
       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
@@ -221,7 +225,8 @@ export default function App() {
           {activeTab === 'dashboard' && <Dashboard trades={trades} />}
           {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
           {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
-          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); setActiveTab('day-details'); }} />}
+          {activeTab === 'day-details' && <DayDetails date={selectedDay} trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} onBack={() => setActiveTab('calendar')} />}
           {activeTab === 'add-trade' && <AddTrade onBack={() => setActiveTab('dashboard')} />}
           {activeTab === 'settings' && <Settings />}
           {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab(previousTab)} />}
