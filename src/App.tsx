@@ -27,7 +27,7 @@ import CalendarView from './components/CalendarView';
 import Settings from './components/Settings';
 import TradeDetails from './components/TradeDetails';
 import AddTrade from './components/AddTrade';
-import { TrendingUp, Trash2, AlertCircle } from 'lucide-react';
+import { TrendingUp, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -189,6 +189,14 @@ export default function App() {
     >
       <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
       Clear All History
+    </button>
+  ) : (activeTab === 'trade-details' || activeTab === 'add-trade') ? (
+    <button 
+      onClick={() => setActiveTab(activeTab === 'add-trade' ? 'dashboard' : previousTab)}
+      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
+    >
+      <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+      Back
     </button>
   ) : null;
 

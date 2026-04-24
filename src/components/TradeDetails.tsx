@@ -116,10 +116,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
-      <div className="flex items-center gap-4 text-left">
-        <button onClick={onBack} className="p-2 hover:bg-white/5 rounded-full transition-colors">
-          <ArrowLeft size={24} />
-        </button>
+      <div className="text-left">
         <div>
           <h2 className="text-3xl font-bold flex items-center gap-2">
             Trade Details <span className="text-zinc-500 text-sm font-normal">#{trade.ticket}</span>

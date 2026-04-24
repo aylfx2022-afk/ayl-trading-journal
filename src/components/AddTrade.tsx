@@ -213,8 +213,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
           )}
         </div>
         <div className="flex gap-4">
-          <button type="button" onClick={onBack} className="flex-1 py-3 rounded-xl bg-white/5 text-zinc-300 font-bold hover:bg-white/10 transition-all">Cancel</button>
-          <button type="submit" disabled={status === 'saving'} className="flex-1 py-3 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all flex items-center justify-center gap-2">
+          <button type="submit" disabled={status === 'saving'} className="w-full py-4 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all flex items-center justify-center gap-2">
             {status === 'saving' ? 'Saving...' : <><Save size={18} /> Save Trade</>}
           </button>
         </div>
