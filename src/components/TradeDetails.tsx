@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2, GripVertical } from 'lucide-react';
+import { motion, AnimatePresence, Reorder } from 'motion/react';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
@@ -16,7 +16,11 @@ interface TradeDetailsProps {
 
 export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [notes, setNotes] = useState(trade.notes || '');
-  const [chartUrls, setChartUrls] = useState<string[]>(trade.chartUrls || ['']);
+  const [charts, setCharts] = useState<{id: string, url: string}[]>(
+    (trade.chartUrls && trade.chartUrls.length > 0) 
+      ? trade.chartUrls.map((url, i) => ({ id: `chart-${i}-${Date.now()}`, url }))
+      : [{ id: `chart-0-${Date.now()}`, url: '' }]
+  );
   const [entryPrice, setEntryPrice] = useState(trade.entryPrice?.toString() || '');
   const [slPrice, setSlPrice] = useState(trade.slPrice?.toString() || '');
   const [tpPrice, setTpPrice] = useState(trade.tpPrice?.toString() || '');
@@ -58,20 +62,18 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   }, [notes]);
 
   const handleAddChart = () => {
-    if (chartUrls.length < 5) {
-      setChartUrls([...chartUrls, '']);
+    if (charts.length < 5) {
+      setCharts([...charts, { id: `chart-${Date.now()}`, url: '' }]);
     }
   };
 
-  const handleRemoveChart = (index: number) => {
-    const newUrls = chartUrls.filter((_, i) => i !== index);
-    setChartUrls(newUrls.length > 0 ? newUrls : ['']);
+  const handleRemoveChart = (id: string) => {
+    const newCharts = charts.filter((c) => c.id !== id);
+    setCharts(newCharts.length > 0 ? newCharts : [{ id: `chart-${Date.now()}`, url: '' }]);
   };
 
-  const handleChartUrlChange = (index: number, value: string) => {
-    const newUrls = [...chartUrls];
-    newUrls[index] = value;
-    setChartUrls(newUrls);
+  const handleChartUrlChange = (id: string, value: string) => {
+    setCharts(charts.map(c => c.id === id ? { ...c, url: value } : c));
   };
 
   const isInitialRender = React.useRef(true);
@@ -85,14 +87,14 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       handleSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [notes, chartUrls, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime]);
+  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime]);
 
   const handleSave = async () => {
     if (!trade.id) return;
     setSavingStatus('saving');
     try {
       const tradeRef = doc(db, 'trades', trade.id);
-      const filteredUrls = chartUrls.filter(url => url.trim() !== '');
+      const filteredUrls = charts.map(c => c.url).filter(url => url.trim() !== '');
       await updateDoc(tradeRef, {
         notes,
         chartUrls: filteredUrls,
@@ -112,7 +114,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
     }
   };
 
-  const validChartUrls = chartUrls.filter(url => url.trim() !== '');
+  const validChartUrls = charts.map(c => c.url).filter(url => url.trim() !== '');
 
   return (
     <div className="max-w-4xl mx-auto space-y-8">
@@ -188,42 +190,57 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             </div>
           </div>
           
-          <div className="space-y-3">
-            {chartUrls.map((url, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex gap-2">
+          <Reorder.Group axis="y" values={charts} onReorder={setCharts} className="space-y-3">
+            {charts.map((chart) => (
+              <Reorder.Item 
+                key={chart.id} 
+                value={chart} 
+                className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl relative z-0"
+                whileDrag={{ 
+                  scale: 0.9, 
+                  zIndex: 50,
+                  backgroundColor: "rgba(255, 255, 255, 0.08)",
+                  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+                  opacity: 0.9
+                }}
+                transition={{ type: "spring", stiffness: 400, damping: 40 }}
+              >
+                <div className="flex gap-2 items-center">
+                  <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-600 hover:text-zinc-400">
+                    <GripVertical size={20} />
+                  </div>
                   <input
                     type="text"
-                    value={url}
-                    onChange={(e) => handleChartUrlChange(index, e.target.value)}
-                    placeholder={`Chart URL ${index + 1} (https://www.tradingview.com/x/...)`}
+                    value={chart.url}
+                    onChange={(e) => handleChartUrlChange(chart.id, e.target.value)}
+                    placeholder={`Chart URL (https://www.tradingview.com/x/...)`}
                     className="flex-1 p-3 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all"
                   />
-                  {url && (
+                  {chart.url && (
                     <button 
-                      onClick={() => setViewerIndex(validChartUrls.indexOf(url))}
+                      onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
                       className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
                     >
                       <Maximize2 size={18} />
                     </button>
                   )}
-                  {chartUrls.length > 1 && (
+                  {charts.length > 1 && (
                     <button 
-                      onClick={() => handleRemoveChart(index)}
+                      onClick={() => handleRemoveChart(chart.id)}
                       className="p-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
                     >
                       <X size={18} />
                     </button>
                   )}
                 </div>
-                {url && (
+                {chart.url && (
                   <div 
                     className="rounded-2xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center cursor-pointer group relative"
-                    onClick={() => setViewerIndex(validChartUrls.indexOf(url))}
+                    onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
                   >
                     <img 
-                      src={url} 
-                      alt={`Trade Chart ${index + 1}`} 
+                      src={chart.url} 
+                      alt="Trade Chart" 
                       className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
@@ -245,9 +262,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                     </div>
                   </div>
                 )}
-              </div>
+              </Reorder.Item>
             ))}
-            {chartUrls.length < 5 && (
+            {charts.length < 5 && (
               <button 
                 onClick={handleAddChart}
                 className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors w-fit px-1"
@@ -255,7 +272,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                 + Add Another Chart
               </button>
             )}
-          </div>
+          </Reorder.Group>
         </div>
 
         <div className="flex justify-between items-center pt-4">

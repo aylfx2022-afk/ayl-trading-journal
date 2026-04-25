@@ -37,8 +37,33 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     return map;
   }, [trades]);
 
-  const onSelect = (date: Dayjs) => {
-    onSelectDay(date);
+  const monthlyStats = React.useMemo(() => {
+    const currentMonth = panelDate.month();
+    const currentYear = panelDate.year();
+    
+    const monthlyTrades = trades.filter(trade => {
+      if (!trade.openTime) return false;
+      const date = trade.openTime.toDate();
+      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+    });
+
+    const totalTrades = monthlyTrades.length;
+    const totalRR = monthlyTrades.reduce((acc, t) => acc + (t.rr || 0), 0);
+    const wins = monthlyTrades.filter(t => (t.rr || 0) > 0).length;
+    const winRate = totalTrades > 0 ? (wins / totalTrades) * 100 : 0;
+
+    return {
+      totalTrades,
+      totalRR,
+      winRate,
+      isPositive: totalRR >= 0
+    };
+  }, [panelDate, trades]);
+
+  const onSelect = (date: Dayjs, info: { source: string }) => {
+    if (info.source === 'date') {
+      onSelectDay(date);
+    }
   };
 
   const onPanelChange = (value: Dayjs) => {
@@ -150,18 +175,22 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     const end = 12;
     const monthOptions = [];
 
-    const current = currentViewDate.clone();
+    const current = currentViewDate.clone().date(1);
     const localeData = currentViewDate.localeData();
-    const months = [];
-    for (let i = 0; i < 12; i++) {
-      current.month(i);
-      months.push(localeData.monthsShort(current));
+    const months = localeData.monthsShort() || [];
+    
+    // If localeData.monthsShort() didn't return an array, fallback to manual generation
+    const monthsList = Array.isArray(months) && months.length === 12 ? months : [];
+    if (monthsList.length === 0) {
+      for (let i = 0; i < 12; i++) {
+        monthsList.push(current.month(i).format('MMM'));
+      }
     }
 
     for (let i = start; i < end; i++) {
       monthOptions.push(
         <Select.Option key={i} value={i} className="month-item">
-          {months[i]}
+          {monthsList[i]}
         </Select.Option>,
       );
     }
@@ -255,7 +284,26 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     >
       <div className="grid grid-cols-1 gap-8">
         <div className="p-4 rounded-3xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-          <h3 className="text-lg font-bold mb-4 px-2 tracking-tight">Trading Calendar</h3>
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 px-2 gap-4">
+            <h3 className="text-lg font-bold tracking-tight">Trading Calendar</h3>
+            
+            <div className="flex items-center gap-6">
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none mb-1">Trades</span>
+                <span className="text-sm font-bold text-zinc-300">{monthlyStats.totalTrades}</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none mb-1">Monthly RR</span>
+                <span className={`text-sm font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(2)}
+                </span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none mb-1">Win Rate</span>
+                <span className="text-sm font-bold text-zinc-300">{monthlyStats.winRate.toFixed(1)}%</span>
+              </div>
+            </div>
+          </div>
           
           <div className="flex">
             <div className="flex-1 antd-calendar-wrapper custom-calendar">
