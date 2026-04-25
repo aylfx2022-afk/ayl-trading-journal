@@ -67,7 +67,14 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
                   </div>
                   <div>
                     <p className="font-bold text-zinc-200 text-lg group-hover:text-emerald-400 transition-colors">{trade.item}</p>
-                    <p className="text-xs font-medium text-zinc-500">Entry: {trade.entryPrice}</p>
+                    <div className="flex flex-wrap gap-1.5 mt-1">
+                      <span className="text-[10px] font-medium text-zinc-500">Entry: {trade.entryPrice}</span>
+                      {trade.tags?.map((tag, i) => (
+                        <span key={i} className="text-[9px] font-bold text-emerald-500/60 flex items-center">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">

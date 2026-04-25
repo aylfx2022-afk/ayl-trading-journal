@@ -25,6 +25,7 @@ export interface Trade {
   rr?: number;
   entryDateTime?: Timestamp;
   exitDateTime?: Timestamp;
+  tags?: string[];
 }
 
 export interface UserProfile {

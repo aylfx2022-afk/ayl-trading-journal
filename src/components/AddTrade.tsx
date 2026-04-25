@@ -5,6 +5,8 @@ import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 import DatePicker from './ui/DatePicker';
+import TagInput from './ui/TagInput';
+import MarkdownEditor from './MarkdownEditor';
 
 interface AddTradeProps {
   onBack: () => void;
@@ -20,6 +22,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
     exitPrice: '' as any,
     rr: '' as any,
     notes: '',
+    tags: [] as string[],
     chartUrls: [''],
     entryDateTime: new Date()
   });
@@ -84,6 +87,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
         profit: 0,
         type: formData.type,
         notes: formData.notes,
+        tags: formData.tags,
         chartUrls: formData.chartUrls.filter(url => url.trim() !== ''),
         userId: auth.currentUser.uid,
         createdAt: Timestamp.now(),
@@ -110,68 +114,149 @@ export default function AddTrade({ onBack }: AddTradeProps) {
     <div className="w-full">
       <h2 className="text-3xl font-bold mb-8">New Trade</h2>
       <form onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-3xl p-8 space-y-6 w-full text-left">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <DatePicker 
-              label="Entry Date & Time"
-              value={formData.entryDateTime}
-              onChange={date => setFormData({...formData, entryDateTime: date})}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">Pair Name</label>
+        <div className="flex flex-col gap-5 max-w-2xl mx-auto">
+          {/* 1. Pair Name */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">Pair Name</label>
             <select 
               required 
               value={formData.pair} 
               onChange={e => setFormData({...formData, pair: e.target.value})} 
-              className="w-full bg-[#18181b] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200 uppercase cursor-pointer"
+              className="w-full max-w-[400px] bg-[#18181b] border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200 uppercase cursor-pointer"
             >
               <option value="">Select a pair</option>
-              {['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'NZD/USD', 'USD/CAD', 'EUR/GBP', 'EUR/JPY', 'GBP/JPY'].map(pair => (
-                <option key={pair} value={pair}>{pair}</option>
-              ))}
+              <optgroup label="Forex Majors" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
+                {['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'NZD/USD', 'USD/CAD'].map(pair => (
+                  <option key={pair} value={pair} className="text-zinc-200">{pair}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Forex Crosses" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
+                {['EUR/GBP', 'EUR/JPY', 'GBP/JPY', 'EUR/AUD', 'EUR/CAD', 'EUR/CHF', 'EUR/NZD', 'GBP/AUD', 'GBP/CAD', 'GBP/CHF', 'GBP/NZD', 'AUD/JPY', 'AUD/CAD', 'AUD/CHF', 'AUD/NZD', 'CAD/JPY', 'CHF/JPY', 'NZD/JPY', 'NZD/CAD', 'NZD/CHF', 'CAD/CHF'].map(pair => (
+                  <option key={pair} value={pair} className="text-zinc-200">{pair}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Metals & Indices" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
+                {['XAU/USD', 'XAG/USD', 'US30', 'NAS100', 'SPX500', 'GER40'].map(pair => (
+                  <option key={pair} value={pair} className="text-zinc-200">{pair}</option>
+                ))}
+              </optgroup>
             </select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">Type</label>
-            <select 
-              value={formData.type} 
-              onChange={e => setFormData({...formData, type: e.target.value as 'buy' | 'sell'})} 
-              className={`w-full border rounded-xl px-4 py-3 focus:outline-none transition-all cursor-pointer font-bold ${
-                formData.type === 'buy' 
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20' 
-                  : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20'
-              }`}
-            >
-              <option value="buy" className="bg-[#18181b] text-emerald-500">Buy</option>
-              <option value="sell" className="bg-[#18181b] text-red-500">Sell</option>
-            </select>
+
+          {/* 2. Entry Date & Time */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">Entry Date & Time</label>
+            <div className="w-full max-w-[400px]">
+              <DatePicker 
+                value={formData.entryDateTime}
+                onChange={date => setFormData({...formData, entryDateTime: date})}
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">Entry Price</label>
-            <input type="number" step="0.00001" required value={formData.entryPrice} onChange={e => setFormData({...formData, entryPrice: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" />
+
+          {/* 3. Type */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">Type</label>
+            <div className="w-full max-w-[400px]">
+              <select 
+                value={formData.type} 
+                onChange={e => setFormData({...formData, type: e.target.value as 'buy' | 'sell'})} 
+                className={`w-full border rounded-xl px-4 py-3 focus:outline-none transition-all cursor-pointer font-bold ${
+                  formData.type === 'buy' 
+                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500/20' 
+                    : 'bg-red-500/10 border-red-500/20 text-red-500 hover:bg-red-500/20'
+                }`}
+              >
+                <option value="buy" className="bg-[#18181b] text-emerald-500">BUY</option>
+                <option value="sell" className="bg-[#18181b] text-red-500">SELL</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">SL Price</label>
-            <input type="number" step="0.00001" required value={formData.slPrice} onChange={e => setFormData({...formData, slPrice: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" />
+
+          {/* 4. Entry Price */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">Entry Price</label>
+            <input 
+              type="number" 
+              step="0.00001" 
+              required 
+              value={formData.entryPrice} 
+              onChange={e => setFormData({...formData, entryPrice: e.target.value})} 
+              className="w-full max-w-[400px] bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" 
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">TP Price</label>
-            <input type="number" step="0.00001" required value={formData.tpPrice} onChange={e => setFormData({...formData, tpPrice: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" />
+
+          {/* 5. SL Price */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">SL Price</label>
+            <input 
+              type="number" 
+              step="0.00001" 
+              required 
+              value={formData.slPrice} 
+              onChange={e => setFormData({...formData, slPrice: e.target.value})} 
+              className="w-full max-w-[400px] bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-red-500/50 text-zinc-200" 
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">Exit Price</label>
-            <input type="number" step="0.00001" value={formData.exitPrice} onChange={e => setFormData({...formData, exitPrice: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" />
+
+          {/* 6. TP Price */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">TP Price</label>
+            <input 
+              type="number" 
+              step="0.00001" 
+              required 
+              value={formData.tpPrice} 
+              onChange={e => setFormData({...formData, tpPrice: e.target.value})} 
+              className="w-full max-w-[400px] bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" 
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-zinc-400 mb-2">RR</label>
-            <input type="number" step="0.1" readOnly value={formData.rr} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-zinc-400 cursor-not-allowed" />
+
+          {/* 7. Exit Price */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">Exit Price</label>
+            <input 
+              type="number" 
+              step="0.00001" 
+              value={formData.exitPrice} 
+              onChange={e => setFormData({...formData, exitPrice: e.target.value})} 
+              className="w-full max-w-[400px] bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200" 
+              placeholder="Optional"
+            />
+          </div>
+
+          {/* 8. RR */}
+          <div className="flex items-center justify-between gap-6">
+            <label className="text-xs font-black uppercase text-zinc-500 tracking-widest whitespace-nowrap min-w-[140px]">Risk Reward (RR)</label>
+            <input 
+              type="number" 
+              step="0.1" 
+              readOnly 
+              value={formData.rr} 
+              className="w-full max-w-[400px] bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-zinc-400 cursor-not-allowed font-bold" 
+            />
           </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-zinc-400 mb-2">Comments</label>
-          <textarea value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200 h-24" />
-        </div>
+
+        <div className="max-w-2xl mx-auto space-y-6 pt-4 border-t border-white/5">
+          <div>
+            <label className="block text-xs font-black uppercase text-zinc-500 tracking-widest mb-3">Comments (Markdown supported)</label>
+            <MarkdownEditor 
+              value={formData.notes} 
+              onChange={val => setFormData({...formData, notes: val})}
+              placeholder="Why did you take this trade? What did you learn? (Supports Markdown)"
+              minHeight="160px"
+            />
+          </div>
+
+          <div className="pt-4 border-t border-white/5">
+            <label className="block text-xs font-black uppercase text-zinc-500 tracking-widest mb-3"># Strategy & Category Tags</label>
+            <TagInput 
+              tags={formData.tags} 
+              onChange={tags => setFormData({...formData, tags})} 
+              placeholder="e.g. Scalp, Strategy1, Win" 
+            />
+          </div>
         
         <div className="space-y-4">
           <div className="flex items-center justify-between">
@@ -219,6 +304,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
         </div>
         {status === 'success' && <div className="flex items-center gap-2 text-emerald-500 text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
         {status === 'error' && <div className="flex items-center gap-2 text-red-500 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
+        </div>
       </form>
     </div>
   );

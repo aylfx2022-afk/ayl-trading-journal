@@ -7,7 +7,9 @@ import { db } from '../firebase';
 import { format } from 'date-fns';
 
 import DatePicker from './ui/DatePicker';
+import TagInput from './ui/TagInput';
 import ImageViewer from './ImageViewer';
+import MarkdownEditor from './MarkdownEditor';
 
 interface TradeDetailsProps {
   trade: Trade;
@@ -16,6 +18,8 @@ interface TradeDetailsProps {
 
 export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [notes, setNotes] = useState(trade.notes || '');
+  const [pair, setPair] = useState(trade.item || '');
+  const [tags, setTags] = useState<string[]>(trade.tags || []);
   const [charts, setCharts] = useState<{id: string, url: string}[]>(
     (trade.chartUrls && trade.chartUrls.length > 0) 
       ? trade.chartUrls.map((url, i) => ({ id: `chart-${i}-${Date.now()}`, url }))
@@ -29,7 +33,6 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [entryDateTime, setEntryDateTime] = useState<Date | null>(trade.openTime ? trade.openTime.toDate() : null);
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   React.useEffect(() => {
     const entry = parseFloat(entryPrice);
@@ -53,13 +56,6 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       
     setRr((profit / risk).toFixed(2));
   }, [trade.type, entryPrice, slPrice, exitPrice]);
-
-  React.useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px';
-    }
-  }, [notes]);
 
   const handleAddChart = () => {
     if (charts.length < 5) {
@@ -87,7 +83,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       handleSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime]);
+  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags]);
 
   const handleSave = async () => {
     if (!trade.id) return;
@@ -97,6 +93,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       const filteredUrls = charts.map(c => c.url).filter(url => url.trim() !== '');
       await updateDoc(tradeRef, {
         notes,
+        tags,
+        item: pair,
+        pair: pair,
         chartUrls: filteredUrls,
         entryPrice: Number(entryPrice) || 0,
         slPrice: Number(slPrice) || 0,
@@ -124,7 +123,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             Trade Details <span className="text-zinc-500 text-sm font-normal">#{trade.ticket}</span>
           </h2>
           <p className="text-zinc-500 mt-1">
-            {trade.item} • {trade.type.toUpperCase()}
+            {pair} • {trade.type.toUpperCase()}
           </p>
         </div>
       </div>
@@ -132,6 +131,30 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       <div className="bg-[#0F0F0F] border border-white/10 rounded-3xl p-8 space-y-8 text-left">
         {/* Trade Summary Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Pair</p>
+            <select 
+              value={pair} 
+              onChange={e => setPair(e.target.value)} 
+              className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none cursor-pointer uppercase"
+            >
+              <optgroup label="Forex Majors" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
+                {['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'NZD/USD', 'USD/CAD'].map(p => (
+                  <option key={p} value={p} className="text-zinc-200">{p}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Forex Crosses" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
+                {['EUR/GBP', 'EUR/JPY', 'GBP/JPY', 'EUR/AUD', 'EUR/CAD', 'EUR/CHF', 'EUR/NZD', 'GBP/AUD', 'GBP/CAD', 'GBP/CHF', 'GBP/NZD', 'AUD/JPY', 'AUD/CAD', 'AUD/CHF', 'AUD/NZD', 'CAD/JPY', 'CHF/JPY', 'NZD/JPY', 'NZD/CAD', 'NZD/CHF', 'CAD/CHF'].map(p => (
+                  <option key={p} value={p} className="text-zinc-200">{p}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Metals & Indices" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
+                {['XAU/USD', 'XAG/USD', 'US30', 'NAS100', 'SPX500', 'GER40'].map(p => (
+                  <option key={p} value={p} className="text-zinc-200">{p}</option>
+                ))}
+              </optgroup>
+            </select>
+          </div>
           <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
             <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">RR</p>
             <input type="number" step="0.01" value={rr} readOnly className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
@@ -162,17 +185,28 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         </div>
 
         {/* Notes Section */}
-        <div className="space-y-3">
-          <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
+        <div className="space-y-4">
+          <label className="flex items-center gap-2 text-xs font-black uppercase text-zinc-500 tracking-widest px-1">
             <MessageSquare size={16} className="text-emerald-500" />
-            Trade Notes & Journal
+            Trade Notes & Journal (Markdown supported)
           </label>
-          <textarea
-            ref={textareaRef}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Why did you take this trade? What did you learn?"
-            className="w-full min-h-[128px] p-4 rounded-2xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all resize-none overflow-hidden"
+          <MarkdownEditor 
+            value={notes} 
+            onChange={setNotes}
+            placeholder="Why did you take this trade? What did you learn? (Supports Markdown)"
+            minHeight="180px"
+          />
+        </div>
+
+        {/* Tags Section */}
+        <div className="space-y-4 pt-4 border-t border-white/5">
+          <label className="flex items-center gap-2 text-xs font-black uppercase text-zinc-500 tracking-widest px-1">
+            # Strategy & Category Tags
+          </label>
+          <TagInput 
+            tags={tags} 
+            onChange={setTags} 
+            placeholder="e.g. Scalp, Strategy1, Win" 
           />
         </div>
 

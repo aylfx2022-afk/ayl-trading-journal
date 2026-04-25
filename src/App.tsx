@@ -64,8 +64,10 @@ export default function App() {
               createdAt: serverTimestamp()
             });
           }
-        } catch (error) {
-          console.error("Error initializing user profile:", error);
+        } catch (error: any) {
+          if (!error.message?.includes('offline')) {
+            console.error("Error initializing user profile:", error);
+          }
         }
 
         unsubscribeProfile = onSnapshot(userDocRef, (doc) => {

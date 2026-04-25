@@ -52,8 +52,10 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const filteredTrades = React.useMemo(() => {
     return trades.filter(t => {
       const pair = t.pair || t.item || '';
+      const tagsStr = (t.tags || []).join(' ');
       const matchesSearch = pair.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           t.ticket?.toString().includes(searchTerm);
+                           t.ticket?.toString().includes(searchTerm) ||
+                           tagsStr.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       
       const tradeDate = t.openTime?.toDate() || t.createdAt?.toDate() || new Date();
@@ -206,6 +208,15 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                     >
                       #{trade.ticket} {copiedId === trade.ticket ? <Check size={8} /> : <Copy size={8} />}
                     </button>
+                    {trade.tags && trade.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-1.5">
+                        {trade.tags.map((tag, i) => (
+                          <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm bg-emerald-500/10 text-emerald-500/70 border border-emerald-500/10 transition-colors hover:bg-emerald-500/20">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </td>
                 <td className="px-6 py-4">
