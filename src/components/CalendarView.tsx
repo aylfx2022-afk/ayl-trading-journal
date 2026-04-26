@@ -188,32 +188,46 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
       <div style={{ padding: '4px 8px' }}>
         <Row gutter={4} justify="space-between" align="middle">
           <Col>
-            <div className="flex items-center gap-2">
-              <Button 
-                shape="circle" 
-                size="small" 
-                icon={<ChevronLeft size={16} />} 
-                onClick={() => onChange(currentViewDate.clone().subtract(1, 'month'))}
-                className="bg-white/5 border-white/10 hover:bg-white/10 flex items-center justify-center"
-              />
-              <Button 
-                size="small" 
-                onClick={() => onChange(dayjs())}
-                className="bg-white/5 border-white/10 hover:bg-white/10 text-xs px-3"
-              >
-                Today
-              </Button>
-              <Button 
-                shape="circle" 
-                size="small" 
-                icon={<ChevronRight size={16} />} 
-                onClick={() => onChange(currentViewDate.clone().add(1, 'month'))}
-                className="bg-white/5 border-white/10 hover:bg-white/10 flex items-center justify-center"
-              />
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-black text-zinc-300">
+                {currentViewDate.format('MMMM, YYYY')}
+              </span>
+              <div className="flex items-center gap-1">
+                <Button 
+                  shape="circle" 
+                  size="small" 
+                  icon={<ChevronLeft size={16} />} 
+                  onClick={() => onChange(currentViewDate.clone().subtract(1, 'month'))}
+                  className="bg-white/5 border-white/10 hover:bg-white/10 flex items-center justify-center"
+                />
+                <Button 
+                  size="small" 
+                  onClick={() => onChange(dayjs())}
+                  className="bg-white/5 border-white/10 hover:bg-white/10 text-xs px-2"
+                >
+                  Today
+                </Button>
+                <Button 
+                  shape="circle" 
+                  size="small" 
+                  icon={<ChevronRight size={16} />} 
+                  onClick={() => onChange(currentViewDate.clone().add(1, 'month'))}
+                  className="bg-white/5 border-white/10 hover:bg-white/10 flex items-center justify-center"
+                />
+              </div>
             </div>
           </Col>
           <Col>
-            <Row gutter={8}>
+            <Row gutter={16} align="middle">
+              <Col>
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500">
+                  <span>Tr: <span className="text-zinc-300">{monthlyStats.totalTrades}</span></span>
+                  <span>WR: <span className="text-zinc-300">{monthlyStats.winRate.toFixed(0)}%</span></span>
+                  <span>RR: <span className={`${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                    {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
+                  </span></span>
+                </div>
+              </Col>
               <Col>
                 <Select
                   size="small"
@@ -262,31 +276,6 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     >
       <div className="grid grid-cols-1 gap-4">
         <div className="p-2 rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-          <div className="p-4 mb-4 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <h3 className="text-sm font-black tracking-tight flex items-center gap-2 text-zinc-300">
-              <CalendarDays size={16} className="text-emerald-500" />
-              {panelDate.format('YYYY, MMMM')}
-            </h3>
-            
-            <div className="flex items-center gap-2 sm:gap-6">
-              <div className="flex flex-col items-center px-2">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Trades</span>
-                <span className="text-xs font-bold text-zinc-400">{monthlyStats.totalTrades}</span>
-              </div>
-              <div className="flex flex-col items-center px-2 border-l border-white/10">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Win Rate</span>
-                <span className="text-xs font-bold text-zinc-400">{monthlyStats.winRate.toFixed(1)}%</span>
-              </div>
-              <div className="flex flex-col items-center px-2 border-l border-white/10">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Month RR</span>
-                <span className={`text-xs font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
-                </span>
-              </div>
-            </div>
-          </div>
-
-
           <div className="flex">
             <div className="flex-1 antd-calendar-wrapper custom-calendar compact-calendar">
               <Calendar 
