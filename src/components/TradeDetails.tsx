@@ -128,15 +128,15 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         </div>
       </div>
 
-      <div className="bg-[#0F0F0F] border border-white/10 rounded-3xl p-8 space-y-8 text-left">
-        {/* Trade Summary Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Pair</p>
+      <div className="bg-[#0F0F0F] border border-white/10 rounded-2xl p-6 space-y-6 text-left">
+        {/* Section 1: Main Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Pair</p>
             <select 
               value={pair} 
               onChange={e => setPair(e.target.value)} 
-              className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none cursor-pointer uppercase"
+              className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50 cursor-pointer uppercase"
             >
               <optgroup label="Forex Majors" className="bg-[#18181b] text-zinc-500 text-xs uppercase font-bold">
                 {['EUR/USD', 'GBP/USD', 'USD/JPY', 'USD/CHF', 'AUD/USD', 'NZD/USD', 'USD/CAD'].map(p => (
@@ -155,121 +155,122 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               </optgroup>
             </select>
           </div>
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">RR</p>
-            <input type="number" step="0.01" value={rr} readOnly className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
+          
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Entry</p>
+            <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
           </div>
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Entry Price</p>
-            <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
+
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">SL</p>
+            <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-red-500/50" />
           </div>
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col justify-center">
+
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">TP</p>
+            <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Exit</p>
+            <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+          </div>
+
+          <div className="space-y-1.5">
+            <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">RR</p>
+            <input type="number" step="0.01" value={rr} readOnly className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-400 focus:outline-none cursor-not-allowed" />
+          </div>
+
+          <div className="space-y-1.5 overflow-hidden">
             <DatePicker 
-              label="Entry Time"
+              label="Time"
               value={entryDateTime}
               onChange={setEntryDateTime}
+              compact
             />
           </div>
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">SL Price</p>
-            <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
+        </div>
+
+        {/* Section 2: Notes & Tags */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+              <MessageSquare size={14} className="text-emerald-500" />
+              Trade Notes
+            </label>
+            <MarkdownEditor 
+              value={notes} 
+              onChange={setNotes}
+              placeholder="Analysis notes..."
+              minHeight="140px"
+            />
           </div>
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">TP Price</p>
-            <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
-          </div>
-          <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-            <p className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Exit Price</p>
-            <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-transparent text-lg font-bold text-zinc-200 focus:outline-none" />
+
+          <div className="space-y-3">
+            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+              # Tags
+            </label>
+            <TagInput 
+              tags={tags} 
+              onChange={setTags} 
+              placeholder="Strategy, news..." 
+            />
           </div>
         </div>
 
-        {/* Notes Section */}
-        <div className="space-y-4">
-          <label className="flex items-center gap-2 text-xs font-black uppercase text-zinc-500 tracking-widest px-1">
-            <MessageSquare size={16} className="text-emerald-500" />
-            Trade Notes & Journal (Markdown supported)
-          </label>
-          <MarkdownEditor 
-            value={notes} 
-            onChange={setNotes}
-            placeholder="Why did you take this trade? What did you learn? (Supports Markdown)"
-            minHeight="180px"
-          />
-        </div>
-
-        {/* Tags Section */}
+        {/* Section 3: Charts */}
         <div className="space-y-4 pt-4 border-t border-white/5">
-          <label className="flex items-center gap-2 text-xs font-black uppercase text-zinc-500 tracking-widest px-1">
-            # Strategy & Category Tags
+          <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+            <ImageIcon size={14} className="text-emerald-500" />
+            Chart Links (Max 5)
           </label>
-          <TagInput 
-            tags={tags} 
-            onChange={setTags} 
-            placeholder="e.g. Scalp, Strategy1, Win" 
-          />
-        </div>
-
-        {/* Chart Section */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
-                <ImageIcon size={16} className="text-emerald-500" />
-                TradingView Chart Links (Max 5)
-              </label>
-              <p className="text-[10px] text-zinc-500 italic">
-                Tip: Use TradingView "Share Image" links or direct URLs (Imgur, Discord). Notion links may expire.
-              </p>
-            </div>
-          </div>
           
           <Reorder.Group axis="y" values={charts} onReorder={setCharts} className="space-y-3">
             {charts.map((chart) => (
               <Reorder.Item 
                 key={chart.id} 
                 value={chart} 
-                className="space-y-2 bg-white/[0.02] border border-white/5 p-4 rounded-2xl relative z-0"
+                className="space-y-2 bg-white/[0.02] border border-white/5 p-3 rounded-xl relative z-0"
                 whileDrag={{ 
-                  scale: 0.9, 
+                  scale: 0.98, 
                   zIndex: 50,
                   backgroundColor: "rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
                   opacity: 0.9
                 }}
                 transition={{ type: "spring", stiffness: 400, damping: 40 }}
               >
                 <div className="flex gap-2 items-center">
                   <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-600 hover:text-zinc-400">
-                    <GripVertical size={20} />
+                    <GripVertical size={16} />
                   </div>
                   <input
                     type="text"
                     value={chart.url}
                     onChange={(e) => handleChartUrlChange(chart.id, e.target.value)}
-                    placeholder={`Chart URL (https://www.tradingview.com/x/...)`}
-                    className="flex-1 p-3 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all"
+                    placeholder="TradingView image URL..."
+                    className="flex-1 p-2 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-xs text-zinc-300 transition-all"
                   />
                   {chart.url && (
                     <button 
                       onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
-                      className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                      className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
                     >
-                      <Maximize2 size={18} />
+                      <Maximize2 size={14} />
                     </button>
                   )}
                   {charts.length > 1 && (
                     <button 
                       onClick={() => handleRemoveChart(chart.id)}
-                      className="p-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                      className="p-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
                     >
-                      <X size={18} />
+                      <X size={14} />
                     </button>
                   )}
                 </div>
                 {chart.url && (
                   <div 
-                    className="rounded-2xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center cursor-pointer group relative"
+                    className="rounded-xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center cursor-pointer group relative"
                     onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
                   >
                     <img 
@@ -284,14 +285,14 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                         if (parent) {
                           const errorMsg = document.createElement('div');
                           errorMsg.className = 'text-center p-4 text-zinc-500 text-xs italic';
-                          errorMsg.innerText = 'Unable to load image. If this is a Notion link, it may have expired. Try TradingView "Share Image" links instead.';
+                          errorMsg.innerText = 'Unable to load image.';
                           parent.appendChild(errorMsg);
                         }
                       }}
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="bg-white/10 backdrop-blur-md p-3 rounded-full border border-white/20">
-                        <Maximize2 className="text-white w-6 h-6" />
+                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-white/20">
+                        <Maximize2 className="text-white w-4 h-4" />
                       </div>
                     </div>
                   </div>
@@ -301,18 +302,19 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             {charts.length < 5 && (
               <button 
                 onClick={handleAddChart}
-                className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors w-fit px-1"
+                className="flex items-center justify-center border border-dashed border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all bg-white/[0.01] w-full"
               >
-                + Add Another Chart
+                + Add Chart Link
               </button>
             )}
           </Reorder.Group>
         </div>
 
-        <div className="flex justify-between items-center pt-4">
-          <div className="text-sm text-zinc-500">
-            {savingStatus === 'saving' && 'Saving...'}
-            {savingStatus === 'saved' && 'Saved'}
+        <div className="flex justify-between items-center pt-2 border-t border-white/5">
+          <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 px-1">
+            {savingStatus === 'saving' && <span className="text-emerald-500/70 animate-pulse">Saving Changes...</span>}
+            {savingStatus === 'saved' && <span className="text-emerald-500">All Changes Saved</span>}
+            {savingStatus === 'idle' && 'Last entry auto-saved'}
           </div>
         </div>
       </div>

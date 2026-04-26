@@ -98,6 +98,10 @@
   border: 1px solid #ffffff05 !important;
 }
 
+.antd-calendar-wrapper.compact-calendar .ant-picker-cell-inner {
+  height: 90px !important;
+}
+
 .antd-calendar-wrapper .ant-picker-cell::before {
   display: none !important;
 }

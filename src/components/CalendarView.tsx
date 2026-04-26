@@ -118,48 +118,32 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     return (
       <div className={`ant-picker-cell-inner ant-picker-calendar-date transition-all duration-300 h-full flex flex-col cursor-pointer group relative
         ${totalRR !== null 
-          ? (isPositive ? 'bg-emerald-500/20 shadow-[inset_0_0_20px_rgba(16,185,129,0.05)]' : 'bg-red-500/20 shadow-[inset_0_0_20px_rgba(239,68,68,0.05)]') 
-          : 'hover:bg-white/[0.03]'
+          ? (isPositive ? 'bg-emerald-500/15 shadow-[inset_0_0_15px_rgba(16,185,129,0.03)]' : 'bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.03)]') 
+          : 'hover:bg-white/[0.02]'
         } 
-        border border-white/[0.03]
+        border border-white/[0.02]
       `}>
         <div className="relative z-10 flex flex-col h-full">
-          <div className="flex justify-between items-start p-2">
-            <span className={`text-sm font-bold ${isToday ? 'bg-emerald-500 text-black w-6 h-6 rounded-full flex items-center justify-center p-0' : 'text-zinc-400'}`}>
+          <div className="flex justify-between items-start p-1.5">
+            <span className={`text-xs font-bold ${isToday ? 'bg-emerald-500 text-black w-5 h-5 rounded-full flex items-center justify-center p-0' : 'text-zinc-500'}`}>
               {value.date()}
             </span>
             <div className="flex items-center gap-1">
               {hasNotes && (
-                <div className="w-1 h-1 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.5)]" title="Day has journal notes" />
+                <div className="w-1 h-1 rounded-full bg-emerald-400/70" title="Day has notes" />
               )}
               {totalRR !== null && (
-                <Badge 
-                  count={tradesOnDay.length} 
-                  style={{ 
-                    backgroundColor: isPositive ? '#10b981' : '#ef4444',
-                    fontSize: '9px',
-                    height: '14px',
-                    minWidth: '14px',
-                    lineHeight: '14px',
-                    padding: '0 3px',
-                    borderRadius: '4px',
-                    boxShadow: 'none',
-                    border: 'none',
-                    color: '#000',
-                    fontWeight: 'bold'
-                  }} 
-                />
+                <div className={`text-[8px] font-black px-1 rounded-sm ${isPositive ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white'}`}>
+                  {tradesOnDay.length}
+                </div>
               )}
             </div>
           </div>
-          <div className="flex-1 flex items-end p-2">
+          <div className="flex-1 flex items-end p-1.5">
             {totalRR !== null && (
               <div className="flex flex-col">
-                <span className={`text-xs font-black leading-none ${isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {isPositive ? '+' : ''}{totalRR.toFixed(2)}
-                </span>
-                <span className={`text-[8px] font-bold uppercase ${isPositive ? 'text-emerald-500/50' : 'text-red-400/50'}`}>
-                  RR
+                <span className={`text-[10px] font-black leading-none ${isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                  {isPositive ? '+' : ''}{totalRR.toFixed(1)}
                 </span>
               </div>
             )}
@@ -207,8 +191,8 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     }
 
     return (
-      <div style={{ padding: 16 }}>
-        <Row gutter={12} justify="space-between" align="middle">
+      <div style={{ padding: '8px 12px' }}>
+        <Row gutter={8} justify="space-between" align="middle">
           <Col>
             <div className="flex items-center gap-2">
               <Button 
@@ -282,31 +266,34 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
         },
       }}
     >
-      <div className="grid grid-cols-1 gap-8">
-        <div className="p-4 rounded-3xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 px-2 gap-4">
-            <h3 className="text-lg font-bold tracking-tight">Trading Calendar</h3>
+      <div className="grid grid-cols-1 gap-6">
+        <div className="p-3 rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 px-2 gap-3">
+            <h3 className="text-base font-black tracking-tight flex items-center gap-2">
+              <CalendarDays size={18} className="text-emerald-500" />
+              Calendar
+            </h3>
             
-            <div className="flex items-center gap-6">
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none mb-1">Trades</span>
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center px-4">
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Trades</span>
                 <span className="text-sm font-bold text-zinc-300">{monthlyStats.totalTrades}</span>
               </div>
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none mb-1">Monthly RR</span>
-                <span className={`text-sm font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(2)}
-                </span>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-[10px] font-black uppercase text-zinc-600 leading-none mb-1">Win Rate</span>
+              <div className="flex flex-col items-center px-4 border-l border-white/5">
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Win Rate</span>
                 <span className="text-sm font-bold text-zinc-300">{monthlyStats.winRate.toFixed(1)}%</span>
+              </div>
+              <div className="flex flex-col items-center px-4 border-l border-white/5">
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Month RR</span>
+                <span className={`text-sm font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}
+                </span>
               </div>
             </div>
           </div>
           
           <div className="flex">
-            <div className="flex-1 antd-calendar-wrapper custom-calendar">
+            <div className="flex-1 antd-calendar-wrapper custom-calendar compact-calendar">
               <Calendar 
                 fullscreen={true}
                 onSelect={onSelect}
@@ -318,11 +305,11 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
             </div>
             
             {/* Weekly Summary Column */}
-            <div className="hidden lg:flex flex-col w-[120px] border-l border-white/[0.03] -mt-[6px]">
+            <div className="hidden lg:flex flex-col w-[80px] border-l border-white/[0.03] -mt-[6px]">
               {/* Header spacer (Calendar Header + Weekdays row) */}
-              <div className="h-[92px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
-                <span className="text-[10px] font-black uppercase text-zinc-600 vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
-                  Weekly Summary
+              <div className="h-[78px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
+                <span className="text-[9px] font-black uppercase text-zinc-700 vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
+                  Weekly
                 </span>
               </div>
               
@@ -330,30 +317,24 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
                 {weeklyData.map((week, idx) => (
                   <div 
                     key={idx} 
-                    style={{ height: '120px' }} 
-                    className={`flex flex-col items-center justify-center p-3 border-b border-white/[0.03] last:border-b-0 relative group transition-colors ${
+                    style={{ height: '90px' }} 
+                    className={`flex flex-col items-center justify-center p-2 border-b border-white/[0.03] last:border-b-0 relative group transition-colors ${
                       week.tradesCount > 0 
-                        ? (week.isPositive ? 'bg-emerald-500/[0.03]' : 'bg-red-500/[0.03]') 
+                        ? (week.isPositive ? 'bg-emerald-500/[0.02]' : 'bg-red-500/[0.02]') 
                         : 'bg-transparent'
                     }`}
                   >
                     {week.tradesCount > 0 ? (
                       <>
-                        <div className="flex flex-col items-center text-center gap-1">
-                          <span className={`text-[10px] font-black uppercase ${week.isPositive ? 'text-emerald-500/40' : 'text-red-500/40'}`}>
-                            Trades
-                          </span>
-                          <span className="text-sm font-bold text-zinc-300">
-                            {week.tradesCount}
+                        <div className="flex flex-col items-center text-center">
+                          <span className="text-xs font-bold text-zinc-400">
+                            {week.tradesCount}t
                           </span>
                         </div>
                         
-                        <div className="mt-4 flex flex-col items-center text-center">
-                          <span className={`text-sm font-black leading-none ${week.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                            {week.isPositive ? '+' : ''}{week.totalRR.toFixed(2)}
-                          </span>
-                          <span className={`text-[8px] font-bold uppercase mt-1 ${week.isPositive ? 'text-emerald-500/50' : 'text-red-400/50'}`}>
-                            Weekly RR
+                        <div className="mt-2 flex flex-col items-center text-center">
+                          <span className={`text-xs font-black leading-none ${week.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                            {week.isPositive ? '+' : ''}{week.totalRR.toFixed(1)}
                           </span>
                         </div>
 
