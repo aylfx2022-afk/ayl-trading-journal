@@ -118,36 +118,30 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     return (
       <div className={`ant-picker-cell-inner ant-picker-calendar-date transition-all duration-300 h-full flex flex-col cursor-pointer group relative
         ${totalRR !== null 
-          ? (isPositive ? 'bg-emerald-500/15 shadow-[inset_0_0_15px_rgba(16,185,129,0.03)]' : 'bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.03)]') 
+          ? (isToday 
+            ? (isPositive ? 'bg-emerald-500/5' : 'bg-red-500/5')                
+            : (isPositive ? 'bg-emerald-500/15 shadow-[inset_0_0_15px_rgba(16,185,129,0.03)]' : 'bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.03)]'))
           : 'hover:bg-white/[0.02]'
         } 
-        border border-white/[0.02]
+        border ${isToday ? 'border-2 border-emerald-400' : 'border-white/[0.02]'}
       `}>
-        <div className="relative z-10 flex flex-col h-full">
-          <div className="flex justify-between items-start p-1.5">
-            <span className={`text-xs font-bold ${isToday ? 'bg-emerald-500 text-black w-5 h-5 rounded-full flex items-center justify-center p-0' : 'text-zinc-500'}`}>
-              {value.date()}
-            </span>
-            <div className="flex items-center gap-1">
-              {hasNotes && (
-                <div className="w-1 h-1 rounded-full bg-emerald-400/70" title="Day has notes" />
-              )}
-              {totalRR !== null && (
-                <div className={`text-[8px] font-black px-1 rounded-sm ${isPositive ? 'bg-emerald-500 text-black' : 'bg-red-500 text-white'}`}>
-                  {tradesOnDay.length}
-                </div>
-              )}
+        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-px gap-1">
+          <span className={`text-xs font-bold ${isToday ? 'text-emerald-400' : 'text-zinc-500'}`}>
+            {value.date()}
+          </span>
+          {totalRR !== null && (
+            <div className="flex flex-col items-center gap-0.5">
+              <span className={`text-[10px] font-black leading-none ${isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
+              </span>
+              <span className="text-[8px] font-bold text-zinc-500">
+                {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
+              </span>
             </div>
-          </div>
-          <div className="flex-1 flex items-end p-1.5">
-            {totalRR !== null && (
-              <div className="flex flex-col">
-                <span className={`text-[10px] font-black leading-none ${isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {isPositive ? '+' : ''}{totalRR.toFixed(1)}
-                </span>
-              </div>
-            )}
-          </div>
+          )}
+          {hasNotes && (
+             <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-emerald-400/70" title="Day has notes" />
+          )}
         </div>
       </div>
     );
@@ -268,30 +262,31 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     >
       <div className="grid grid-cols-1 gap-4">
         <div className="p-2 rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-2 px-2 gap-2">
-            <h3 className="text-base font-black tracking-tight flex items-center gap-2">
-              <CalendarDays size={18} className="text-emerald-500" />
-              Calendar
+          <div className="p-4 mb-4 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <h3 className="text-sm font-black tracking-tight flex items-center gap-2 text-zinc-300">
+              <CalendarDays size={16} className="text-emerald-500" />
+              {panelDate.format('YYYY, MMMM')}
             </h3>
             
-            <div className="flex items-center gap-3">
-              <div className="flex flex-col items-center px-4">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-0.5">Trades</span>
-                <span className="text-xs font-bold text-zinc-300">{monthlyStats.totalTrades}</span>
+            <div className="flex items-center gap-2 sm:gap-6">
+              <div className="flex flex-col items-center px-2">
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Trades</span>
+                <span className="text-xs font-bold text-zinc-400">{monthlyStats.totalTrades}</span>
               </div>
-              <div className="flex flex-col items-center px-4 border-l border-white/5">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-0.5">Win Rate</span>
-                <span className="text-xs font-bold text-zinc-300">{monthlyStats.winRate.toFixed(1)}%</span>
+              <div className="flex flex-col items-center px-2 border-l border-white/10">
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Win Rate</span>
+                <span className="text-xs font-bold text-zinc-400">{monthlyStats.winRate.toFixed(1)}%</span>
               </div>
-              <div className="flex flex-col items-center px-4 border-l border-white/5">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-0.5">Month RR</span>
+              <div className="flex flex-col items-center px-2 border-l border-white/10">
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Month RR</span>
                 <span className={`text-xs font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}
+                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
                 </span>
               </div>
             </div>
           </div>
-          
+
+
           <div className="flex">
             <div className="flex-1 antd-calendar-wrapper custom-calendar compact-calendar">
               <Calendar 
@@ -308,16 +303,16 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
             <div className="hidden lg:flex flex-col w-[14.2857%] border-l border-white/[0.03] -mt-[6px]">
               {/* Header spacer (Calendar Header + Weekdays row) */}
               <div className="h-[68px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
-                <span className="text-[9px] font-black uppercase text-zinc-700 vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
-                  Weekly
-                </span>
+                <div className="text-[9px] font-black uppercase text-zinc-700 leading-tight text-center">
+                  Weekly<br />Summary
+                </div>
               </div>
               
               <div className="flex flex-col">
                 {weeklyData.map((week, idx) => (
                   <div 
                     key={idx} 
-                    className={`weekly-row flex flex-col items-center justify-center p-2 border-b border-white/[0.03] last:border-b-0 relative group transition-colors ${
+                    className={`weekly-row flex flex-col items-center justify-center relative group transition-colors ${
                       week.tradesCount > 0 
                         ? (week.isPositive ? 'bg-emerald-500/[0.02]' : 'bg-red-500/[0.02]') 
                         : 'bg-transparent'
@@ -327,13 +322,13 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
                       <>
                         <div className="flex flex-col items-center text-center">
                           <span className="text-xs font-bold text-zinc-400">
-                            {week.tradesCount}t
+                            {week.tradesCount} {week.tradesCount === 1 ? 'trade' : 'trades'}
                           </span>
                         </div>
                         
                         <div className="mt-2 flex flex-col items-center text-center">
                           <span className={`text-xs font-black leading-none ${week.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                            {week.isPositive ? '+' : ''}{week.totalRR.toFixed(1)}
+                            {week.isPositive ? '+' : ''}{week.totalRR.toFixed(1)}R
                           </span>
                         </div>
 

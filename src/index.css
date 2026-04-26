@@ -91,19 +91,26 @@
 
 .antd-calendar-wrapper .ant-picker-cell-inner {
   height: 120px !important;
-  width: 100% !important;
-  border-radius: 0 !important;
-  margin: 0 !important;
+  width: calc(100% - 4px) !important;
+  border-radius: 8px !important;
+  margin: 2px !important;
   padding: 0 !important;
-  border: 1px solid #ffffff05 !important;
+  border: 1px solid #ffffff08 !important;
 }
 
 .antd-calendar-wrapper.compact-calendar .ant-picker-cell-inner {
   height: clamp(65px, 12vh, 85px) !important;
+  width: calc(100% - 2px) !important;
+  margin: 1px !important;
+  border-radius: 4px !important;
 }
 
 .weekly-row {
   height: clamp(65px, 12vh, 85px) !important;
+  width: calc(100% - 2px) !important;
+  margin: 1px !important;
+  border-radius: 4px !important;
+  border: 1px solid #ffffff08 !important;
 }
 
 .antd-calendar-wrapper .ant-picker-cell::before {
