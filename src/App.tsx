@@ -196,9 +196,27 @@ export default function App() {
       <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
       Clear All History
     </button>
-  ) : (activeTab === 'trade-details' || activeTab === 'add-trade' || activeTab === 'day-details') ? (
+  ) : activeTab === 'add-trade' ? (
+    <div className="flex items-center gap-2">
+      <button 
+        onClick={() => setActiveTab('dashboard')}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
+      >
+        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+        Back
+      </button>
+      <button 
+        type="submit"
+        form="add-trade-form"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black hover:bg-emerald-400 transition-all text-xs font-bold uppercase tracking-widest group"
+      >
+        <TrendingUp size={16} className="group-hover:scale-110 transition-transform" />
+        Save Trade
+      </button>
+    </div>
+  ) : (activeTab === 'trade-details' || activeTab === 'day-details') ? (
     <button 
-      onClick={() => setActiveTab(activeTab === 'add-trade' ? 'dashboard' : previousTab)}
+      onClick={() => setActiveTab(previousTab)}
       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />

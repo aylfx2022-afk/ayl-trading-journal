@@ -99,7 +99,11 @@
 }
 
 .antd-calendar-wrapper.compact-calendar .ant-picker-cell-inner {
-  height: 90px !important;
+  height: clamp(65px, 12vh, 85px) !important;
+}
+
+.weekly-row {
+  height: clamp(65px, 12vh, 85px) !important;
 }
 
 .antd-calendar-wrapper .ant-picker-cell::before {

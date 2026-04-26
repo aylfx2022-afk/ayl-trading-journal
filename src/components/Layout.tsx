@@ -110,11 +110,11 @@ export default function Layout({ children, activeTab, setActiveTab, user, header
 
       {/* Main Content */}
       <main className="pl-64 min-h-screen">
-        <header className="h-20 border-b border-white/5 flex items-center justify-between px-8 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
-          <h1 className="text-2xl font-semibold capitalize">{activeTab.replace('-', ' ')}</h1>
-          {headerActions && <div>{headerActions}</div>}
+        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
+          {headerActions ? <div>{headerActions}</div> : <div />}
+          <h1 className="text-xl font-semibold capitalize">{activeTab.replace('-', ' ')}</h1>
         </header>
-        <div className="p-8">
+        <div className="p-4 md:p-6 lg:p-8">
           {children}
         </div>
       </main>

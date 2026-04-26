@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2, GripVertical } from 'lucide-react';
-import { motion, AnimatePresence, Reorder } from 'motion/react';
+import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
@@ -219,64 +219,54 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         </div>
 
         {/* Section 3: Charts */}
-        <div className="space-y-4 pt-4 border-t border-white/5">
+        <div className="space-y-3 pt-4 border-t border-white/5">
           <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
             <ImageIcon size={14} className="text-emerald-500" />
             Chart Links (Max 5)
           </label>
           
-          <Reorder.Group axis="y" values={charts} onReorder={setCharts} className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {charts.map((chart) => (
-              <Reorder.Item 
-                key={chart.id} 
-                value={chart} 
-                className="space-y-2 bg-white/[0.02] border border-white/5 p-3 rounded-xl relative z-0"
-                whileDrag={{ 
-                  scale: 0.98, 
-                  zIndex: 50,
-                  backgroundColor: "rgba(255, 255, 255, 0.08)",
-                  boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.5)",
-                  opacity: 0.9
-                }}
-                transition={{ type: "spring", stiffness: 400, damping: 40 }}
-              >
-                <div className="flex gap-2 items-center">
-                  <div className="cursor-grab active:cursor-grabbing p-1 text-zinc-600 hover:text-zinc-400">
-                    <GripVertical size={16} />
-                  </div>
+              <div key={chart.id} className="space-y-2">
+                <div className="flex gap-2">
                   <input
                     type="text"
                     value={chart.url}
                     onChange={(e) => handleChartUrlChange(chart.id, e.target.value)}
-                    placeholder="TradingView image URL..."
-                    className="flex-1 p-2 rounded-lg bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-xs text-zinc-300 transition-all"
+                    placeholder="TradingView URL..."
+                    className="flex-1 p-2 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-[11px] text-zinc-300 transition-all"
                   />
-                  {chart.url && (
-                    <button 
-                      onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
-                      className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
-                    >
-                      <Maximize2 size={14} />
-                    </button>
-                  )}
-                  {charts.length > 1 && (
-                    <button 
-                      onClick={() => handleRemoveChart(chart.id)}
-                      className="p-2 rounded-lg bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
+                  <div className="flex gap-1">
+                    {chart.url && (
+                      <button 
+                        onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
+                        className="p-2 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
+                        title="View Image"
+                      >
+                        <Maximize2 size={14} />
+                      </button>
+                    )}
+                    {charts.length > 1 && (
+                      <button 
+                        onClick={() => handleRemoveChart(chart.id)}
+                        className="p-2 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
+                      >
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {chart.url && (
+
+                {/* Individual Image Preview */}
+                {chart.url && chart.url.trim() !== '' && (
                   <div 
-                    className="rounded-xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center cursor-pointer group relative"
+                    className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-white/[0.02] group cursor-pointer"
                     onClick={() => setViewerIndex(validChartUrls.indexOf(chart.url))}
                   >
                     <img 
                       src={chart.url} 
-                      alt="Trade Chart" 
-                      className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                      alt="Chart Preview"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -284,30 +274,28 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                         const parent = target.parentElement;
                         if (parent) {
                           const errorMsg = document.createElement('div');
-                          errorMsg.className = 'text-center p-4 text-zinc-500 text-xs italic';
-                          errorMsg.innerText = 'Unable to load image.';
+                          errorMsg.className = 'absolute inset-0 flex items-center justify-center text-[8px] text-zinc-700 px-2 text-center font-bold uppercase';
+                          errorMsg.innerText = 'Invalid Link';
                           parent.appendChild(errorMsg);
                         }
                       }}
                     />
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-white/20">
-                        <Maximize2 className="text-white w-4 h-4" />
-                      </div>
+                      <Maximize2 size={12} className="text-white" />
                     </div>
                   </div>
                 )}
-              </Reorder.Item>
+              </div>
             ))}
             {charts.length < 5 && (
               <button 
                 onClick={handleAddChart}
-                className="flex items-center justify-center border border-dashed border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all bg-white/[0.01] w-full"
+                className="flex items-center justify-center border border-dashed border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all bg-white/[0.01] w-full h-[38px]"
               >
-                + Add Chart Link
+                + Add Link
               </button>
             )}
-          </Reorder.Group>
+          </div>
         </div>
 
         <div className="flex justify-between items-center pt-2 border-t border-white/5">

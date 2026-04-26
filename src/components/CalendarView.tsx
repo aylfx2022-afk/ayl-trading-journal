@@ -191,8 +191,8 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     }
 
     return (
-      <div style={{ padding: '8px 12px' }}>
-        <Row gutter={8} justify="space-between" align="middle">
+      <div style={{ padding: '4px 8px' }}>
+        <Row gutter={4} justify="space-between" align="middle">
           <Col>
             <div className="flex items-center gap-2">
               <Button 
@@ -266,9 +266,9 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
         },
       }}
     >
-      <div className="grid grid-cols-1 gap-6">
-        <div className="p-3 rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-          <div className="flex flex-col md:flex-row md:items-center justify-between mb-3 px-2 gap-3">
+      <div className="grid grid-cols-1 gap-4">
+        <div className="p-2 rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-center justify-between mb-2 px-2 gap-2">
             <h3 className="text-base font-black tracking-tight flex items-center gap-2">
               <CalendarDays size={18} className="text-emerald-500" />
               Calendar
@@ -276,16 +276,16 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
             
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-center px-4">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Trades</span>
-                <span className="text-sm font-bold text-zinc-300">{monthlyStats.totalTrades}</span>
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-0.5">Trades</span>
+                <span className="text-xs font-bold text-zinc-300">{monthlyStats.totalTrades}</span>
               </div>
               <div className="flex flex-col items-center px-4 border-l border-white/5">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Win Rate</span>
-                <span className="text-sm font-bold text-zinc-300">{monthlyStats.winRate.toFixed(1)}%</span>
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-0.5">Win Rate</span>
+                <span className="text-xs font-bold text-zinc-300">{monthlyStats.winRate.toFixed(1)}%</span>
               </div>
               <div className="flex flex-col items-center px-4 border-l border-white/5">
-                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-1">Month RR</span>
-                <span className={`text-sm font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                <span className="text-[9px] font-black uppercase text-zinc-600 leading-none mb-0.5">Month RR</span>
+                <span className={`text-xs font-black ${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
                   {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}
                 </span>
               </div>
@@ -307,7 +307,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
             {/* Weekly Summary Column */}
             <div className="hidden lg:flex flex-col w-[80px] border-l border-white/[0.03] -mt-[6px]">
               {/* Header spacer (Calendar Header + Weekdays row) */}
-              <div className="h-[78px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
+              <div className="h-[68px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
                 <span className="text-[9px] font-black uppercase text-zinc-700 vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>
                   Weekly
                 </span>
@@ -317,8 +317,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
                 {weeklyData.map((week, idx) => (
                   <div 
                     key={idx} 
-                    style={{ height: '90px' }} 
-                    className={`flex flex-col items-center justify-center p-2 border-b border-white/[0.03] last:border-b-0 relative group transition-colors ${
+                    className={`weekly-row flex flex-col items-center justify-center p-2 border-b border-white/[0.03] last:border-b-0 relative group transition-colors ${
                       week.tradesCount > 0 
                         ? (week.isPositive ? 'bg-emerald-500/[0.02]' : 'bg-red-500/[0.02]') 
                         : 'bg-transparent'

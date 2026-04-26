@@ -113,7 +113,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
   return (
     <div className="w-full">
       <h2 className="text-2xl font-bold mb-6">New Trade</h2>
-      <form onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 space-y-5 w-full text-left">
+      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 space-y-5 w-full text-left">
         <div className="max-w-4xl mx-auto space-y-5">
           {/* Section 1: Main Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -239,24 +239,51 @@ export default function AddTrade({ onBack }: AddTradeProps) {
             <div className="flex items-center justify-between">
               <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Chart Links (Max 5)</label>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {formData.chartUrls.map((url, index) => (
-                <div key={index} className="flex gap-2">
-                  <input
-                    type="text"
-                    value={url}
-                    onChange={(e) => handleChartUrlChange(index, e.target.value)}
-                    placeholder={`URL ${index + 1}`}
-                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200"
-                  />
-                  {formData.chartUrls.length > 1 && (
-                    <button 
-                      type="button"
-                      onClick={() => handleRemoveChart(index)}
-                      className="px-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all text-xs"
+                <div key={index} className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => handleChartUrlChange(index, e.target.value)}
+                      placeholder={`URL ${index + 1}`}
+                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200"
+                    />
+                    {formData.chartUrls.length > 1 && (
+                      <button 
+                        type="button"
+                        onClick={() => handleRemoveChart(index)}
+                        className="px-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all text-xs"
+                      >
+                        X
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Individual Image Preview */}
+                  {url && url.trim() !== '' && (
+                    <div 
+                      className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-white/[0.02] group"
                     >
-                      X
-                    </button>
+                      <img 
+                        src={url} 
+                        alt="Chart Preview"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const parent = target.parentElement;
+                          if (parent) {
+                            const errorMsg = document.createElement('div');
+                            errorMsg.className = 'absolute inset-0 flex items-center justify-center text-[8px] text-zinc-700 px-2 text-center font-bold uppercase';
+                            errorMsg.innerText = 'Invalid Link';
+                            parent.appendChild(errorMsg);
+                          }
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               ))}
@@ -272,17 +299,16 @@ export default function AddTrade({ onBack }: AddTradeProps) {
             </div>
           </div>
 
-          {/* Action Buttons */}
+          {/* Status Messages */}
           <div className="pt-2">
-            <button 
-              type="submit" 
-              disabled={status === 'saving'} 
-              className="w-full py-4 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all flex items-center justify-center gap-2"
-            >
-              {status === 'saving' ? 'Saving...' : <><Save size={18} /> Save Trade</>}
-            </button>
-            {status === 'success' && <div className="mt-3 flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
-            {status === 'error' && <div className="mt-3 flex items-center justify-center gap-2 text-red-500 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
+            {status === 'saving' && (
+              <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium animate-pulse">
+                <div className="w-4 h-4 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                Saving trade entries...
+              </div>
+            )}
+            {status === 'success' && <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
+            {status === 'error' && <div className="flex items-center justify-center gap-2 text-red-500 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
           </div>
         </div>
       </form>
