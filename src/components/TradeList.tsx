@@ -22,6 +22,12 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const [endDate, setEndDate] = React.useState<Date | null>(null);
   const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const pageSize = 20;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, typeFilter, startDate, endDate, sortConfig]);
 
   const handleSort = (field: SortField) => {
     setSortConfig(prev => ({
@@ -89,6 +95,9 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
       return sortConfig.order === 'desc' ? comparison : -comparison;
     });
   }, [trades, searchTerm, typeFilter, startDate, endDate, sortConfig]);
+
+  const totalPages = Math.ceil(filteredTrades.length / pageSize);
+  const paginatedTrades = filteredTrades.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const getStatusBadge = (rr: number) => {
     if (rr > 0) return <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">PROFIT</span>;
@@ -193,7 +202,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
-            {filteredTrades.map((trade) => (
+            {paginatedTrades.map((trade) => (
               <tr 
                 key={trade.id} 
                 onClick={() => onSelectTrade(trade)}
@@ -238,9 +247,17 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 <td className="px-6 py-4 text-sm font-black text-zinc-200">{trade.rr?.toFixed(2) || '0.00'}</td>
                 <td className="px-6 py-4">
                   {trade.notes && (
-                    <div className="flex items-center gap-1.5 text-emerald-500/50">
+                    <div className="flex items-center gap-1.5 text-emerald-500/50 group/note relative">
                       <MessageSquare size={14} />
                       <span className="text-[10px] font-bold">NOTES</span>
+                      
+                      {/* Custom Tooltip */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-zinc-900 border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/note:opacity-100 group-hover/note:visible transition-all z-[60] pointer-events-none">
+                        <p className="text-[10px] leading-relaxed text-zinc-300 font-medium break-words">
+                          {trade.notes}
+                        </p>
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-zinc-900"></div>
+                      </div>
                     </div>
                   )}
                 </td>
@@ -277,6 +294,62 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-2 pt-2">
+          <div className="text-xs text-zinc-500 font-medium">
+            Showing <span className="text-zinc-300">{(currentPage - 1) * pageSize + 1}</span> to <span className="text-zinc-300">{Math.min(currentPage * pageSize, filteredTrades.length)}</span> of <span className="text-zinc-300">{filteredTrades.length}</span> results
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 transition-all"
+            >
+              Previous
+            </button>
+            <div className="flex items-center gap-1">
+              {[...Array(totalPages)].map((_, i) => {
+                const pageNum = i + 1;
+                // Only show a limited range of page numbers if there are many pages
+                if (
+                  totalPages <= 7 || 
+                  pageNum === 1 || 
+                  pageNum === totalPages || 
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                        currentPage === pageNum 
+                          ? 'bg-emerald-500 text-black' 
+                          : 'bg-white/5 text-zinc-500 hover:text-zinc-300'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                } else if (
+                  (pageNum === 2 && currentPage > 3) || 
+                  (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                ) {
+                  return <span key={pageNum} className="text-zinc-700 text-xs px-1">...</span>;
+                }
+                return null;
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 transition-all"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
