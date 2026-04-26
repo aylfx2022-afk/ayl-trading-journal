@@ -2,7 +2,6 @@ import { Timestamp } from 'firebase/firestore';
 
 export interface Trade {
   id?: string;
-  ticket: string;
   openTime: Timestamp;
   closeTime?: Timestamp | null;
   type: 'buy' | 'sell';

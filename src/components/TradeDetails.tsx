@@ -120,7 +120,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       <div className="text-left">
         <div>
           <h2 className="text-3xl font-bold flex items-center gap-2">
-            Trade Details <span className="text-zinc-500 text-sm font-normal">#{trade.ticket}</span>
+            Trade Details
           </h2>
           <p className="text-zinc-500 mt-1">
             {pair} • {trade.type.toUpperCase()}

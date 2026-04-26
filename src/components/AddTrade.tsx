@@ -77,7 +77,6 @@ export default function AddTrade({ onBack }: AddTradeProps) {
     try {
       const entryDate = formData.entryDateTime || new Date();
       await addDoc(collection(db, 'trades'), {
-        ticket: 'MANUAL-' + Date.now(),
         openTime: Timestamp.fromDate(entryDate),
         size: 0,
         item: formData.pair,

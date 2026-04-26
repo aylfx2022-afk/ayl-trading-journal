@@ -1,7 +1,7 @@
 import React from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Copy, Check, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { db } from '../firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
 
@@ -21,7 +21,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
   const [startDate, setStartDate] = React.useState<Date | null>(null);
   const [endDate, setEndDate] = React.useState<Date | null>(null);
   const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
-  const [copiedId, setCopiedId] = React.useState<string | null>(null);
   const [currentPage, setCurrentPage] = React.useState(1);
   const pageSize = 20;
 
@@ -34,13 +33,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
       field,
       order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
     }));
-  };
-
-  const handleCopyTicket = (e: React.MouseEvent, ticket: string) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(ticket);
-    setCopiedId(ticket);
-    setTimeout(() => setCopiedId(null), 2000);
   };
 
   const handleDeleteTrade = async (e: React.MouseEvent, tradeId: string) => {
@@ -60,7 +52,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
       const pair = t.pair || t.item || '';
       const tagsStr = (t.tags || []).join(' ');
       const matchesSearch = pair.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                           t.ticket?.toString().includes(searchTerm) ||
                            tagsStr.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       
@@ -123,7 +114,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
             <input 
               type="text" 
-              placeholder="Search pair or ticket..."
+              placeholder="Search pair..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/5 focus:border-emerald-500/50 focus:outline-none text-sm w-48 transition-all"
@@ -211,12 +202,6 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 <td className="px-6 py-4">
                   <div className="flex flex-col">
                     <span className="font-bold text-zinc-200">{trade.pair || trade.item}</span>
-                    <button 
-                      onClick={(e) => handleCopyTicket(e, trade.ticket)}
-                      className="text-[9px] text-zinc-600 flex items-center gap-1 mt-0.5 hover:text-zinc-400"
-                    >
-                      #{trade.ticket} {copiedId === trade.ticket ? <Check size={8} /> : <Copy size={8} />}
-                    </button>
                     {trade.tags && trade.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-1.5">
                         {trade.tags.map((tag, i) => (

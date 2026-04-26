@@ -305,7 +305,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
             </div>
             
             {/* Weekly Summary Column */}
-            <div className="hidden lg:flex flex-col w-[80px] border-l border-white/[0.03] -mt-[6px]">
+            <div className="hidden lg:flex flex-col w-[14.2857%] border-l border-white/[0.03] -mt-[6px]">
               {/* Header spacer (Calendar Header + Weekdays row) */}
               <div className="h-[68px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
                 <span className="text-[9px] font-black uppercase text-zinc-700 vertical-text transform rotate-180" style={{ writingMode: 'vertical-rl' }}>

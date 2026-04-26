@@ -62,7 +62,7 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
         <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
           <div>
             <h3 className="text-xl font-bold flex items-center gap-2">
-              Trade Details <span className="text-zinc-500 text-sm font-normal">#{trade.ticket}</span>
+              Trade Details
             </h3>
             <p className="text-xs text-zinc-500 mt-1">
               {trade.item} • {trade.type.toUpperCase()}
