@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
 import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
@@ -16,6 +16,7 @@ type SortField = 'date' | 'pair' | 'rr' | 'type';
 type SortOrder = 'asc' | 'desc';
 
 export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
+  const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
   const [startDate, setStartDate] = React.useState<Date | null>(null);
@@ -103,6 +104,17 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
 
   return (
     <div className="space-y-6">
+      {/* Modal for notes */}
+      {selectedNote && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedNote(null)}>
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">{selectedNote.pair} Journal</h3>
+            <p className="text-zinc-300 text-sm whitespace-pre-wrap">{selectedNote.note}</p>
+            <button onClick={() => setSelectedNote(null)} className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Close</button>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold capitalize">Trade History</h2>
@@ -232,18 +244,13 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 <td className="px-6 py-4 text-sm font-black text-zinc-200">{trade.rr?.toFixed(2) || '0.00'}</td>
                 <td className="px-6 py-4">
                   {trade.notes && (
-                    <div className="flex items-center gap-1.5 text-emerald-500/50 group/note relative">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setSelectedNote({ note: trade.notes!, pair: trade.pair || trade.item || 'Trade' }); }}
+                      className="flex items-center gap-1.5 text-emerald-500/50 group hover:text-emerald-500 transition-colors"
+                    >
                       <MessageSquare size={14} />
-                      <span className="text-[10px] font-bold">NOTES</span>
-                      
-                      {/* Custom Tooltip */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 px-3 py-2 bg-zinc-900 border border-white/10 rounded-lg shadow-2xl opacity-0 invisible group-hover/note:opacity-100 group-hover/note:visible transition-all z-[60] pointer-events-none">
-                        <p className="text-[10px] leading-relaxed text-zinc-300 font-medium break-words">
-                          {trade.notes}
-                        </p>
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-zinc-900"></div>
-                      </div>
-                    </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Notes</span>
+                    </button>
                   )}
                 </td>
                 <td className="px-6 py-4 text-right">
