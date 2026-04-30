@@ -83,5 +83,9 @@ service cloud.firestore {
       allow update: if isDocOwner() && isValidTrade(request.resource.data);
       allow delete: if isDocOwner();
     }
+
+    match /userSettings/{userId} {
+      allow read, write: if isOwner(userId);
+    }
   }
 }

@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Trade } from '../types';
 import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { doc, updateDoc, Timestamp } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
+import { db, auth } from '../firebase';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 
@@ -19,9 +19,23 @@ interface TradeDetailsProps {
 
 export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [notes, setNotes] = useState(trade.notes || '');
   const [pair, setPair] = useState(trade.item || '');
   const [tags, setTags] = useState<string[]>(trade.tags || []);
+  
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      if (auth.currentUser) {
+        const docRef = doc(db, 'userSettings', auth.currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setAvailableTags(docSnap.data().customTags || []);
+        }
+      }
+    };
+    fetchTags();
+  }, []);
   const [charts, setCharts] = useState<{id: string, url: string}[]>(
     (trade.chartUrls && trade.chartUrls.length > 0) 
       ? trade.chartUrls.map((url, i) => ({ id: `chart-${i}-${Date.now()}`, url }))
@@ -233,6 +247,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               tags={tags} 
               onChange={setTags} 
               placeholder="Strategy, news..." 
+              availableTags={availableTags}
             />
           </div>
         </div>

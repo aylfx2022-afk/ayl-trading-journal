@@ -35,6 +35,11 @@ export interface UserProfile {
   role: 'user' | 'admin';
 }
 
+export interface UserSettings {
+  uid: string;
+  customTags: string[];
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

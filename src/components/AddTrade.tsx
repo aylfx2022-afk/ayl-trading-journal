@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { db, auth } from '../firebase';
-import { collection, addDoc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, Timestamp, doc, getDoc } from 'firebase/firestore';
 import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -15,6 +15,7 @@ interface AddTradeProps {
 
 export default function AddTrade({ onBack }: AddTradeProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     pair: '',
     type: 'buy' as 'buy' | 'sell',
@@ -28,6 +29,19 @@ export default function AddTrade({ onBack }: AddTradeProps) {
     chartUrls: [''],
     entryDateTime: new Date()
   });
+
+  React.useEffect(() => {
+    const fetchTags = async () => {
+      if (auth.currentUser) {
+        const docRef = doc(db, 'userSettings', auth.currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          setAvailableTags(docSnap.data().customTags || []);
+        }
+      }
+    };
+    fetchTags();
+  }, []);
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [error, setError] = useState('');
 
@@ -248,6 +262,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
                 tags={formData.tags} 
                 onChange={tags => setFormData({...formData, tags})} 
                 placeholder="Scalp, news..." 
+                availableTags={availableTags}
               />
             </div>
           </div>

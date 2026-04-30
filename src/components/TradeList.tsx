@@ -201,6 +201,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 <div className="flex items-center gap-1">RR <SortIcon field="rr" /></div>
               </th>
               <th className="px-6 py-4 font-bold">Journal</th>
+              <th className="px-6 py-4 font-bold">Tags</th>
               <th className="px-6 py-4 font-bold text-right">Actions</th>
             </tr>
           </thead>
@@ -212,18 +213,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
               >
                 <td className="px-6 py-4">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-zinc-200">{trade.pair || trade.item}</span>
-                    {trade.tags && trade.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-1.5">
-                        {trade.tags.map((tag, i) => (
-                          <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm bg-emerald-500/10 text-emerald-500/70 border border-emerald-500/10 transition-colors hover:bg-emerald-500/20">
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <span className="font-bold text-zinc-200">{trade.pair || trade.item}</span>
                 </td>
                 <td className="px-6 py-4">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
@@ -253,6 +243,17 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                     </button>
                   )}
                 </td>
+                <td className="px-6 py-4">
+                  {trade.tags && trade.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {trade.tags.map((tag, i) => (
+                        <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm bg-emerald-500/10 text-emerald-500/70 border border-emerald-500/10 transition-colors hover:bg-emerald-500/20">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                     <button 
@@ -274,7 +275,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
             ))}
             {filteredTrades.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-6 py-20 text-center">
+                <td colSpan={10} className="px-6 py-20 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
                       <Search className="text-zinc-700 w-6 h-6" />

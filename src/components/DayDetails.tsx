@@ -77,6 +77,7 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
                   <th className="px-5 py-3 font-black">Status</th>
                   <th className="px-5 py-3 font-black">RR</th>
                   <th className="px-5 py-3 font-black">Journal</th>
+                  <th className="px-5 py-3 font-black">Tags</th>
                   <th className="px-5 py-3 font-black">Actions</th>
                 </tr>
               </thead>
@@ -88,18 +89,7 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
                     className="group hover:bg-white/[0.02] transition-colors cursor-pointer text-[11px]"
                   >
                     <td className="px-5 py-3">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-zinc-300">{trade.pair || trade.item}</span>
-                        {trade.tags && trade.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-0.5">
-                            {trade.tags.map((tag, i) => (
-                              <span key={i} className="text-[8px] font-bold px-1 py-0 rounded-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/10">
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <span className="font-bold text-zinc-300">{trade.pair || trade.item}</span>
                     </td>
                     <td className="px-5 py-3">
                       <span className={`text-[9px] font-black px-2 py-0.5 rounded-sm uppercase ${
@@ -148,6 +138,17 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
                           <StickyNote className="w-4 h-4 text-zinc-400 group-hover:text-emerald-500 transition-colors" />
                         </button>
                       ) : <span className="text-zinc-700">-</span>}
+                    </td>
+                    <td className="px-5 py-3">
+                      {trade.tags && trade.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {trade.tags.map((tag, i) => (
+                            <span key={i} className="text-[8px] font-bold px-1 py-0 rounded-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/10">
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-5 py-3">
                       <button onClick={(e) => { e.stopPropagation(); console.log('Delete trade', trade.id); }} className="text-zinc-500 hover:text-red-500 transition-colors">

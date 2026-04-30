@@ -5,25 +5,28 @@ interface TagInputProps {
   tags: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  availableTags?: string[];
 }
 
-export default function TagInput({ tags, onChange, placeholder = "Add tag..." }: TagInputProps) {
+export default function TagInput({ tags, onChange, placeholder = "Add tag...", availableTags = [] }: TagInputProps) {
   const [inputValue, setInputValue] = useState('');
+  const [showPicker, setShowPicker] = useState(false);
+
+  const addTag = (tag: string) => {
+    const trimmed = tag.trim().replace(/^#/, '');
+    if (trimmed && !tags.includes(trimmed)) {
+      onChange([...tags, trimmed]);
+      setInputValue('');
+      setShowPicker(false);
+    }
+  };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      addTag();
+      addTag(inputValue);
     } else if (e.key === 'Backspace' && !inputValue && tags.length > 0) {
       removeTag(tags.length - 1);
-    }
-  };
-
-  const addTag = () => {
-    const trimmed = inputValue.trim().replace(/^#/, '');
-    if (trimmed && !tags.includes(trimmed)) {
-      onChange([...tags, trimmed]);
-      setInputValue('');
     }
   };
 
@@ -60,12 +63,26 @@ export default function TagInput({ tags, onChange, placeholder = "Add tag..." }:
         <input
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => { setInputValue(e.target.value); setShowPicker(true); }}
           onKeyDown={handleKeyDown}
-          onBlur={addTag}
+          onFocus={() => setShowPicker(true)}
           placeholder={placeholder}
           className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm placeholder:text-zinc-700 transition-all"
         />
+        {showPicker && availableTags.length > 0 && (
+          <div className="absolute z-10 w-full mt-1 bg-zinc-900 border border-white/10 rounded-xl shadow-xl p-2 max-h-40 overflow-y-auto">
+            {availableTags.filter(t => t.toLowerCase().includes(inputValue.toLowerCase())).map(tag => (
+              <button 
+                key={tag}
+                type="button"
+                onClick={() => addTag(tag)}
+                className="w-full text-left px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 rounded-lg"
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       <p className="text-[10px] text-zinc-600 px-1 font-medium">Press <span className="text-zinc-500">Enter</span> or <span className="text-zinc-500">comma</span> to add tags</p>
     </div>
