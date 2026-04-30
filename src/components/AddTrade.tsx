@@ -3,6 +3,7 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
+import ReactMarkdown from 'react-markdown';
 
 import DatePicker from './ui/DatePicker';
 import TagInput from './ui/TagInput';
@@ -13,6 +14,7 @@ interface AddTradeProps {
 }
 
 export default function AddTrade({ onBack }: AddTradeProps) {
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [formData, setFormData] = useState({
     pair: '',
     type: 'buy' as 'buy' | 'sell',
@@ -215,13 +217,30 @@ export default function AddTrade({ onBack }: AddTradeProps) {
           {/* Section 3: Notes & Tags */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-white/5">
             <div className="space-y-3">
-              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Comments</label>
-              <MarkdownEditor 
-                value={formData.notes} 
-                onChange={val => setFormData({...formData, notes: val})}
-                placeholder="Strategy notes..."
-                minHeight="120px"
-              />
+              <div className="flex items-center justify-between">
+                <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Comments</label>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingNotes(!isEditingNotes)}
+                  className="text-[10px] font-bold text-emerald-500 hover:text-emerald-400 uppercase tracking-widest"
+                >
+                  {isEditingNotes ? 'Done' : 'Write'}
+                </button>
+              </div>
+                {isEditingNotes ? (
+                <MarkdownEditor 
+                  value={formData.notes} 
+                  onChange={val => setFormData({...formData, notes: val})}
+                  placeholder="Strategy notes..."
+                  minHeight="120px"
+                />
+              ) : (
+                <div className="min-h-[120px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview">
+                  {formData.notes ? (
+                    <ReactMarkdown>{formData.notes}</ReactMarkdown>
+                  ) : <span className="text-zinc-600">No notes yet...</span>}
+                </div>
+              )}
             </div>
             <div className="space-y-3">
               <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Tags</label>

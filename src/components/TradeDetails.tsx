@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { format } from 'date-fns';
+import ReactMarkdown from 'react-markdown';
 
 import DatePicker from './ui/DatePicker';
 import TagInput from './ui/TagInput';
@@ -17,6 +18,7 @@ interface TradeDetailsProps {
 }
 
 export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [notes, setNotes] = useState(trade.notes || '');
   const [pair, setPair] = useState(trade.item || '');
   const [tags, setTags] = useState<string[]>(trade.tags || []);
@@ -194,16 +196,33 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         {/* Section 2: Notes & Tags */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
           <div className="space-y-3">
-            <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
-              <MessageSquare size={14} className="text-emerald-500" />
-              Trade Notes
+            <label className="flex items-center justify-between gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+              <div className="flex items-center gap-2">
+                <MessageSquare size={14} className="text-emerald-500" />
+                Trade Notes
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEditingNotes(!isEditingNotes)}
+                className="text-emerald-500 hover:text-emerald-400 uppercase tracking-widest text-[10px]"
+              >
+                {isEditingNotes ? 'Done' : 'Write'}
+              </button>
             </label>
-            <MarkdownEditor 
-              value={notes} 
-              onChange={setNotes}
-              placeholder="Analysis notes..."
-              minHeight="140px"
-            />
+            {isEditingNotes ? (
+              <MarkdownEditor 
+                value={notes} 
+                onChange={setNotes}
+                placeholder="Analysis notes..."
+                minHeight="140px"
+              />
+            ) : (
+              <div className="min-h-[140px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview">
+                {notes ? (
+                  <ReactMarkdown>{notes}</ReactMarkdown>
+                ) : <span className="text-zinc-600">No notes yet...</span>}
+              </div>
+            )}
           </div>
 
           <div className="space-y-3">

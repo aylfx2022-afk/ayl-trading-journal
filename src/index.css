@@ -174,3 +174,22 @@ html, body {
 svg:focus {
   outline: none !important;
 }
+
+/* Markdown Preview Styles */
+.markdown-preview h3 {
+  font-size: 1.25rem;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-preview ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-preview li {
+  margin-bottom: 0.25rem;
+}
