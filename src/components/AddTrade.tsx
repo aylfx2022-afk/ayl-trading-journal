@@ -18,7 +18,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     pair: '',
-    type: 'buy' as 'buy' | 'sell',
+    type: '' as 'buy' | 'sell' | '',
     entryPrice: '' as any,
     slPrice: '' as any,
     tpPrice: '' as any,
@@ -170,14 +170,18 @@ export default function AddTrade({ onBack }: AddTradeProps) {
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Type</label>
               <select 
+                required
                 value={formData.type} 
-                onChange={e => setFormData({...formData, type: e.target.value as 'buy' | 'sell'})} 
+                onChange={e => setFormData({...formData, type: e.target.value as 'buy' | 'sell' | ''})} 
                 className={`w-full border rounded-xl px-4 py-2.5 focus:outline-none transition-all cursor-pointer font-bold text-sm ${
                   formData.type === 'buy' 
                     ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' 
-                    : 'bg-red-500/10 border-red-500/20 text-red-500'
+                    : formData.type === 'sell'
+                    ? 'bg-red-500/10 border-red-500/20 text-red-500'
+                    : 'bg-zinc-800 border-white/10 text-zinc-500'
                 }`}
               >
+                <option value="" className="bg-[#18181b] text-zinc-500">Select Type</option>
                 <option value="buy" className="bg-[#18181b] text-emerald-500">BUY</option>
                 <option value="sell" className="bg-[#18181b] text-red-500">SELL</option>
               </select>

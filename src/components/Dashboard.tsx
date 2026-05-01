@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
+import DatePicker from './ui/DatePicker';
 import { Trade } from '../types';
 import { TrendingUp, TrendingDown, Target, Zap } from 'lucide-react';
 import { format } from 'date-fns';
@@ -14,11 +15,24 @@ interface DashboardProps {
 const COLORS = ['#10b981', '#ef4444'];
 
 export default function Dashboard({ trades }: DashboardProps) {
-  const stats = useMemo(() => {
-    if (trades.length === 0) return null;
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
-    const totalProfit = trades.reduce((acc, t) => acc + t.profit, 0);
-    const closedTrades = trades.filter(t => t.exitPrice !== null && t.exitPrice !== undefined);
+  const stats = useMemo(() => {
+    let filteredTrades = trades;
+    if (startDate) {
+      filteredTrades = filteredTrades.filter(t => t.openTime && t.openTime.toDate() >= startDate);
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filteredTrades = filteredTrades.filter(t => t.openTime && t.openTime.toDate() <= end);
+    }
+    
+    if (filteredTrades.length === 0) return null;
+
+    const totalProfit = filteredTrades.reduce((acc, t) => acc + t.profit, 0);
+    const closedTrades = filteredTrades.filter(t => t.exitPrice !== null && t.exitPrice !== undefined);
     const totalRR = closedTrades.reduce((acc, t) => acc + (t.rr || 0), 0);
     const wins = closedTrades.filter(t => (t.rr || 0) > 0);
     const losses = closedTrades.filter(t => (t.rr || 0) <= 0);
@@ -61,7 +75,7 @@ export default function Dashboard({ trades }: DashboardProps) {
       totalProfit,
       totalRR,
       winRate,
-      totalTrades: trades.length,
+      totalTrades: filteredTrades.length,
       closedTrades: closedTrades.length,
       wins: wins.length,
       losses: losses.length,
@@ -69,22 +83,26 @@ export default function Dashboard({ trades }: DashboardProps) {
       monthlyRRData,
       avgProfit: closedTrades.length > 0 ? totalProfit / closedTrades.length : 0
     };
-  }, [trades]);
+  }, [trades, startDate, endDate]);
 
   if (!stats) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
-          <TrendingUp className="text-zinc-700 w-10 h-10" />
+      <div className="space-y-6">
+        <DateFilter startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} />
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6">
+            <TrendingUp className="text-zinc-700 w-10 h-10" />
+          </div>
+          <h3 className="text-xl font-semibold mb-2">No Trading Data Yet</h3>
+          <p className="text-zinc-500 max-w-xs">Import your trading history to see analytics and AI-powered insights.</p>
         </div>
-        <h3 className="text-xl font-semibold mb-2">No Trading Data Yet</h3>
-        <p className="text-zinc-500 max-w-xs">Import your trading history to see analytics and AI-powered insights.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
+      <DateFilter startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} />
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard 
@@ -223,6 +241,42 @@ function StatCard({ title, value, icon, trend }: { title: string, value: string,
           </span>
         )}
       </div>
+    </div>
+  );
+}
+
+function DateFilter({ startDate, endDate, setStartDate, setEndDate }: { 
+  startDate: Date | null, 
+  endDate: Date | null,
+  setStartDate: (d: Date | null) => void,
+  setEndDate: (d: Date | null) => void
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-4 bg-[#0F0F0F] border border-white/5 rounded-3xl p-4">
+      <h4 className="text-sm font-bold text-zinc-300">Filter:</h4>
+      <div className="w-40">
+        <DatePicker 
+          value={startDate}
+          onChange={setStartDate}
+          placeholder="Start date"
+          compact={true}
+        />
+      </div>
+      <span className="text-zinc-500">to</span>
+      <div className="w-40">
+        <DatePicker 
+          value={endDate}
+          onChange={setEndDate}
+          placeholder="End date"
+          compact={true}
+        />
+      </div>
+      <button 
+        onClick={() => { setStartDate(null); setEndDate(null); }}
+        className="text-xs text-zinc-500 hover:text-zinc-300 px-2"
+      >
+        Clear
+      </button>
     </div>
   );
 }

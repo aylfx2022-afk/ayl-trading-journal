@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { Trade } from '../types';
 import { format, isSameDay } from 'date-fns';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import YearlyPerformance from './YearlyPerformance';
 
 interface CalendarViewProps {
   trades: Trade[];
@@ -333,6 +334,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
             </div>
           </div>
         </div>
+        <YearlyPerformance trades={trades} />
       </div>
     </ConfigProvider>
   );

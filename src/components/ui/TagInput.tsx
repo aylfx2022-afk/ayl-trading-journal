@@ -1,4 +1,4 @@
-import React, { useState, KeyboardEvent } from 'react';
+import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { X, Hash, Plus } from 'lucide-react';
 
 interface TagInputProps {
@@ -11,6 +11,19 @@ interface TagInputProps {
 export default function TagInput({ tags, onChange, placeholder = "Add tag...", availableTags = [] }: TagInputProps) {
   const [inputValue, setInputValue] = useState('');
   const [showPicker, setShowPicker] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowPicker(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [containerRef]);
 
   const addTag = (tag: string) => {
     const trimmed = tag.trim().replace(/^#/, '');
@@ -35,7 +48,7 @@ export default function TagInput({ tags, onChange, placeholder = "Add tag...", a
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={containerRef} className="space-y-3">
       <div className="flex flex-wrap gap-2">
         {tags.map((tag, index) => (
           <span 
