@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
-import { LogOut, Plus, X } from 'lucide-react';
+import { LogOut, Plus, X, Download, Upload } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, addDoc, getDocs, where, query, writeBatch } from 'firebase/firestore';
+import { Trade } from '../types';
 
 export default function Settings() {
   const [tags, setTags] = useState<string[]>([]);
@@ -39,8 +40,70 @@ export default function Settings() {
     saveTags(tags.filter(t => t !== tag));
   };
 
+  const exportTrades = async () => {
+    if (!auth.currentUser) return;
+    const q = query(collection(db, 'trades'), where('userId', '==', auth.currentUser.uid));
+    const querySnapshot = await getDocs(q);
+    const trades = querySnapshot.docs.map(doc => doc.data());
+    
+    const blob = new Blob([JSON.stringify(trades, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `trades_export_${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importTrades = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !auth.currentUser) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const trades = JSON.parse(e.target?.result as string);
+        const batch = writeBatch(db);
+        
+        trades.forEach((trade: any) => {
+          const newTradeRef = doc(collection(db, 'trades'));
+          batch.set(newTradeRef, {
+            ...trade,
+            userId: auth.currentUser!.uid,
+            // Convert timestamps back if needed, firestore handles standard JSON for values
+          });
+        });
+        
+        await batch.commit();
+        alert('Trades imported successfully!');
+      } catch (error) {
+        console.error('Error importing trades:', error);
+        alert('Failed to import trades. Please ensure the file is a valid JSON export.');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <div className="max-w-2xl mx-auto space-y-8">
+      <div className="bg-[#0F0F0F] border border-white/5 rounded-3xl p-8">
+        <h2 className="text-xl font-bold mb-4">Data Management</h2>
+        <div className="flex gap-4">
+          <button 
+            onClick={exportTrades}
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-emerald-500/10 text-emerald-500 font-bold hover:bg-emerald-500/20 transition-all"
+          >
+            <Download size={18} />
+            Export Trades
+          </button>
+          <label className="flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-500/10 text-blue-500 font-bold hover:bg-blue-500/20 transition-all cursor-pointer">
+            <Upload size={18} />
+            Import Trades
+            <input type="file" accept=".json" onChange={importTrades} className="hidden" />
+          </label>
+        </div>
+      </div>
+
       <div className="bg-[#0F0F0F] border border-white/5 rounded-3xl p-8">
         <h2 className="text-xl font-bold mb-4">Tag Management</h2>
         <div className="flex gap-2 mb-4">

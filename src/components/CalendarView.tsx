@@ -6,6 +6,7 @@ import { Trade } from '../types';
 import { format, isSameDay } from 'date-fns';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
 import YearlyPerformance from './YearlyPerformance';
+import { getSafeDate } from '../lib/dateUtils';
 
 interface CalendarViewProps {
   trades: Trade[];
@@ -21,12 +22,15 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     const map: Record<string, { trades: Trade[], totalRR: number, isPositive: boolean }> = {};
     trades.forEach(trade => {
       if (trade.openTime) {
-        const dateKey = format(trade.openTime.toDate(), 'yyyy-MM-dd');
-        if (!map[dateKey]) {
-          map[dateKey] = { trades: [], totalRR: 0, isPositive: false };
+        const date = getSafeDate(trade.openTime);
+        if (date) {
+          const dateKey = format(date, 'yyyy-MM-dd');
+          if (!map[dateKey]) {
+            map[dateKey] = { trades: [], totalRR: 0, isPositive: false };
+          }
+          map[dateKey].trades.push(trade);
+          map[dateKey].totalRR += (trade.rr || 0);
         }
-        map[dateKey].trades.push(trade);
-        map[dateKey].totalRR += (trade.rr || 0);
       }
     });
 
@@ -44,8 +48,8 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     
     const monthlyTrades = trades.filter(trade => {
       if (!trade.openTime) return false;
-      const date = trade.openTime.toDate();
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      const date = getSafeDate(trade.openTime);
+      return date && date.getMonth() === currentMonth && date.getFullYear() === currentYear;
     });
 
     const totalTrades = monthlyTrades.length;

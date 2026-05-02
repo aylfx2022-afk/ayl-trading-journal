@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Trade } from '../types';
+import { getSafeDate } from '../lib/dateUtils';
 
 interface YearlyPerformanceProps {
   trades: Trade[];
@@ -11,7 +12,8 @@ export default function YearlyPerformance({ trades }: YearlyPerformanceProps) {
 
     trades.forEach(trade => {
       if (trade.openTime) {
-        const date = trade.openTime.toDate();
+        const date = getSafeDate(trade.openTime);
+        if (!date) return;
         const year = date.getFullYear();
         const month = date.getMonth();
 

@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { db } from '../firebase';
 import { deleteDoc, doc } from 'firebase/firestore';
+import { getSafeDate } from '../lib/dateUtils';
 
 import DatePicker from './ui/DatePicker';
 
@@ -56,7 +57,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                            tagsStr.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       
-      const tradeDate = t.openTime?.toDate() || t.createdAt?.toDate() || new Date();
+      const tradeDate = getSafeDate(t.openTime) || getSafeDate(t.createdAt) || new Date();
       
       const matchesStartDate = !startDate || tradeDate >= startDate;
       
@@ -72,7 +73,19 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
       let comparison = 0;
       switch (sortConfig.field) {
         case 'date':
-          comparison = (b.openTime?.toMillis() || 0) - (a.openTime?.toMillis() || 0);
+          const timeA = getSafeDate(a.openTime)?.getTime() || 0;
+          const timeB = getSafeDate(b.openTime)?.getTime() || 0;
+          if (timeA !== timeB) {
+            comparison = timeA - timeB;
+          } else {
+            const createA = getSafeDate(a.createdAt)?.getTime() || 0;
+            const createB = getSafeDate(b.createdAt)?.getTime() || 0;
+            if (createA !== createB) {
+              comparison = createA - createB;
+            } else {
+              comparison = (a.ticket || '').localeCompare(b.ticket || '');
+            }
+          }
           break;
         case 'pair':
           comparison = (a.pair || a.item || '').localeCompare(b.pair || b.item || '');
@@ -84,7 +97,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
           comparison = a.type.localeCompare(b.type);
           break;
       }
-      return sortConfig.order === 'desc' ? comparison : -comparison;
+      return sortConfig.order === 'desc' ? -comparison : comparison;
     });
   }, [trades, searchTerm, typeFilter, startDate, endDate, sortConfig]);
 
@@ -225,7 +238,7 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.entryPrice?.toFixed(5)}</td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">
-                  {trade.openTime ? format(trade.openTime.toDate(), 'dd/MM/yyyy') : '-'}
+                  {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy') : '-'}
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.exitPrice?.toFixed(5) || '-'}</td>
                 <td className="px-6 py-4">

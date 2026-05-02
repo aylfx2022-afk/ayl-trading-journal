@@ -3,6 +3,7 @@ import { Trade } from '../types';
 import { format } from 'date-fns';
 import { CalendarDays, StickyNote, Trash2 } from 'lucide-react';
 import { Dayjs } from 'dayjs';
+import { getSafeDate } from '../lib/dateUtils';
 
 interface DayDetailsProps {
   date: Dayjs;
@@ -17,7 +18,8 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
   
   const tradesForDate = trades.filter(trade => {
     if (!trade.openTime) return false;
-    return format(trade.openTime.toDate(), 'yyyy-MM-dd') === dateKey;
+    const date = getSafeDate(trade.openTime);
+    return date && format(date, 'yyyy-MM-dd') === dateKey;
   });
 
   const totalRR = tradesForDate.reduce((acc, t) => acc + (t.rr || 0), 0);

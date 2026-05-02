@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { getSafeDate } from '../lib/dateUtils';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend
@@ -18,21 +19,70 @@ export default function Dashboard({ trades }: DashboardProps) {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
 
+
+  const streaks = useMemo(() => {
+    // Get all trades that have a result to calculate max streaks
+    const allClosedTrades = [...trades]
+      .filter(t => t.rr !== undefined && t.rr !== null)
+      .sort((a, b) => {
+        const timeA = getSafeDate(a.openTime)?.getTime() || 0;
+        const timeB = getSafeDate(b.openTime)?.getTime() || 0;
+        
+        if (timeA !== timeB) return timeA - timeB;
+
+        const createA = getSafeDate(a.createdAt)?.getTime() || 0;
+        const createB = getSafeDate(b.createdAt)?.getTime() || 0;
+        if (createA !== createB) return createA - createB;
+
+        // If timestamps are identical, use a consistent identifier for stability
+        return (a.ticket || '').localeCompare(b.ticket || '');
+      });
+
+    let currentWin = 0;
+    let maxWin = 0;
+    let currentLoss = 0;
+    let maxLoss = 0;
+
+    allClosedTrades.forEach(t => {
+      const rr = Number(t.rr);
+      if (rr === 0) return; // Break-even trades do not affect streaks
+
+      if (rr > 0) {
+        currentWin += 1;
+        currentLoss = 0;
+        if (currentWin > maxWin) maxWin = currentWin;
+      } else {
+        currentLoss += 1;
+        currentWin = 0;
+        if (currentLoss > maxLoss) maxLoss = currentLoss;
+      }
+    });
+
+    return { maxWin, maxLoss };
+  }, [trades]);
+
   const stats = useMemo(() => {
     let filteredTrades = trades;
     if (startDate) {
-      filteredTrades = filteredTrades.filter(t => t.openTime && t.openTime.toDate() >= startDate);
+      filteredTrades = filteredTrades.filter(t => {
+        const d = getSafeDate(t.openTime);
+        return d && d >= startDate;
+      });
     }
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      filteredTrades = filteredTrades.filter(t => t.openTime && t.openTime.toDate() <= end);
+      filteredTrades = filteredTrades.filter(t => {
+        const d = getSafeDate(t.openTime);
+        return d && d <= end;
+      });
     }
     
     if (filteredTrades.length === 0) return null;
 
     const totalProfit = filteredTrades.reduce((acc, t) => acc + t.profit, 0);
     const closedTrades = filteredTrades.filter(t => t.exitPrice !== null && t.exitPrice !== undefined);
+    
     const totalRR = closedTrades.reduce((acc, t) => acc + (t.rr || 0), 0);
     const wins = closedTrades.filter(t => (t.rr || 0) > 0);
     const losses = closedTrades.filter(t => (t.rr || 0) <= 0);
@@ -42,8 +92,8 @@ export default function Dashboard({ trades }: DashboardProps) {
     const dailyAgg: Record<string, { totalRR: number, dateObj: Date }> = {};
     
     closedTrades.forEach(t => {
-      if (!t.openTime) return;
-      const d = t.openTime.toDate();
+      const d = getSafeDate(t.openTime);
+      if (!d) return;
       const dateKey = format(d, 'yyyy-MM-dd');
       if (!dailyAgg[dateKey]) {
         dailyAgg[dateKey] = { totalRR: 0, dateObj: d };
@@ -66,11 +116,12 @@ export default function Dashboard({ trades }: DashboardProps) {
     // Monthly RR data
     const monthlyRR: Record<string, number> = {};
     closedTrades.forEach(t => {
-      const month = t.openTime ? format(t.openTime.toDate(), 'MMM yyyy') : 'N/A';
+      const d = getSafeDate(t.openTime);
+      const month = d ? format(d, 'MMM yyyy') : 'N/A';
       monthlyRR[month] = (monthlyRR[month] || 0) + (t.rr || 0);
     });
     const monthlyRRData = Object.entries(monthlyRR).map(([month, rr]) => ({ month, rr }));
-
+    
     return {
       totalProfit,
       totalRR,
@@ -84,6 +135,7 @@ export default function Dashboard({ trades }: DashboardProps) {
       avgProfit: closedTrades.length > 0 ? totalProfit / closedTrades.length : 0
     };
   }, [trades, startDate, endDate]);
+
 
   if (!stats) {
     return (
@@ -104,7 +156,7 @@ export default function Dashboard({ trades }: DashboardProps) {
     <div className="space-y-8">
       <DateFilter startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} />
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
         <StatCard 
           title="Total RR" 
           value={stats.totalRR.toFixed(2)} 
@@ -120,6 +172,16 @@ export default function Dashboard({ trades }: DashboardProps) {
           title="Win Rate" 
           value={`${stats.winRate.toFixed(1)}%`} 
           icon={<Target className="text-blue-500" />}
+        />
+        <StatCard 
+          title="Max Consec. Win" 
+          value={streaks.maxWin.toString()} 
+          icon={<Zap className="text-emerald-500" />}
+        />
+        <StatCard 
+          title="Max Consec. Loss" 
+          value={streaks.maxLoss.toString()} 
+          icon={<Zap className="text-red-500" />}
         />
       </div>
 

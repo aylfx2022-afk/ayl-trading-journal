@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
 import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
+import { getSafeDate } from '../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
@@ -46,7 +47,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [tpPrice, setTpPrice] = useState(trade.tpPrice?.toString() || '');
   const [exitPrice, setExitPrice] = useState(trade.exitPrice?.toString() || '');
   const [rr, setRr] = useState(trade.rr?.toString() || '');
-  const [entryDateTime, setEntryDateTime] = useState<Date | null>(trade.openTime ? trade.openTime.toDate() : null);
+  const [entryDateTime, setEntryDateTime] = useState<Date | null>(getSafeDate(trade.openTime));
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
@@ -197,9 +198,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             <input type="number" step="0.01" value={rr} readOnly className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-400 focus:outline-none cursor-not-allowed" />
           </div>
 
-          <div className="space-y-1.5 overflow-hidden">
+          <div className="space-y-1.5 relative z-50">
             <DatePicker 
-              label="Time"
+              label="Entry Date"
               value={entryDateTime}
               onChange={setEntryDateTime}
               compact
