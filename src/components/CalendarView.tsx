@@ -12,10 +12,11 @@ interface CalendarViewProps {
   trades: Trade[];
   onSelectTrade: (trade: Trade) => void;
   onSelectDay: (date: Dayjs) => void;
+  panelDate: Dayjs;
+  setPanelDate: (date: Dayjs) => void;
 }
 
-export default function CalendarView({ trades, onSelectTrade, onSelectDay }: CalendarViewProps) {
-  const [panelDate, setPanelDate] = useState<Dayjs>(dayjs());
+export default function CalendarView({ trades, onSelectTrade, onSelectDay, panelDate, setPanelDate }: CalendarViewProps) {
 
   // Optimize: Group trades by date and pre-calculate totals to avoid repeated iteration in cell renders
   const tradesByDate = React.useMemo(() => {
@@ -66,6 +67,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
   }, [panelDate, trades]);
 
   const onSelect = (date: Dayjs, info: { source: string }) => {
+    setPanelDate(date);
     if (info.source === 'date') {
       onSelectDay(date);
     }
@@ -112,6 +114,8 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
   const fullCellRender = (value: Dayjs, info: any) => {
     if (info.type !== 'date') return info.originNode;
 
+    const isCurrentMonth = value.month() === panelDate.month() && value.year() === panelDate.year();
+
     const currentKey = value.format('YYYY-MM-DD');
     const dayData = tradesByDate[currentKey];
     const tradesOnDay = dayData?.trades || [];
@@ -121,14 +125,13 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
     const hasNotes = tradesOnDay.some(t => t.notes);
 
     return (
-      <div className={`ant-picker-cell-inner ant-picker-calendar-date transition-all duration-300 h-full flex flex-col cursor-pointer group relative
+      <div className={`custom-calendar-cell transition-all duration-300 ease-out h-full flex flex-col cursor-pointer group relative hover:z-20
+        ${!isCurrentMonth ? 'opacity-20 pointer-events-none grayscale' : 'hover:scale-[1.05] hover:shadow-2xl'}
         ${totalRR !== null 
-          ? (isToday 
-            ? (isPositive ? 'bg-emerald-500/5' : 'bg-red-500/5')                
-            : (isPositive ? 'bg-emerald-500/15 shadow-[inset_0_0_15px_rgba(16,185,129,0.03)]' : 'bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.03)]'))
-          : 'hover:bg-white/[0.02]'
+          ? (isPositive ? '!bg-emerald-500/15 !shadow-[inset_0_0_15px_rgba(16,185,129,0.03)] hover:!shadow-emerald-500/30 hover:!bg-emerald-500/20' : '!bg-red-500/15 !shadow-[inset_0_0_15px_rgba(239,68,68,0.03)] hover:!shadow-red-500/30 hover:!bg-red-500/20')
+          : 'hover:!bg-white/[0.04] hover:!shadow-lg'
         } 
-        border ${isToday ? 'border-2 border-emerald-400' : 'border-white/[0.02]'}
+        border !border-white/[0.02] hover:!border-white/[0.1]
       `}>
         <div className="relative z-10 flex flex-col items-center justify-center h-full pt-px gap-1">
           <span className={`text-xs font-bold ${isToday ? 'text-emerald-400' : 'text-zinc-500'}`}>
@@ -284,6 +287,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay }: Cal
           <div className="flex">
             <div className="flex-1 antd-calendar-wrapper custom-calendar compact-calendar">
               <Calendar 
+                value={panelDate}
                 fullscreen={true}
                 onSelect={onSelect}
                 onPanelChange={onPanelChange}

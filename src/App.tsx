@@ -38,6 +38,7 @@ export default function App() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [calendarPanelDate, setCalendarPanelDate] = useState<Dayjs>(dayjs());
   const [previousTab, setPreviousTab] = useState('dashboard');
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
@@ -143,6 +144,13 @@ export default function App() {
     }
   };
 
+  const navigateTo = (tab: string) => {
+    if (activeTab !== 'trade-details') {
+      setPreviousTab(activeTab);
+    }
+    setActiveTab(tab);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
@@ -227,10 +235,7 @@ export default function App() {
   return (
     <Layout 
       activeTab={activeTab} 
-      setActiveTab={(tab) => {
-        if (tab !== 'trade-details') setPreviousTab(tab);
-        setActiveTab(tab);
-      }} 
+      setActiveTab={navigateTo} 
       user={user}
       headerActions={headerActions}
     >
@@ -243,13 +248,20 @@ export default function App() {
           transition={{ duration: 0.2 }}
         >
           {activeTab === 'dashboard' && <Dashboard trades={trades} />}
-          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
-          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} />}
-          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); setActiveTab('day-details'); }} />}
-          {activeTab === 'day-details' && <DayDetails date={selectedDay} trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); setActiveTab('trade-details'); }} onBack={() => setActiveTab('calendar')} />}
-          {activeTab === 'add-trade' && <AddTrade onBack={() => setActiveTab('dashboard')} />}
+          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} />}
+          {activeTab === 'day-details' && <DayDetails date={selectedDay} trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onBack={() => navigateTo('calendar')} />}
+          {activeTab === 'add-trade' && <AddTrade onBack={() => navigateTo('dashboard')} />}
           {activeTab === 'settings' && <Settings />}
-          {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => setActiveTab(previousTab)} />}
+          {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => {
+            // If previous tab was calendar, user probably came from calendar or day-details
+            if (previousTab === 'day-details' || previousTab === 'calendar') {
+              navigateTo(previousTab);
+            } else {
+              setActiveTab(previousTab);
+            }
+          }} />}
         </motion.div>
       </AnimatePresence>
 

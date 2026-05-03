@@ -89,6 +89,7 @@
   padding: 0 !important;
 }
 
+.antd-calendar-wrapper .custom-calendar-cell,
 .antd-calendar-wrapper .ant-picker-cell-inner {
   height: 120px !important;
   width: calc(100% - 4px) !important;
@@ -98,6 +99,7 @@
   border: 1px solid #ffffff08 !important;
 }
 
+.antd-calendar-wrapper.compact-calendar .custom-calendar-cell,
 .antd-calendar-wrapper.compact-calendar .ant-picker-cell-inner {
   height: clamp(65px, 12vh, 85px) !important;
   width: calc(100% - 2px) !important;
@@ -117,10 +119,16 @@
   display: none !important;
 }
 
-.antd-calendar-wrapper .ant-picker-cell-selected .ant-picker-cell-inner {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
+.antd-calendar-wrapper .ant-picker-cell-selected .ant-picker-cell-inner::before,
+.antd-calendar-wrapper .ant-picker-cell-today .ant-picker-cell-inner::before,
+.ant-picker-cell-today .ant-picker-cell-inner::before {
+  display: none !important;
+  border: none !important;
+}
+
+.ant-picker-cell-in-view.ant-picker-cell-today .ant-picker-cell-inner::before,
+.ant-picker-cell-in-view.ant-picker-cell-today .custom-calendar-cell::before {
+  display: none !important;
 }
 
 .antd-calendar-wrapper .ant-picker-calendar-date-value,
