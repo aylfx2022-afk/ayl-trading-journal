@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight, RefreshCcw } from 'lucide-react';
 import { db } from '../firebase';
-import { deleteDoc, doc } from 'firebase/firestore';
+import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { getSafeDate } from '../lib/dateUtils';
 
 import DatePicker from './ui/DatePicker';
@@ -11,12 +11,13 @@ import DatePicker from './ui/DatePicker';
 interface TradeListProps {
   trades: Trade[];
   onSelectTrade: (trade: Trade) => void;
+  isTrash?: boolean;
 }
 
 type SortField = 'date' | 'pair' | 'rr' | 'type';
 type SortOrder = 'asc' | 'desc';
 
-export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
+export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListProps) {
   const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
   const [searchTerm, setSearchTerm] = React.useState('');
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
@@ -39,13 +40,32 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
 
   const handleDeleteTrade = async (e: React.MouseEvent, tradeId: string) => {
     e.stopPropagation();
-    if (!window.confirm('Are you sure you want to delete this trade?')) return;
-    
+    if (isTrash) {
+      if (!window.confirm('Are you sure you want to permanently delete this trade?')) return;
+      try {
+        await deleteDoc(doc(db, 'trades', tradeId));
+      } catch (error) {
+        console.error("Error permanently deleting trade:", error);
+        alert("Failed to delete trade. Please check your permissions.");
+      }
+    } else {
+      if (!window.confirm('Are you sure you want to move this trade to trash?')) return;
+      try {
+        await updateDoc(doc(db, 'trades', tradeId), { isDeleted: true });
+      } catch (error) {
+        console.error("Error moving trade to trash:", error);
+        alert("Failed to move trade to trash. Please check your permissions.");
+      }
+    }
+  };
+
+  const handleRestoreTrade = async (e: React.MouseEvent, tradeId: string) => {
+    e.stopPropagation();
     try {
-      await deleteDoc(doc(db, 'trades', tradeId));
+      await updateDoc(doc(db, 'trades', tradeId), { isDeleted: false });
     } catch (error) {
-      console.error("Error deleting trade:", error);
-      alert("Failed to delete trade. Please check your permissions.");
+      console.error("Error restoring trade:", error);
+      alert("Failed to restore trade. Please check your permissions.");
     }
   };
 
@@ -269,16 +289,27 @@ export default function TradeList({ trades, onSelectTrade }: TradeListProps) {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                    <button 
-                      className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-                      title="View Details"
-                    >
-                      <Edit3 size={16} />
-                    </button>
+                    {!isTrash && (
+                      <button 
+                        className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
+                        title="View Details"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                    )}
+                    {isTrash && (
+                      <button 
+                        onClick={(e) => handleRestoreTrade(e, trade.id!)}
+                        className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
+                        title="Restore Trade"
+                      >
+                        <RefreshCcw size={16} />
+                      </button>
+                    )}
                     <button 
                       onClick={(e) => handleDeleteTrade(e, trade.id!)}
                       className="p-2 rounded-lg text-zinc-500 hover:text-red-500 hover:bg-red-500/10"
-                      title="Delete Trade"
+                      title={isTrash ? "Delete Permanently" : "Move to Trash"}
                     >
                       <Trash2 size={16} />
                     </button>

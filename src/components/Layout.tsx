@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2 } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 
@@ -94,6 +94,17 @@ export default function Layout({ children, activeTab, setActiveTab, user, header
           >
             <SettingsIcon size={20} />
             <span className="font-medium">Settings</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('trash')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+              activeTab === 'trash' 
+                ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
+                : 'text-zinc-500 hover:text-red-400 hover:bg-white/5'
+            }`}
+          >
+            <Trash2 size={20} />
+            <span className="font-medium">Trash</span>
           </button>
         </nav>
 

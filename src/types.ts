@@ -25,6 +25,7 @@ export interface Trade {
   entryDateTime?: Timestamp;
   exitDateTime?: Timestamp;
   tags?: string[];
+  isDeleted?: boolean;
 }
 
 export interface UserProfile {

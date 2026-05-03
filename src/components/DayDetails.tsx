@@ -161,7 +161,17 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
                       )}
                     </td>
                     <td className="px-5 py-3">
-                      <button onClick={(e) => { e.stopPropagation(); console.log('Delete trade', trade.id); }} className="text-zinc-500 hover:text-red-500 transition-colors">
+                      <button onClick={async (e) => { 
+                        e.stopPropagation(); 
+                        if (!window.confirm('Are you sure you want to move this trade to trash?')) return;
+                        try {
+                          await import('firebase/firestore').then(({ doc, updateDoc }) => {
+                            import('../firebase').then(({ db }) => updateDoc(doc(db, 'trades', trade.id!), { isDeleted: true }));
+                          });
+                        } catch (e) {
+                          console.error("Error moving trade to trash:", e);
+                        }
+                      }} className="text-zinc-500 hover:text-red-500 transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </td>

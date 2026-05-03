@@ -131,14 +131,37 @@ export default function App() {
       
       const batch = writeBatch(db);
       snapshot.docs.forEach((doc) => {
-        batch.delete(doc.ref);
+        batch.update(doc.ref, { isDeleted: true });
       });
       
       await batch.commit();
       setShowDeleteConfirm(false);
     } catch (error) {
       console.error("Error deleting all trades:", error);
-      alert("Failed to delete trades. Please check your permissions.");
+      alert("Failed to move trades to trash. Please check your permissions.");
+    } finally {
+      setIsDeletingAll(false);
+    }
+  };
+
+  const handleEmptyTrash = async () => {
+    if (!user) return;
+    if (!window.confirm('Are you sure you want to permanently delete all items in the trash?')) return;
+    setIsDeletingAll(true);
+    
+    try {
+      const q = query(collection(db, 'trades'), where('userId', '==', user.uid), where('isDeleted', '==', true));
+      const snapshot = await getDocs(q);
+      
+      const batch = writeBatch(db);
+      snapshot.docs.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+    } catch (error) {
+      console.error("Error emptying trash:", error);
+      alert("Failed to empty trash. Please check your permissions.");
     } finally {
       setIsDeletingAll(false);
     }
@@ -196,13 +219,22 @@ export default function App() {
     );
   }
 
-  const headerActions = activeTab === 'history' && trades.length > 0 ? (
+  const headerActions = activeTab === 'history' && trades.filter(t => !t.isDeleted).length > 0 ? (
     <button 
       onClick={() => setShowDeleteConfirm(true)}
       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-widest border border-red-500/20 group"
     >
       <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
       Clear All History
+    </button>
+  ) : activeTab === 'trash' && trades.filter(t => t.isDeleted).length > 0 ? (
+    <button 
+      onClick={handleEmptyTrash}
+      disabled={isDeletingAll}
+      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-widest border border-red-500/20 group disabled:opacity-50"
+    >
+      <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+      Empty Trash
     </button>
   ) : activeTab === 'add-trade' ? (
     <div className="flex items-center gap-2">
@@ -247,13 +279,14 @@ export default function App() {
           exit={{ opacity: 0, x: -10 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === 'dashboard' && <Dashboard trades={trades} />}
-          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} />}
-          {activeTab === 'day-details' && <DayDetails date={selectedDay} trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onBack={() => navigateTo('calendar')} />}
+          {activeTab === 'dashboard' && <Dashboard trades={trades.filter(t => !t.isDeleted)} />}
+          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} />}
+          {activeTab === 'day-details' && <DayDetails date={selectedDay} trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onBack={() => navigateTo('calendar')} />}
           {activeTab === 'add-trade' && <AddTrade onBack={() => navigateTo('dashboard')} />}
           {activeTab === 'settings' && <Settings />}
+          {activeTab === 'trash' && <TradeList trades={trades.filter(t => t.isDeleted)} isTrash={true} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => {
             // If previous tab was calendar, user probably came from calendar or day-details
             if (previousTab === 'day-details' || previousTab === 'calendar') {
