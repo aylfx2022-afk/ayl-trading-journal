@@ -14,6 +14,11 @@ interface DayDetailsProps {
 
 export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayDetailsProps) {
   const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, message: '', onConfirm: () => {} });
   const dateKey = date.format('YYYY-MM-DD');
   
   const tradesForDate = trades.filter(trade => {
@@ -26,6 +31,20 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
 
   return (
     <div className="max-w-5xl mx-auto space-y-4">
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
+          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">Confirm Action</h3>
+            <p className="text-zinc-300 text-sm mb-6">{confirmModal.message}</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Cancel</button>
+              <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-red-500/80 hover:bg-red-500 rounded-lg text-xs font-bold text-white transition-colors">Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal for notes */}
       {selectedNote && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedNote(null)}>
@@ -155,16 +174,22 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
                       )}
                     </td>
                     <td className="px-5 py-3">
-                      <button onClick={async (e) => { 
+                      <button onClick={(e) => { 
                         e.stopPropagation(); 
-                        if (!window.confirm('Are you sure you want to move this trade to trash?')) return;
-                        try {
-                          await import('firebase/firestore').then(({ doc, updateDoc }) => {
-                            import('../firebase').then(({ db }) => updateDoc(doc(db, 'trades', trade.id!), { isDeleted: true }));
-                          });
-                        } catch (e) {
-                          console.error("Error moving trade to trash:", e);
-                        }
+                        setConfirmModal({
+                          isOpen: true,
+                          message: 'Are you sure you want to move this trade to trash?',
+                          onConfirm: async () => {
+                            setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                            try {
+                              await import('firebase/firestore').then(({ doc, updateDoc }) => {
+                                import('../firebase').then(({ db }) => updateDoc(doc(db, 'trades', trade.id!), { isDeleted: true }));
+                              });
+                            } catch (e) {
+                              console.error("Error moving trade to trash:", e);
+                            }
+                          }
+                        });
                       }} className="text-zinc-500 hover:text-red-500 transition-colors">
                         <Trash2 size={16} />
                       </button>

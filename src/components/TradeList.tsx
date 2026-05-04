@@ -161,7 +161,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
 
       {/* Confirmation Modal */}
       {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
           <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">Confirm Action</h3>
             <p className="text-zinc-300 text-sm mb-6">{confirmModal.message}</p>
