@@ -172,6 +172,7 @@ html, body {
 
 /* Remove Recharts Focus Outline */
 .recharts-wrapper:focus, 
+.recharts-wrapper *:focus,
 .recharts-surface:focus,
 .recharts-legend-wrapper:focus,
 .recharts-sector:focus,
