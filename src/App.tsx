@@ -254,7 +254,15 @@ export default function App() {
         Save Trade
       </button>
     </div>
-  ) : (activeTab === 'trade-details' || activeTab === 'day-details') ? (
+  ) : activeTab === 'day-details' ? (
+    <button 
+      onClick={() => navigateTo('calendar')}
+      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
+    >
+      <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+      Back to Calendar
+    </button>
+  ) : activeTab === 'trade-details' ? (
     <button 
       onClick={() => setActiveTab(previousTab)}
       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"

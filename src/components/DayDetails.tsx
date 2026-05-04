@@ -39,12 +39,6 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div className="text-left flex flex-col gap-2">
-          <button 
-            onClick={onBack}
-            className="flex items-center text-xs font-bold text-zinc-500 hover:text-white transition-colors w-fit"
-          >
-            ← Back to Calendar
-          </button>
           <div>
             <h2 className="text-xl font-bold tracking-tight">Daily Summary</h2>
             <p className="text-zinc-500 text-sm font-medium">
