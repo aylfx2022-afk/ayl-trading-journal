@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Trade } from '../types';
 import { format } from 'date-fns';
 import { CalendarDays, StickyNote, Trash2 } from 'lucide-react';
@@ -32,8 +33,8 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
   return (
     <div className="max-w-5xl mx-auto space-y-4">
       {/* Confirmation Modal */}
-      {confirmModal.isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
+      {confirmModal.isOpen && createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
           <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">Confirm Action</h3>
             <p className="text-zinc-300 text-sm mb-6">{confirmModal.message}</p>
@@ -42,18 +43,20 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
               <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-red-500/80 hover:bg-red-500 rounded-lg text-xs font-bold text-white transition-colors">Confirm</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Modal for notes */}
-      {selectedNote && (
+      {selectedNote && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedNote(null)}>
           <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">{selectedNote.pair} Journal</h3>
             <p className="text-zinc-300 text-sm whitespace-pre-wrap">{selectedNote.note}</p>
             <button onClick={() => setSelectedNote(null)} className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Close</button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
