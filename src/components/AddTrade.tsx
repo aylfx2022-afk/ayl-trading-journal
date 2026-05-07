@@ -4,6 +4,7 @@ import { collection, addDoc, Timestamp, doc, getDoc } from 'firebase/firestore';
 import { Save, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import DatePicker from './ui/DatePicker';
 import TagInput from './ui/TagInput';
@@ -255,7 +256,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
               ) : (
                 <div className="min-h-[120px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview">
                   {formData.notes ? (
-                    <ReactMarkdown>{formData.notes}</ReactMarkdown>
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{formData.notes}</ReactMarkdown>
                   ) : <span className="text-zinc-600">No notes yet...</span>}
                 </div>
               )}

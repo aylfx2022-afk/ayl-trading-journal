@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { getSafeDate } from '../lib/dateUtils';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend
+  PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList
 } from 'recharts';
 import DatePicker from './ui/DatePicker';
 import { Trade } from '../types';
@@ -223,15 +223,59 @@ export default function Dashboard({ trades }: DashboardProps) {
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={stats.monthlyRRData}>
+                <defs>
+                  {stats.monthlyRRData.map((entry, index) => {
+                    const isPos = entry.rr >= 0;
+                    const ratio = Math.min(Math.abs(entry.rr) / 50, 1);
+                    const intensity = 0.3 + (ratio * 0.7);
+                    return (
+                      <linearGradient key={`grad-${index}`} id={`colorRR-${index}`} x1="0" y1="0" x2="0" y2="1">
+                        {isPos ? (
+                          <>
+                            <stop offset="0%" stopColor="#38d178" stopOpacity={intensity} />
+                            <stop offset="100%" stopColor="#38d178" stopOpacity={0.05} />
+                          </>
+                        ) : (
+                          <>
+                            <stop offset="0%" stopColor="#9b2a2a" stopOpacity={0.05} />
+                            <stop offset="100%" stopColor="#9b2a2a" stopOpacity={intensity} />
+                          </>
+                        )}
+                      </linearGradient>
+                    );
+                  })}
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
                 <XAxis dataKey="month" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
                 <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
                   cursor={false}
-                  formatter={(value: any) => [Number(value).toFixed(2), "RR"]}
+                  content={({ payload }) => {
+                    if (payload && payload.length) {
+                      const rr = Number(payload[0].value);
+                      const color = rr >= 0 ? '#38d178' : '#9b2a2a';
+                      return (
+                        <div style={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px', padding: '10px' }}>
+                          <p style={{ color, fontSize: '12px', margin: 0 }}>RR: {rr.toFixed(2)}</p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
-                <Bar dataKey="rr" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="rr" radius={[4, 4, 0, 0]} barSize={40}>
+                  {stats.monthlyRRData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={`url(#colorRR-${index})`} />
+                  ))}
+                  <LabelList 
+                    dataKey="rr" 
+                    position="insideTop" 
+                    fill="#ffffff" 
+                    fontSize={10} 
+                    formatter={(value: any) => Number(value).toFixed(1)}
+                    offset={10}
+                  />
+                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -314,7 +358,7 @@ function DateFilter({ startDate, endDate, setStartDate, setEndDate }: {
   setEndDate: (d: Date | null) => void
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-4 bg-[#0F0F0F] border border-white/5 rounded-3xl p-4">
+    <div className="flex flex-wrap items-center justify-end gap-4 bg-[#0F0F0F] border border-white/5 rounded-3xl p-4">
       <h4 className="text-sm font-bold text-zinc-300">Filter:</h4>
       <div className="w-40">
         <DatePicker 

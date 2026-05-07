@@ -176,12 +176,12 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
         document.body
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold capitalize">Trade History</h2>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3 ml-auto">
           {/* Search Symbol */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />

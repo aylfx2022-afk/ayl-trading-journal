@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, MessageSquare, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
+import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
 import { getSafeDate } from '../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import DatePicker from './ui/DatePicker';
 import TagInput from './ui/TagInput';
@@ -213,8 +214,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
           <div className="space-y-3">
             <label className="flex items-center justify-between gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
               <div className="flex items-center gap-2">
-                <MessageSquare size={14} className="text-emerald-500" />
-                Trade Notes
+                Comments
               </div>
               <button
                 type="button"
@@ -234,7 +234,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             ) : (
               <div className="min-h-[140px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview">
                 {notes ? (
-                  <ReactMarkdown>{notes}</ReactMarkdown>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{notes}</ReactMarkdown>
                 ) : <span className="text-zinc-600">No notes yet...</span>}
               </div>
             )}

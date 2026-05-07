@@ -46,14 +46,49 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
     }, 0);
   };
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter') {
+      const { selectionStart } = e.currentTarget;
+      const textBeforeCursor = value.substring(0, selectionStart);
+      const lastLine = textBeforeCursor.split('\n').pop() || '';
+
+      // Check for bullet list
+      const bulletMatch = lastLine.match(/^(\s*)-\s/);
+      // Check for numbered list
+      const numberedMatch = lastLine.match(/^(\s*)(\d+)\.\s/);
+
+      if (bulletMatch) {
+        e.preventDefault();
+        const prefix = bulletMatch[1] + '- ';
+        const newValue = value.substring(0, selectionStart) + '\n' + prefix + value.substring(selectionStart);
+        onChange(newValue);
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.setSelectionRange(selectionStart + prefix.length + 1, selectionStart + prefix.length + 1);
+          }
+        }, 0);
+      } else if (numberedMatch) {
+        e.preventDefault();
+        const indent = numberedMatch[1];
+        const nextNumber = parseInt(numberedMatch[2], 10) + 1;
+        const prefix = `${indent}${nextNumber}. `;
+        const newValue = value.substring(0, selectionStart) + '\n' + prefix + value.substring(selectionStart);
+        onChange(newValue);
+        setTimeout(() => {
+          if (textareaRef.current) {
+            textareaRef.current.setSelectionRange(selectionStart + prefix.length + 1, selectionStart + prefix.length + 1);
+          }
+        }, 0);
+      }
+    }
+  };
+
   const toolbarActions = [
     { icon: <Bold size={16} />, action: () => insertText('**', '**'), label: 'Bold' },
     { icon: <Italic size={16} />, action: () => insertText('_', '_'), label: 'Italic' },
     { icon: <List size={16} />, action: () => insertText('\n- ', ''), label: 'Bullet List' },
     { icon: <ListOrdered size={16} />, action: () => insertText('\n1. ', ''), label: 'Numbered List' },
-    { icon: <Link size={16} />, action: () => insertText('[', '](url)'), label: 'Link' },
     { icon: <Quote size={16} />, action: () => insertText('\n> ', ''), label: 'Quote' },
-    { icon: <Code size={16} />, action: () => insertText('`', '`'), label: 'Code' },
   ];
 
   return (
@@ -107,6 +142,7 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
             ref={textareaRef}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className="w-full p-4 bg-transparent outline-none text-zinc-200 text-sm placeholder:text-zinc-700 resize-none overflow-hidden"
             style={{ minHeight }}
