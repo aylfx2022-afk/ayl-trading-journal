@@ -234,7 +234,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
           </div>
 
           {/* Section 3: Notes & Tags */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 border-t border-white/5">
+          <div className="space-y-6 pt-2 border-t border-white/5">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Comments</label>

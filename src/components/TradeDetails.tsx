@@ -210,7 +210,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         </div>
 
         {/* Section 2: Notes & Tags */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        <div className="space-y-6 pt-2">
           <div className="space-y-3">
             <label className="flex items-center justify-between gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
               <div className="flex items-center gap-2">
