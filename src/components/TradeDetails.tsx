@@ -25,6 +25,8 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [notes, setNotes] = useState(trade.notes || '');
   const [pair, setPair] = useState(trade.item || '');
   const [tags, setTags] = useState<string[]>(trade.tags || []);
+  const [mentalState, setMentalState] = useState(trade.mentalState || '');
+  const [physicalState, setPhysicalState] = useState(trade.physicalState || '');
   
   React.useEffect(() => {
     const fetchTags = async () => {
@@ -101,7 +103,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       handleSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags]);
+  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags, mentalState, physicalState]);
 
   const handleSave = async () => {
     if (!trade.id) return;
@@ -121,7 +123,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         exitPrice: exitPrice !== '' ? Number(exitPrice) : null,
         rr: rr !== '' ? Number(rr) : null,
         openTime: entryDateTime ? Timestamp.fromDate(entryDateTime) : trade.openTime,
-        closeTime: null
+        closeTime: null,
+        mentalState,
+        physicalState
       });
       setSavingStatus('saved');
       setTimeout(() => setSavingStatus('idle'), 2000);
@@ -250,6 +254,50 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               placeholder="Strategy, news..." 
               availableTags={availableTags}
             />
+          </div>
+
+          {/* Trader Psychology & Wellness */}
+          <div className="space-y-4 pt-4 border-t border-white/5">
+            <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+              Trader State (စိတ်နှင့်ခန္ဓာကိုယ်အခြေအနေ)
+            </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Mental State */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Mental State (စိတ်အခြေအနေ)</p>
+                <select
+                  value={mentalState}
+                  onChange={(e) => setMentalState(e.target.value)}
+                  className="w-full bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200"
+                >
+                  <option value="" className="bg-[#111113] text-zinc-400">Select mental state / စိတ်အခြေအနေ ရွေးချယ်ရန်</option>
+                  <option value="neutral" className="bg-[#111113]">Neutral 😐 (သာမန်/ပုံမှန်)</option>
+                  <option value="focused" className="bg-[#111113]">Focused 🎯 (အာရုံစူးစိုက်မှုရှိသော)</option>
+                  <option value="calm" className="bg-[#111113]">Calm 🧘 (တည်ငြိမ်အေးချမ်းသော)</option>
+                  <option value="anxious" className="bg-[#111113]">Anxious 😟 (စိုးရိမ်ပူပန်သော)</option>
+                  <option value="greedy" className="bg-[#111113]">Greedy 🤑 (လောဘဇောတက်ကြွသော)</option>
+                  <option value="impatient" className="bg-[#111113]">Impatient ⏳ (စိတ်မရှည်စောဒကတက်သော)</option>
+                  <option value="excited" className="bg-[#111113]">Excited ⚡ (စိတ်လှုပ်ရှားတက်ကြွသော)</option>
+                </select>
+              </div>
+
+              {/* Physical State */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Physical State (ခန္ဓာကိုယ်အခြေအနေ)</p>
+                <select
+                  value={physicalState}
+                  onChange={(e) => setPhysicalState(e.target.value)}
+                  className="w-full bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500/50 text-zinc-200"
+                >
+                  <option value="" className="bg-[#111113] text-zinc-400">Select physical state / ခန္ဓာကိုယ်အခြေအနေ ရွေးချယ်ရန်</option>
+                  <option value="energetic" className="bg-[#111113]">Energetic ⚡ (အင်အားပြည့်ဝသော)</option>
+                  <option value="neutral" className="bg-[#111113]">Neutral 😐 (ပုံမှန်/အလယ်အလတ်)</option>
+                  <option value="tired" className="bg-[#111113]">Tired 😴 (နုံးခွေပင်ပန်းသော)</option>
+                  <option value="sick" className="bg-[#111113]">Sick 🤒 (နေမကောင်းဖြစ်သော)</option>
+                  <option value="sleepy" className="bg-[#111113]">Sleepy 💤 (အိပ်ငိုက်သော)</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 

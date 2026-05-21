@@ -15,8 +15,26 @@ interface TradeListProps {
   isTrash?: boolean;
 }
 
-type SortField = 'date' | 'pair' | 'rr' | 'type';
+type SortField = 'date' | 'pair' | 'rr' | 'type' | 'createdAt';
 type SortOrder = 'asc' | 'desc';
+
+const MENTAL_STATES: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
+  neutral: { label: 'Neutral 😐', tooltip: 'Neutral 😐 (သာမန်/ပုံမှန်)', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/10' },
+  focused: { label: 'Focused 🎯', tooltip: 'Focused 🎯 (အာရုံစူးစိုက်မှုရှိသော)', bg: 'bg-emerald-500/10', text: 'text-emerald-400/90', border: 'border-emerald-500/15' },
+  calm: { label: 'Calm 🧘', tooltip: 'Calm 🧘 (တည်ငြိမ်အေးချမ်းသော)', bg: 'bg-sky-500/10', text: 'text-sky-400/90', border: 'border-sky-500/15' },
+  anxious: { label: 'Anxious 😟', tooltip: 'Anxious 😟 (စိုးရိမ်ပူပန်သော)', bg: 'bg-amber-500/10', text: 'text-amber-400/90', border: 'border-amber-500/15' },
+  greedy: { label: 'Greedy 🤑', tooltip: 'Greedy 🤑 (လောဘဇောတက်ကြွသော)', bg: 'bg-yellow-500/10', text: 'text-yellow-400/90', border: 'border-yellow-500/15' },
+  impatient: { label: 'Impatient ⏳', tooltip: 'Impatient ⏳ (စိတ်မရှည်စောဒကတက်သော)', bg: 'bg-orange-500/10', text: 'text-orange-400/90', border: 'border-orange-500/15' },
+  excited: { label: 'Excited ⚡', tooltip: 'Excited ⚡ (စိတ်လှုပ်ရှားတက်ကြွသော)', bg: 'bg-purple-500/10', text: 'text-purple-400/90', border: 'border-purple-500/15' },
+};
+
+const PHYSICAL_STATES: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
+  energetic: { label: 'Energetic ⚡', tooltip: 'Energetic ⚡ (အင်အားပြည့်ဝသော)', bg: 'bg-amber-500/10', text: 'text-amber-400/90', border: 'border-amber-500/15' },
+  neutral: { label: 'Neutral 😐', tooltip: 'Neutral 😐 (ပုံမှန်/အလယ်အလတ်)', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/10' },
+  tired: { label: 'Tired 😴', tooltip: 'Tired 😴 (နုံးခွေပင်ပန်းသော)', bg: 'bg-orange-500/10', text: 'text-orange-400/90', border: 'border-orange-500/15' },
+  sick: { label: 'Sick 🤒', tooltip: 'Sick 🤒 (နေမကောင်းဖြစ်သော)', bg: 'bg-red-500/10', text: 'text-red-400/90', border: 'border-red-500/15' },
+  sleepy: { label: 'Sleepy 💤', tooltip: 'Sleepy 💤 (အိပ်ငိုက်သော)', bg: 'bg-blue-500/10', text: 'text-blue-400/90', border: 'border-blue-500/15' },
+};
 
 export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListProps) {
   const [confirmModal, setConfirmModal] = useState<{
@@ -30,7 +48,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
   const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
   const [startDate, setStartDate] = React.useState<Date | null>(null);
   const [endDate, setEndDate] = React.useState<Date | null>(null);
-  const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
+  const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'createdAt', order: 'desc' });
   const [currentPage, setCurrentPage] = React.useState(1);
   const pageSize = 20;
 
@@ -104,16 +122,27 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
     }).sort((a, b) => {
       let comparison = 0;
       switch (sortConfig.field) {
+        case 'createdAt':
+          const createA = getSafeDate(a.createdAt)?.getTime() || 0;
+          const createB = getSafeDate(b.createdAt)?.getTime() || 0;
+          if (createA !== createB) {
+            comparison = createA - createB;
+          } else {
+            const timeA = getSafeDate(a.openTime)?.getTime() || 0;
+            const timeB = getSafeDate(b.openTime)?.getTime() || 0;
+            comparison = timeA - timeB;
+          }
+          break;
         case 'date':
           const timeA = getSafeDate(a.openTime)?.getTime() || 0;
           const timeB = getSafeDate(b.openTime)?.getTime() || 0;
           if (timeA !== timeB) {
             comparison = timeA - timeB;
           } else {
-            const createA = getSafeDate(a.createdAt)?.getTime() || 0;
-            const createB = getSafeDate(b.createdAt)?.getTime() || 0;
-            if (createA !== createB) {
-              comparison = createA - createB;
+            const createA_f = getSafeDate(a.createdAt)?.getTime() || 0;
+            const createB_f = getSafeDate(b.createdAt)?.getTime() || 0;
+            if (createA_f !== createB_f) {
+              comparison = createA_f - createB_f;
             } else {
               comparison = (a.ticket || '').localeCompare(b.ticket || '');
             }
@@ -252,16 +281,18 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
               <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('type')}>
                 <div className="flex items-center gap-1">Type <SortIcon field="type" /></div>
               </th>
-              <th className="px-6 py-4 font-bold">Entry Price</th>
               <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('date')}>
                 <div className="flex items-center gap-1">Entry Date <SortIcon field="date" /></div>
               </th>
+              <th className="px-6 py-4 font-bold">Entry Price</th>
               <th className="px-6 py-4 font-bold">Exit Price</th>
               <th className="px-6 py-4 font-bold">Status</th>
               <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('rr')}>
                 <div className="flex items-center gap-1">RR <SortIcon field="rr" /></div>
               </th>
               <th className="px-6 py-4 font-bold">Journal</th>
+              <th className="px-6 py-4 font-bold text-zinc-400/90 whitespace-nowrap">Mental State</th>
+              <th className="px-6 py-4 font-bold text-zinc-400/90 whitespace-nowrap">Physical State</th>
               <th className="px-6 py-4 font-bold">Tags</th>
               <th className="px-6 py-4 font-bold text-right">Actions</th>
             </tr>
@@ -284,10 +315,10 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
                     {trade.type}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.entryPrice?.toFixed(5)}</td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">
                   {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy') : '-'}
                 </td>
+                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.entryPrice?.toFixed(5)}</td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.exitPrice?.toFixed(5) || '-'}</td>
                 <td className="px-6 py-4">
                   {getStatusBadge(trade.rr || 0)}
@@ -296,7 +327,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
                 <td className="px-6 py-4">
                   {trade.notes && (
                     <button
-                      onClick={(e) => { e.stopPropagation(); setSelectedNote({ note: trade.notes!, pair: trade.pair || trade.item || 'Trade' }); }}
+                       onClick={(e) => { e.stopPropagation(); setSelectedNote({ note: trade.notes!, pair: trade.pair || trade.item || 'Trade' }); }}
                       className="flex items-center gap-1.5 text-emerald-500/50 group hover:text-emerald-500 transition-colors"
                     >
                       <MessageSquare size={14} />
@@ -304,11 +335,49 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
                     </button>
                   )}
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {trade.mentalState ? (
+                    (() => {
+                      const m = MENTAL_STATES[trade.mentalState];
+                      return m ? (
+                        <span 
+                          title={m.tooltip}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${m.bg} ${m.text} ${m.border}`}
+                        >
+                          {m.label}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.mentalState}</span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-zinc-600 text-xs">-</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {trade.physicalState ? (
+                    (() => {
+                      const p = PHYSICAL_STATES[trade.physicalState];
+                      return p ? (
+                        <span 
+                          title={p.tooltip}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${p.bg} ${p.text} ${p.border}`}
+                        >
+                          {p.label}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.physicalState}</span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-zinc-600 text-xs">-</span>
+                  )}
+                </td>
                 <td className="px-6 py-4">
                   {trade.tags && trade.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {trade.tags.map((tag, i) => (
-                        <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded-sm bg-emerald-500/10 text-emerald-500/70 border border-emerald-500/10 transition-colors hover:bg-emerald-500/20">
+                        <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400/70 border border-zinc-500/10 transition-colors hover:bg-zinc-500/20">
                           #{tag}
                         </span>
                       ))}

@@ -96,7 +96,7 @@ const trades = [
   }
 ];
 
-const getSafeDate = (time: any) => {
+const getSafeDate = (time) => {
   if (!time) return null;
   if ('seconds' in time) return new Date(time.seconds * 1000);
   return new Date(time);

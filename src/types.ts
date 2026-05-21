@@ -26,6 +26,9 @@ export interface Trade {
   exitDateTime?: Timestamp;
   tags?: string[];
   isDeleted?: boolean;
+  mentalState?: string;
+  physicalState?: string;
+  ticket?: string;
 }
 
 export interface UserProfile {
