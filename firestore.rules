@@ -69,6 +69,13 @@ service cloud.firestore {
              data.userId == request.auth.uid;
     }
 
+    function isValidJournal(data) {
+      return data.dateYMD is string &&
+             data.content is string &&
+             data.userId == request.auth.uid &&
+             data.updatedAt is string;
+    }
+
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
@@ -82,6 +89,12 @@ service cloud.firestore {
       allow create: if isAuthenticated() && isValidTrade(request.resource.data);
       allow update: if isDocOwner() && isValidTrade(request.resource.data);
       allow delete: if isDocOwner();
+    }
+
+    match /journals/{journalId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create, update: if isAuthenticated() && isValidJournal(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
     match /userSettings/{userId} {

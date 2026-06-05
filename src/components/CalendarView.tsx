@@ -14,9 +14,10 @@ interface CalendarViewProps {
   onSelectDay: (date: Dayjs) => void;
   panelDate: Dayjs;
   setPanelDate: (date: Dayjs) => void;
+  journals?: any[];
 }
 
-export default function CalendarView({ trades, onSelectTrade, onSelectDay, panelDate, setPanelDate }: CalendarViewProps) {
+export default function CalendarView({ trades, onSelectTrade, onSelectDay, panelDate, setPanelDate, journals }: CalendarViewProps) {
 
   // Optimize: Group trades by date and pre-calculate totals to avoid repeated iteration in cell renders
   const tradesByDate = React.useMemo(() => {
@@ -123,6 +124,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
     const isPositive = dayData ? dayData.isPositive : false;
     const isToday = value.isSame(dayjs(), 'day');
     const hasNotes = tradesOnDay.some(t => t.notes);
+    const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
 
     return (
       <div className={`custom-calendar-cell transition-all duration-300 ease-out h-full flex flex-col cursor-pointer group relative hover:z-20
@@ -149,6 +151,9 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
           )}
           {hasNotes && (
              <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-emerald-400/70" title="Day has notes" />
+          )}
+          {hasJournal && (
+             <div className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-amber-400" title="Daily Journal written" />
           )}
         </div>
       </div>

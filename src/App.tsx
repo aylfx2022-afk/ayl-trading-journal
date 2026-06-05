@@ -43,6 +43,7 @@ export default function App() {
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null);
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [trades, setTrades] = useState<Trade[]>([]);
+  const [journals, setJournals] = useState<any[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [addTradeInitialDate, setAddTradeInitialDate] = useState<Date | undefined>(undefined);
@@ -108,6 +109,28 @@ export default function App() {
         ...doc.data()
       })) as Trade[];
       setTrades(tradeData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) {
+      setJournals([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'journals'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const journalData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setJournals(journalData);
     });
 
     return () => unsubscribe();
@@ -294,7 +317,7 @@ export default function App() {
           {activeTab === 'dashboard' && <Dashboard trades={trades.filter(t => !t.isDeleted)} />}
           {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'calendar' && <CalendarView trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} journals={journals} />}
           {activeTab === 'day-details' && (
             <DayDetails 
               date={selectedDay} 
@@ -305,6 +328,7 @@ export default function App() {
                 setAddTradeInitialDate(selectedDay.toDate());
                 navigateTo('add-trade');
               }}
+              journals={journals}
             />
           )}
           {activeTab === 'add-trade' && (

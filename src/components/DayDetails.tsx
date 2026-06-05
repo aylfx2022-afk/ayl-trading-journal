@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { CalendarDays, StickyNote, Trash2, Plus } from 'lucide-react';
+import { CalendarDays, StickyNote, Trash2, Plus, PenSquare } from 'lucide-react';
 import { Dayjs } from 'dayjs';
 import { getSafeDate } from '../lib/dateUtils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import MarkdownEditor from './MarkdownEditor';
+import { db, auth } from '../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 interface DayDetailsProps {
   date: Dayjs;
@@ -12,9 +17,10 @@ interface DayDetailsProps {
   onSelectTrade: (trade: Trade) => void;
   onBack: () => void;
   onAddTrade: () => void;
+  journals?: any[];
 }
 
-export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddTrade }: DayDetailsProps) {
+export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddTrade, journals }: DayDetailsProps) {
   const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -22,6 +28,54 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddT
     onConfirm: () => void;
   }>({ isOpen: false, message: '', onConfirm: () => {} });
   const dateKey = date.format('YYYY-MM-DD');
+
+  const journalForDate = journals?.find(j => j.dateYMD === dateKey);
+  const [isEditingJournal, setIsEditingJournal] = useState(false);
+  const [journalText, setJournalText] = useState('');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+  // Load journal text when date changes or journals load (if not currently focused/editing)
+  useEffect(() => {
+    if (!isEditingJournal) {
+      setJournalText(journalForDate?.content || '');
+    }
+  }, [dateKey, journalForDate, isEditingJournal]);
+
+  // Debounced auto-save effect
+  useEffect(() => {
+    const currentDbText = journalForDate?.content || '';
+    if (journalText === currentDbText) {
+      return;
+    }
+
+    setSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      const user = auth.currentUser;
+      if (!user) {
+        setSaveStatus('idle');
+        return;
+      }
+
+      try {
+        const journalId = `${user.uid}_${dateKey}`;
+        const journalRef = doc(db, 'journals', journalId);
+        
+        await setDoc(journalRef, {
+          dateYMD: dateKey,
+          content: journalText,
+          userId: user.uid,
+          updatedAt: new Date().toISOString()
+        });
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+      } catch (error) {
+        console.error("Error auto-saving journal:", error);
+        setSaveStatus('idle');
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [journalText, dateKey, journalForDate]);
   
   const tradesForDate = trades.filter(trade => {
     if (!trade.openTime) return false;
@@ -218,6 +272,50 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddT
             <p className="text-zinc-500 text-sm font-medium">No trading activity recorded for this date.</p>
           </div>
         )}
+      </div>
+
+      {/* Daily Journal Section */}
+      <div className="rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
+        <div className="px-5 py-3 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h3 className="text-xs font-black uppercase text-zinc-500 tracking-widest">Daily Journal</h3>
+            {saveStatus === 'saving' && (
+              <span className="text-[10px] text-amber-500 font-bold animate-pulse">Auto-saving...</span>
+            )}
+            {saveStatus === 'saved' && (
+              <span className="text-[10px] text-emerald-500 font-bold">Saved ✔</span>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsEditingJournal(!isEditingJournal)}
+            className="text-emerald-500 hover:text-emerald-400 font-bold uppercase tracking-widest text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+          >
+            <PenSquare size={12} />
+            {isEditingJournal ? 'Done' : 'Write'}
+          </button>
+        </div>
+
+        <div className="p-5">
+          {isEditingJournal ? (
+            <MarkdownEditor 
+              value={journalText} 
+              onChange={setJournalText}
+              placeholder="How was your trading day? Jot down insights, emotions, market behavior..."
+              minHeight="140px"
+            />
+          ) : (
+            <div className={`min-h-[140px] w-full p-5 bg-white/[0.02] rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview leading-relaxed ${!journalText ? 'flex items-center justify-center' : ''}`}>
+              {journalText ? (
+                <div className="markdown-body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{journalText}</ReactMarkdown>
+                </div>
+              ) : (
+                <span className="text-zinc-600 italic">No journal entries recorded for today. Click 'Write' to add notes...</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

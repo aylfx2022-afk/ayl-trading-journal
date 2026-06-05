@@ -30,6 +30,18 @@
         "geminiApiKey": { "type": "string", "description": "User-provided Gemini API key" }
       },
       "required": ["email", "role"]
+    },
+    "Journal": {
+      "title": "Journal",
+      "description": "Daily journal notes for a specific day",
+      "type": "object",
+      "properties": {
+        "dateYMD": { "type": "string", "description": "Date formatted as YYYY-MM-DD" },
+        "content": { "type": "string", "description": "Journal text content" },
+        "userId": { "type": "string", "description": "Owner UID" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last updated" }
+      },
+      "required": ["dateYMD", "content", "userId", "updatedAt"]
     }
   },
   "firestore": {
@@ -40,6 +52,10 @@
     "/users/{userId}": {
       "schema": "User",
       "description": "User profiles"
+    },
+    "/journals/{journalId}": {
+      "schema": "Journal",
+      "description": "Daily journal notes per day"
     }
   }
 }
