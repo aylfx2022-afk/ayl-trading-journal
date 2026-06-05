@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { CalendarDays, StickyNote, Trash2 } from 'lucide-react';
+import { CalendarDays, StickyNote, Trash2, Plus } from 'lucide-react';
 import { Dayjs } from 'dayjs';
 import { getSafeDate } from '../lib/dateUtils';
 
@@ -11,9 +11,10 @@ interface DayDetailsProps {
   trades: Trade[];
   onSelectTrade: (trade: Trade) => void;
   onBack: () => void;
+  onAddTrade: () => void;
 }
 
-export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayDetailsProps) {
+export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddTrade }: DayDetailsProps) {
   const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -69,17 +70,24 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack }: DayD
           </div>
         </div>
 
-        <div className="flex gap-3">
-          <div className="px-4 py-2 rounded-xl bg-[#0F0F0F] border border-white/5 flex flex-col items-center min-w-[100px]">
+        <div className="flex gap-3 items-center">
+          <div className="px-4 py-2 rounded-xl bg-[#0F0F0F] border border-white/5 flex flex-col items-center min-w-[100px] h-[46px] justify-center">
             <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">Trades</p>
             <p className="text-lg font-bold leading-none">{tradesForDate.length}</p>
           </div>
-          <div className="px-4 py-2 rounded-xl bg-[#0F0F0F] border border-white/5 flex flex-col items-center min-w-[100px]">
+          <div className="px-4 py-2 rounded-xl bg-[#0F0F0F] border border-white/5 flex flex-col items-center min-w-[100px] h-[46px] justify-center">
             <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">Net RR</p>
             <p className={`text-lg font-bold leading-none ${totalRR >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
               {totalRR >= 0 ? '+' : ''}{totalRR.toFixed(2)}
             </p>
           </div>
+          <button 
+            onClick={onAddTrade}
+            className="px-5 h-[46px] rounded-xl bg-emerald-500 text-black hover:bg-emerald-400 font-bold text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-lg hover:shadow-emerald-500/10 cursor-pointer active:scale-95"
+          >
+            <Plus size={14} className="stroke-[3]" />
+            New Trade
+          </button>
         </div>
       </div>
 

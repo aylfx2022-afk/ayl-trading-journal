@@ -45,6 +45,7 @@ export default function App() {
   const [trades, setTrades] = useState<Trade[]>([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
+  const [addTradeInitialDate, setAddTradeInitialDate] = useState<Date | undefined>(undefined);
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
@@ -171,6 +172,9 @@ export default function App() {
     if (activeTab !== 'trade-details') {
       setPreviousTab(activeTab);
     }
+    if (tab !== 'add-trade') {
+      setAddTradeInitialDate(undefined);
+    }
     setActiveTab(tab);
   };
 
@@ -291,8 +295,30 @@ export default function App() {
           {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'calendar' && <CalendarView trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} />}
-          {activeTab === 'day-details' && <DayDetails date={selectedDay} trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onBack={() => navigateTo('calendar')} />}
-          {activeTab === 'add-trade' && <AddTrade onBack={() => navigateTo('dashboard')} />}
+          {activeTab === 'day-details' && (
+            <DayDetails 
+              date={selectedDay} 
+              trades={trades.filter(t => !t.isDeleted)} 
+              onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} 
+              onBack={() => navigateTo('calendar')} 
+              onAddTrade={() => {
+                setAddTradeInitialDate(selectedDay.toDate());
+                navigateTo('add-trade');
+              }}
+            />
+          )}
+          {activeTab === 'add-trade' && (
+            <AddTrade 
+              onBack={() => {
+                if (previousTab === 'day-details') {
+                  navigateTo('day-details');
+                } else {
+                  navigateTo('dashboard');
+                }
+              }} 
+              initialDate={addTradeInitialDate}
+            />
+          )}
           {activeTab === 'settings' && <Settings />}
           {activeTab === 'trash' && <TradeList trades={trades.filter(t => t.isDeleted)} isTrash={true} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => {

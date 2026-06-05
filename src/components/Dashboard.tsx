@@ -113,13 +113,20 @@ export default function Dashboard({ trades }: DashboardProps) {
     });
 
     // Monthly RR data
-    const monthlyRR: Record<string, number> = {};
+    const monthlyRR: Record<string, { rr: number; orderDate: Date }> = {};
     closedTrades.forEach(t => {
       const d = getSafeDate(t.openTime);
       const month = d ? format(d, 'MMM yyyy') : 'N/A';
-      monthlyRR[month] = (monthlyRR[month] || 0) + (t.rr || 0);
+      if (!monthlyRR[month]) {
+        const orderDate = d ? new Date(d.getFullYear(), d.getMonth(), 1) : new Date(0);
+        monthlyRR[month] = { rr: 0, orderDate };
+      }
+      monthlyRR[month].rr += (t.rr || 0);
     });
-    const monthlyRRData = Object.entries(monthlyRR).map(([month, rr]) => ({ month, rr }));
+    const monthlyRRData = Object.entries(monthlyRR)
+      .map(([month, { rr, orderDate }]) => ({ month, rr, orderDate }))
+      .sort((a, b) => a.orderDate.getTime() - b.orderDate.getTime())
+      .map(({ month, rr }) => ({ month, rr }));
     
     return {
       totalProfit,

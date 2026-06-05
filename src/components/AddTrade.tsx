@@ -12,9 +12,10 @@ import MarkdownEditor from './MarkdownEditor';
 
 interface AddTradeProps {
   onBack: () => void;
+  initialDate?: Date;
 }
 
-export default function AddTrade({ onBack }: AddTradeProps) {
+export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ export default function AddTrade({ onBack }: AddTradeProps) {
     notes: '',
     tags: [] as string[],
     chartUrls: [''],
-    entryDateTime: new Date(),
+    entryDateTime: initialDate || new Date(),
     mentalState: '',
     physicalState: ''
   });
