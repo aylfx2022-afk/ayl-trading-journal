@@ -30,7 +30,7 @@ import DayDetails from './components/DayDetails';
 import AddTrade from './components/AddTrade';
 import { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
-import { TrendingUp, Trash2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { TrendingUp, Trash2, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export default function App() {
@@ -47,6 +47,56 @@ export default function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [addTradeInitialDate, setAddTradeInitialDate] = useState<Date | undefined>(undefined);
+
+  // Navigation lists for trade-details Previous / Next functionality
+  const navTrades = React.useMemo(() => {
+    let list: Trade[] = [];
+    if (previousTab === 'opening-positions') {
+      list = trades.filter(t => !t.exitPrice && !t.isDeleted);
+    } else if (previousTab === 'history') {
+      list = trades.filter(t => t.exitPrice && !t.isDeleted);
+    } else if (previousTab === 'trash') {
+      list = trades.filter(t => t.isDeleted);
+    } else if (previousTab === 'day-details') {
+      const dateKey = selectedDay.format('YYYY-MM-DD');
+      list = trades.filter(t => {
+        if (t.isDeleted) return false;
+        const oDate = t.openTime ? (t.openTime.toDate ? t.openTime.toDate() : new Date((t.openTime as any).seconds * 1000)) : null;
+        if (!oDate) return false;
+        const y = oDate.getFullYear();
+        const m = String(oDate.getMonth() + 1).padStart(2, '0');
+        const d = String(oDate.getDate()).padStart(2, '0');
+        const formatYMD = `${y}-${m}-${d}`;
+        return formatYMD === dateKey;
+      });
+    } else {
+      list = trades.filter(t => !t.isDeleted);
+    }
+
+    // Sort chronologically descending (newest first)
+    return [...list].sort((a, b) => {
+      const timeA = a.openTime?.toMillis ? a.openTime.toMillis() : (a.openTime?.seconds ? a.openTime.seconds * 1000 : 0);
+      const timeB = b.openTime?.toMillis ? b.openTime.toMillis() : (b.openTime?.seconds ? b.openTime.seconds * 1000 : 0);
+      return timeB - timeA;
+    });
+  }, [trades, previousTab, selectedDay]);
+
+  const currentTradeIndex = selectedTrade ? navTrades.findIndex(t => t.id === selectedTrade.id) : -1;
+  const totalNavTrades = navTrades.length;
+  const hasPrev = currentTradeIndex > 0;
+  const hasNext = currentTradeIndex !== -1 && currentTradeIndex < totalNavTrades - 1;
+
+  const handlePrevTrade = () => {
+    if (hasPrev) {
+      setSelectedTrade(navTrades[currentTradeIndex - 1]);
+    }
+  };
+
+  const handleNextTrade = () => {
+    if (hasNext) {
+      setSelectedTrade(navTrades[currentTradeIndex + 1]);
+    }
+  };
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
@@ -291,12 +341,46 @@ export default function App() {
     </button>
   ) : activeTab === 'trade-details' ? (
     <button 
-      onClick={() => setActiveTab(previousTab)}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
+      onClick={() => {
+        if (previousTab === 'day-details' || previousTab === 'calendar') {
+          navigateTo(previousTab);
+        } else {
+          setActiveTab(previousTab);
+        }
+      }}
+      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group cursor-pointer"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
       Back
     </button>
+  ) : null;
+
+  const headerRightActions = activeTab === 'trade-details' && totalNavTrades > 1 ? (
+    <div className="flex items-center bg-white/5 border border-white/10 rounded-xl overflow-hidden divide-x divide-white/10 h-8 self-center">
+      <button
+        onClick={handlePrevTrade}
+        disabled={!hasPrev}
+        className="flex items-center gap-1 px-3 h-full text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-300 text-xs font-bold uppercase tracking-widest transition-all cursor-pointer disabled:cursor-not-allowed group"
+        title="Previous Trade"
+      >
+        <ChevronLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+        Prev
+      </button>
+      
+      <span className="px-3 h-full flex items-center text-[10px] font-mono text-zinc-500 font-bold bg-white/[0.01]">
+        {currentTradeIndex + 1} / {totalNavTrades}
+      </span>
+
+      <button
+        onClick={handleNextTrade}
+        disabled={!hasNext}
+        className="flex items-center gap-1 px-3 h-full text-zinc-300 hover:bg-white/10 hover:text-white disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-zinc-300 text-xs font-bold uppercase tracking-widest transition-all cursor-pointer disabled:cursor-not-allowed group"
+        title="Next Trade"
+      >
+        Next
+        <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+      </button>
+    </div>
   ) : null;
 
   return (
@@ -305,6 +389,7 @@ export default function App() {
       setActiveTab={navigateTo} 
       user={user}
       headerActions={headerActions}
+      headerRightActions={headerRightActions}
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -345,14 +430,20 @@ export default function App() {
           )}
           {activeTab === 'settings' && <Settings />}
           {activeTab === 'trash' && <TradeList trades={trades.filter(t => t.isDeleted)} isTrash={true} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'trade-details' && selectedTrade && <TradeDetails trade={selectedTrade} onBack={() => {
-            // If previous tab was calendar, user probably came from calendar or day-details
-            if (previousTab === 'day-details' || previousTab === 'calendar') {
-              navigateTo(previousTab);
-            } else {
-              setActiveTab(previousTab);
-            }
-          }} />}
+          {activeTab === 'trade-details' && selectedTrade && (
+            <TradeDetails 
+              key={selectedTrade.id}
+              trade={selectedTrade} 
+              onBack={() => {
+                // If previous tab was calendar, user probably came from calendar or day-details
+                if (previousTab === 'day-details' || previousTab === 'calendar') {
+                  navigateTo(previousTab);
+                } else {
+                  setActiveTab(previousTab);
+                }
+              }} 
+            />
+          )}
         </motion.div>
       </AnimatePresence>
 

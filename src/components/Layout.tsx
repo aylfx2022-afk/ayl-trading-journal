@@ -9,9 +9,10 @@ interface LayoutProps {
   setActiveTab: (tab: string) => void;
   user: any;
   headerActions?: React.ReactNode;
+  headerRightActions?: React.ReactNode;
 }
 
-export default function Layout({ children, activeTab, setActiveTab, user, headerActions }: LayoutProps) {
+export default function Layout({ children, activeTab, setActiveTab, user, headerActions, headerRightActions }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('sidebar-collapsed') === 'true';
@@ -193,11 +194,20 @@ export default function Layout({ children, activeTab, setActiveTab, user, header
 
       {/* Main Content */}
       <main className={`min-h-screen transition-all duration-300 ease-in-out ${isCollapsed ? 'pl-20' : 'pl-64'}`}>
-        <header className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
-          {headerActions ? <div>{headerActions}</div> : <div />}
-          <h1 className="text-xl font-semibold capitalize">
-            {activeTab === 'calendar' ? 'Trading Calendar' : activeTab.replace('-', ' ')}
-          </h1>
+        <header className="h-14 border-b border-white/5 grid grid-cols-3 items-center px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
+          <div className="flex items-center justify-start">
+            {headerActions || <div />}
+          </div>
+          
+          <div className="flex items-center justify-center">
+            <h1 className="text-xl font-semibold capitalize text-center select-none whitespace-nowrap">
+              {activeTab === 'calendar' ? 'Trading Calendar' : activeTab.replace('-', ' ')}
+            </h1>
+          </div>
+          
+          <div className="flex items-center justify-end">
+            {headerRightActions || <div />}
+          </div>
         </header>
         <div className="p-4 md:p-6 lg:p-8">
           {children}
