@@ -57,18 +57,6 @@ export default function App() {
       list = trades.filter(t => t.exitPrice && !t.isDeleted);
     } else if (previousTab === 'trash') {
       list = trades.filter(t => t.isDeleted);
-    } else if (previousTab === 'day-details') {
-      const dateKey = selectedDay.format('YYYY-MM-DD');
-      list = trades.filter(t => {
-        if (t.isDeleted) return false;
-        const oDate = t.openTime ? (t.openTime.toDate ? t.openTime.toDate() : new Date((t.openTime as any).seconds * 1000)) : null;
-        if (!oDate) return false;
-        const y = oDate.getFullYear();
-        const m = String(oDate.getMonth() + 1).padStart(2, '0');
-        const d = String(oDate.getDate()).padStart(2, '0');
-        const formatYMD = `${y}-${m}-${d}`;
-        return formatYMD === dateKey;
-      });
     } else {
       list = trades.filter(t => !t.isDeleted);
     }
@@ -79,7 +67,7 @@ export default function App() {
       const timeB = b.openTime?.toMillis ? b.openTime.toMillis() : (b.openTime?.seconds ? b.openTime.seconds * 1000 : 0);
       return timeB - timeA;
     });
-  }, [trades, previousTab, selectedDay]);
+  }, [trades, previousTab]);
 
   const currentTradeIndex = selectedTrade ? navTrades.findIndex(t => t.id === selectedTrade.id) : -1;
   const totalNavTrades = navTrades.length;
