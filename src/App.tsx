@@ -61,11 +61,11 @@ export default function App() {
       list = trades.filter(t => !t.isDeleted);
     }
 
-    // Sort chronologically descending (newest first)
+    // Sort chronologically ascending (oldest first, so Next navigates to newer dates)
     return [...list].sort((a, b) => {
       const timeA = a.openTime?.toMillis ? a.openTime.toMillis() : (a.openTime?.seconds ? a.openTime.seconds * 1000 : 0);
       const timeB = b.openTime?.toMillis ? b.openTime.toMillis() : (b.openTime?.seconds ? b.openTime.seconds * 1000 : 0);
-      return timeB - timeA;
+      return timeA - timeB;
     });
   }, [trades, previousTab]);
 
