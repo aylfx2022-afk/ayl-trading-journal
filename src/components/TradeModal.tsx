@@ -13,24 +13,20 @@ interface TradeModalProps {
 
 export default function TradeModal({ trade, onClose }: TradeModalProps) {
   const [notes, setNotes] = useState(trade.notes || '');
-  const [chartUrls, setChartUrls] = useState<string[]>(trade.chartUrls || ['']);
+  const [chartUrls, setChartUrls] = useState<string[]>((trade.chartUrls || []).filter(url => url.trim() !== ''));
+  const [tempChartUrl, setTempChartUrl] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const handleAddChart = () => {
-    if (chartUrls.length < 5) {
-      setChartUrls([...chartUrls, '']);
-    }
+  const handleSaveChartUrl = () => {
+    const trimmed = tempChartUrl.trim();
+    if (!trimmed) return;
+    if (chartUrls.length >= 5) return;
+    setChartUrls(prev => [...prev, trimmed]);
+    setTempChartUrl('');
   };
 
   const handleRemoveChart = (index: number) => {
-    const newUrls = chartUrls.filter((_, i) => i !== index);
-    setChartUrls(newUrls.length > 0 ? newUrls : ['']);
-  };
-
-  const handleChartUrlChange = (index: number, value: string) => {
-    const newUrls = [...chartUrls];
-    newUrls[index] = value;
-    setChartUrls(newUrls);
+    setChartUrls(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleSave = async () => {
@@ -107,67 +103,108 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
           </div>
 
           {/* Chart Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4 pt-2 border-t border-white/5">
+            <div className="space-y-2 animate-fade-in">
               <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
                 <ImageIcon size={16} className="text-emerald-500" />
                 TradingView Chart Links (Max 5)
               </label>
-              {chartUrls.length < 5 && (
-                <button 
-                  onClick={handleAddChart}
-                  className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition-colors"
+              
+              {/* Single Paste URL Box & Save Button */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={tempChartUrl}
+                  onChange={(e) => setTempChartUrl(e.target.value)}
+                  disabled={chartUrls.length >= 5}
+                  placeholder={chartUrls.length >= 5 ? "Maximum 5 chart URLs reached" : "Paste TradingView or image URL here..."}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200 disabled:opacity-50 transition-all font-mono"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSaveChartUrl();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveChartUrl}
+                  disabled={!tempChartUrl.trim() || chartUrls.length >= 5}
+                  className="px-6 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all text-xs disabled:opacity-30 disabled:bg-zinc-800 disabled:text-zinc-500 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap active:scale-95"
                 >
-                  + Add Another Chart
+                  Save URL
                 </button>
-              )}
+              </div>
             </div>
-            
-            <div className="space-y-3">
-              {chartUrls.map((url, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={url}
-                      onChange={(e) => handleChartUrlChange(index, e.target.value)}
-                      placeholder={`Chart URL ${index + 1} (https://www.tradingview.com/x/...)`}
-                      className="flex-1 p-3 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 placeholder:text-zinc-600 transition-all"
-                    />
-                    {url && (
-                      <a 
-                        href={url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="p-3 rounded-xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all"
-                      >
-                        <ExternalLink size={18} />
-                      </a>
-                    )}
-                    {chartUrls.length > 1 && (
-                      <button 
-                        onClick={() => handleRemoveChart(index)}
-                        className="p-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all"
-                      >
-                        <X size={18} />
-                      </button>
+
+            {/* Grid display of all 5 slots */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+              {[0, 1, 2, 3, 4].map((index) => {
+                const url = chartUrls[index];
+                const isPlaceholder = !url || url.trim() === '';
+                
+                return (
+                  <div key={index} className="space-y-2 bg-[#121214] p-3 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[135px] transition-all hover:border-white/10">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                        URL {index + 1}
+                      </span>
+                      {!isPlaceholder && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveChart(index)}
+                          className="text-[9px] font-black text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2 py-0.5 rounded-lg transition-all cursor-pointer"
+                        >
+                          DELETE
+                        </button>
+                      )}
+                    </div>
+                    
+                    {isPlaceholder ? (
+                      <div className="flex-1 flex items-center justify-center p-2 rounded-xl border border-dashed border-white/5 bg-white/[0.01]">
+                        <span className="text-[9px] text-zinc-600 font-medium italic select-none">Empty Slot</span>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col justify-between gap-1.5">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[9px] text-zinc-400 break-all line-clamp-1 select-all h-4 mb-0.5" title={url}>
+                            {url}
+                          </span>
+                          <a 
+                            href={url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-emerald-500 hover:text-emerald-400 transition-colors"
+                            title="Open external link"
+                          >
+                            <ExternalLink size={10} />
+                          </a>
+                        </div>
+                        
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/40">
+                          <img 
+                            src={url} 
+                            alt={`Chart ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const errorMsg = document.createElement('div');
+                                errorMsg.className = 'absolute inset-0 flex items-center justify-center text-[8px] text-zinc-600 px-1 text-center font-bold uppercase';
+                                errorMsg.innerText = 'Invalid Link';
+                                parent.appendChild(errorMsg);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
                     )}
                   </div>
-                  {url && (
-                    <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/50 aspect-video flex items-center justify-center">
-                      <img 
-                        src={url} 
-                        alt={`Trade Chart ${index + 1}`} 
-                        className="w-full h-full object-contain"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

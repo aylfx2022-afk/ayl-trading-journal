@@ -18,6 +18,7 @@ interface AddTradeProps {
 export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [tempChartUrl, setTempChartUrl] = useState('');
   const [formData, setFormData] = useState({
     pair: '',
     type: '' as 'buy' | 'sell' | '',
@@ -28,7 +29,7 @@ export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
     rr: '' as any,
     notes: '',
     tags: [] as string[],
-    chartUrls: [''],
+    chartUrls: [] as string[],
     entryDateTime: initialDate || new Date(),
     mentalState: '',
     physicalState: ''
@@ -49,20 +50,19 @@ export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
   const [status, setStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
   const [error, setError] = useState('');
 
-  const handleAddChart = () => {
-    if (formData.chartUrls.length < 5) {
-      setFormData(prev => ({ ...prev, chartUrls: [...prev.chartUrls, ''] }));
-    }
+  const handleSaveChartUrl = () => {
+    const trimmed = tempChartUrl.trim();
+    if (!trimmed) return;
+    if (formData.chartUrls.length >= 5) return;
+    setFormData(prev => ({
+      ...prev,
+      chartUrls: [...prev.chartUrls, trimmed]
+    }));
+    setTempChartUrl('');
   };
 
   const handleRemoveChart = (index: number) => {
     setFormData(prev => ({ ...prev, chartUrls: prev.chartUrls.filter((_, i) => i !== index) }));
-  };
-
-  const handleChartUrlChange = (index: number, value: string) => {
-    const newUrls = [...formData.chartUrls];
-    newUrls[index] = value;
-    setFormData(prev => ({ ...prev, chartUrls: newUrls }));
   };
 
   React.useEffect(() => {
@@ -322,67 +322,94 @@ export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
           </div>
         
           {/* Section 4: Charts */}
-          <div className="space-y-3 pt-2 border-t border-white/5">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4 pt-4 border-t border-white/5">
+            <div className="space-y-1.5 animate-fade-in">
               <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Chart Links (Max 5)</label>
+              
+              {/* Single Paste URL Box & Save Button */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={tempChartUrl}
+                  onChange={(e) => setTempChartUrl(e.target.value)}
+                  disabled={formData.chartUrls.length >= 5}
+                  placeholder={formData.chartUrls.length >= 5 ? "Maximum 5 chart URLs reached / ပုံ ၅ ပုံ ပြည့်သွားပါပြီ" : "Paste TradingView or image URL here... / Image URL ကို ဤနေရာတွင် ထည့်ပါ..."}
+                  className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200 disabled:opacity-50 transition-all font-mono"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleSaveChartUrl();
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveChartUrl}
+                  disabled={!tempChartUrl.trim() || formData.chartUrls.length >= 5}
+                  className="px-6 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all text-xs disabled:opacity-30 disabled:bg-zinc-800 disabled:text-zinc-500 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap active:scale-95"
+                >
+                  Save URL
+                </button>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {formData.chartUrls.map((url, index) => (
-                <div key={index} className="space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={url}
-                      onChange={(e) => handleChartUrlChange(index, e.target.value)}
-                      placeholder={`URL ${index + 1}`}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200"
-                    />
-                    {formData.chartUrls.length > 1 && (
-                      <button 
-                        type="button"
-                        onClick={() => handleRemoveChart(index)}
-                        className="px-3 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 transition-all text-xs"
-                      >
-                        X
-                      </button>
+
+            {/* Grid display of all 5 slots */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+              {[0, 1, 2, 3, 4].map((index) => {
+                const url = formData.chartUrls[index];
+                const isPlaceholder = !url || url.trim() === '';
+                
+                return (
+                  <div key={index} className="space-y-2 bg-[#121214] p-3 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[135px] transition-all hover:border-white/10">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
+                        URL {index + 1}
+                      </span>
+                      {!isPlaceholder && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveChart(index)}
+                          className="text-[9px] font-black text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2 py-0.5 rounded-lg transition-all cursor-pointer"
+                        >
+                          DELETE
+                        </button>
+                      )}
+                    </div>
+                    
+                    {isPlaceholder ? (
+                      <div className="flex-1 flex items-center justify-center p-2 rounded-xl border border-dashed border-white/5 bg-white/[0.01]">
+                        <span className="text-[9px] text-zinc-600 font-medium italic select-none">Empty Slot</span>
+                      </div>
+                    ) : (
+                      <div className="flex-1 flex flex-col justify-between gap-1.5">
+                        <span className="text-[9px] text-zinc-400 break-all line-clamp-1 select-all h-4 mb-0.5" title={url}>
+                          {url}
+                        </span>
+                        
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/40">
+                          <img 
+                            src={url} 
+                            alt={`Chart ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              const parent = target.parentElement;
+                              if (parent) {
+                                const errorMsg = document.createElement('div');
+                                errorMsg.className = 'absolute inset-0 flex items-center justify-center text-[8px] text-zinc-600 px-1 text-center font-bold uppercase';
+                                errorMsg.innerText = 'Invalid Link';
+                                parent.appendChild(errorMsg);
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
                     )}
                   </div>
-
-                  {/* Individual Image Preview */}
-                  {url && url.trim() !== '' && (
-                    <div 
-                      className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-white/[0.02] group"
-                    >
-                      <img 
-                        src={url} 
-                        alt="Chart Preview"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                          const parent = target.parentElement;
-                          if (parent) {
-                            const errorMsg = document.createElement('div');
-                            errorMsg.className = 'absolute inset-0 flex items-center justify-center text-[8px] text-zinc-700 px-2 text-center font-bold uppercase';
-                            errorMsg.innerText = 'Invalid Link';
-                            parent.appendChild(errorMsg);
-                          }
-                        }}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
-              {formData.chartUrls.length < 5 && (
-                <button 
-                  type="button"
-                  onClick={handleAddChart}
-                  className="flex items-center justify-center border border-dashed border-white/10 rounded-xl px-3 py-2 text-[10px] font-bold text-zinc-500 hover:text-emerald-500 hover:border-emerald-500/30 transition-all bg-white/[0.02]"
-                >
-                  + Add Link
-                </button>
-              )}
+                );
+              })}
             </div>
           </div>
 
