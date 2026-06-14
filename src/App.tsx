@@ -20,7 +20,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import { Trade, TradingAccount } from './types';
+import { Trade } from './types';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradeList from './components/TradeList';
@@ -60,47 +60,17 @@ export default function App() {
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [addTradeInitialDate, setAddTradeInitialDate] = useState<Date | undefined>(undefined);
 
-  // Active trading virtual account/profile state
-  const [activeAccountId, setActiveAccountId] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('trading_journal_active_account_id') || 'live';
-    }
-    return 'live';
-  });
-
-  const [tradingAccounts, setTradingAccounts] = useState<TradingAccount[]>([]);
-
-  useEffect(() => {
-    localStorage.setItem('trading_journal_active_account_id', activeAccountId);
-  }, [activeAccountId]);
-
-  // Filter trades by active trading account
-  const filteredTrades = React.useMemo(() => {
-    return trades.filter(t => {
-      const parentAccId = t.accountId || 'live';
-      return parentAccId === activeAccountId;
-    });
-  }, [trades, activeAccountId]);
-
-  // Filter journals by active trading account
-  const filteredJournals = React.useMemo(() => {
-    return journals.filter(j => {
-      const parentAccId = j.accountId || 'live';
-      return parentAccId === activeAccountId;
-    });
-  }, [journals, activeAccountId]);
-
   // Navigation lists for trade-details Previous / Next functionality
   const navTrades = React.useMemo(() => {
     let list: Trade[] = [];
     if (previousTab === 'opening-positions') {
-      list = filteredTrades.filter(t => !t.exitPrice && !t.isDeleted);
+      list = trades.filter(t => !t.exitPrice && !t.isDeleted);
     } else if (previousTab === 'history') {
-      list = filteredTrades.filter(t => t.exitPrice && !t.isDeleted);
+      list = trades.filter(t => t.exitPrice && !t.isDeleted);
     } else if (previousTab === 'trash') {
-      list = filteredTrades.filter(t => t.isDeleted);
+      list = trades.filter(t => t.isDeleted);
     } else {
-      list = filteredTrades.filter(t => !t.isDeleted);
+      list = trades.filter(t => !t.isDeleted);
     }
 
     // Sort chronologically ascending (oldest first, so Next navigates to newer dates)
@@ -109,7 +79,7 @@ export default function App() {
       const timeB = b.openTime?.toMillis ? b.openTime.toMillis() : (b.openTime?.seconds ? b.openTime.seconds * 1000 : 0);
       return timeA - timeB;
     });
-  }, [filteredTrades, previousTab]);
+  }, [trades, previousTab]);
 
   const currentTradeIndex = selectedTrade ? navTrades.findIndex(t => t.id === selectedTrade.id) : -1;
   const totalNavTrades = navTrades.length;
@@ -130,7 +100,6 @@ export default function App() {
 
   useEffect(() => {
     let unsubscribeProfile: (() => void) | undefined;
-    let unsubscribeSettings: (() => void) | undefined;
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setUser(user);
@@ -159,39 +128,9 @@ export default function App() {
             setUserProfile(doc.data());
           }
         });
-
-        // Initialize and listen to user settings / trading accounts
-        const settingsDocRef = doc(db, 'userSettings', user.uid);
-        const DEFAULT_ACCOUNTS: TradingAccount[] = [
-          { id: 'live', name: 'Live Account', type: 'live', description: 'ပြည့်စုံသော Live Trading မှတ်တမ်း' },
-          { id: 'backtesting', name: 'Backtesting Account', type: 'backtesting', description: 'လေ့ကျင့်မှုနှင့် นည်းဗျူဟာစမ်းသပ်မှု မှတ်တမ်း' }
-        ];
-
-        try {
-          const settingsDoc = await getDoc(settingsDocRef);
-          if (!settingsDoc.exists() || !settingsDoc.data().tradingAccounts) {
-            await setDoc(settingsDocRef, {
-              customTags: settingsDoc.exists() ? (settingsDoc.data().customTags || []) : [],
-              tradingAccounts: DEFAULT_ACCOUNTS
-            }, { merge: true });
-          }
-        } catch (error) {
-          console.error("Error initializing user settings:", error);
-        }
-
-        unsubscribeSettings = onSnapshot(settingsDocRef, (docSnap) => {
-          if (docSnap.exists()) {
-            const data = docSnap.data();
-            setTradingAccounts(data.tradingAccounts || DEFAULT_ACCOUNTS);
-          } else {
-            setTradingAccounts(DEFAULT_ACCOUNTS);
-          }
-        });
       } else {
         setUserProfile(null);
-        setTradingAccounts([]);
         if (unsubscribeProfile) unsubscribeProfile();
-        if (unsubscribeSettings) unsubscribeSettings();
       }
       setLoading(false);
     });
@@ -199,7 +138,6 @@ export default function App() {
     return () => {
       unsubscribeAuth();
       if (unsubscribeProfile) unsubscribeProfile();
-      if (unsubscribeSettings) unsubscribeSettings();
     };
   }, []);
 
@@ -563,9 +501,6 @@ export default function App() {
       savedAccounts={savedAccounts}
       onSwitchAccount={handleSwitchAccount}
       onRemoveSavedAccount={handleRemoveSavedAccount}
-      activeAccountId={activeAccountId}
-      tradingAccounts={tradingAccounts}
-      onActiveAccountChange={setActiveAccountId}
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -575,22 +510,21 @@ export default function App() {
           exit={{ opacity: 0, x: -10 }}
           transition={{ duration: 0.2 }}
         >
-          {activeTab === 'dashboard' && <Dashboard trades={filteredTrades.filter(t => !t.isDeleted)} />}
-          {activeTab === 'opening-positions' && <TradeList trades={filteredTrades.filter(t => !t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'history' && <TradeList trades={filteredTrades.filter(t => t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'calendar' && <CalendarView trades={filteredTrades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} journals={filteredJournals} />}
+          {activeTab === 'dashboard' && <Dashboard trades={trades.filter(t => !t.isDeleted)} />}
+          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice && !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades.filter(t => !t.isDeleted)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} journals={journals} />}
           {activeTab === 'day-details' && (
             <DayDetails 
               date={selectedDay} 
-              trades={filteredTrades.filter(t => !t.isDeleted)} 
+              trades={trades.filter(t => !t.isDeleted)} 
               onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} 
               onBack={() => navigateTo('calendar')} 
               onAddTrade={() => {
                 setAddTradeInitialDate(selectedDay.toDate());
                 navigateTo('add-trade');
               }}
-              journals={filteredJournals}
-              activeAccountId={activeAccountId}
+              journals={journals}
             />
           )}
           {activeTab === 'add-trade' && (
@@ -603,11 +537,10 @@ export default function App() {
                 }
               }} 
               initialDate={addTradeInitialDate}
-              activeAccountId={activeAccountId}
             />
           )}
-          {activeTab === 'settings' && <Settings />}
-          {activeTab === 'trash' && <TradeList trades={filteredTrades.filter(t => t.isDeleted)} isTrash={true} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'settings' && <Settings trades={trades} journals={journals} />}
+          {activeTab === 'trash' && <TradeList trades={trades.filter(t => t.isDeleted)} isTrash={true} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'trade-details' && selectedTrade && (
             <TradeDetails 
               key={selectedTrade.id}

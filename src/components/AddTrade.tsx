@@ -13,10 +13,9 @@ import MarkdownEditor from './MarkdownEditor';
 interface AddTradeProps {
   onBack: () => void;
   initialDate?: Date;
-  activeAccountId?: string;
 }
 
-export default function AddTrade({ onBack, initialDate, activeAccountId = 'live' }: AddTradeProps) {
+export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [tempChartUrl, setTempChartUrl] = useState('');
@@ -119,8 +118,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId = 'live'
         exitPrice: formData.exitPrice !== '' ? Number(formData.exitPrice) : null,
         rr: formData.rr !== '' ? Number(formData.rr) : null,
         mentalState: formData.mentalState,
-        physicalState: formData.physicalState,
-        accountId: activeAccountId || 'live'
+        physicalState: formData.physicalState
       });
       setStatus('success');
       setTimeout(() => {
