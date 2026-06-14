@@ -1,7 +1,8 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,15 +11,29 @@ interface LayoutProps {
   user: any;
   headerActions?: React.ReactNode;
   headerRightActions?: React.ReactNode;
+  savedAccounts?: any[];
+  onSwitchAccount?: (email?: string) => void;
+  onRemoveSavedAccount?: (email: string) => void;
 }
 
-export default function Layout({ children, activeTab, setActiveTab, user, headerActions, headerRightActions }: LayoutProps) {
+export default function Layout({ 
+  children, 
+  activeTab, 
+  setActiveTab, 
+  user, 
+  headerActions, 
+  headerRightActions,
+  savedAccounts = [],
+  onSwitchAccount,
+  onRemoveSavedAccount
+}: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('sidebar-collapsed') === 'true';
     }
     return false;
   });
+  const [showAccountSwitcher, setShowAccountSwitcher] = React.useState(false);
 
   const toggleCollapse = () => {
     setIsCollapsed(prev => {
@@ -42,21 +57,31 @@ export default function Layout({ children, activeTab, setActiveTab, user, header
         </button>
 
         <div className={`p-4 mt-2 transition-all duration-300 ${isCollapsed ? 'px-2' : ''}`}>
-          <div className={`rounded-2xl bg-white/5 border border-white/5 transition-all duration-300 ${isCollapsed ? 'p-2' : 'p-4'}`}>
+          <button
+            onClick={() => setShowAccountSwitcher(true)}
+            className={`w-full text-left rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300 cursor-pointer group relative ${isCollapsed ? 'p-2' : 'p-4'}`}
+            title="အကောင့်ပြောင်းရန် / Switch Account"
+          >
             <div className={`flex items-center gap-3 transition-all duration-300 ${isCollapsed ? 'justify-center gap-0' : ''}`}>
-              <img 
-                src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} 
-                alt="Avatar" 
-                className="w-8 h-8 rounded-full border border-white/10 shrink-0"
-              />
+              <div className="relative shrink-0">
+                <img 
+                  src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} 
+                  alt="Avatar" 
+                  className="w-8 h-8 rounded-full border border-white/10 block"
+                />
+                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-[#0F0F0F]" />
+              </div>
               {!isCollapsed && (
-                <div className="overflow-hidden transition-all duration-300">
-                  <p className="text-sm font-medium truncate">{user?.displayName || 'Trader'}</p>
+                <div className="overflow-hidden transition-all duration-300 flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate group-hover:text-emerald-400 transition-colors">{user?.displayName || 'Trader'}</p>
                   <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
                 </div>
               )}
+              {!isCollapsed && (
+                <Repeat size={14} className="text-zinc-500 group-hover:text-emerald-400 shrink-0 transition-all opacity-0 group-hover:opacity-100 group-hover:rotate-185 duration-500" />
+              )}
             </div>
-          </div>
+          </button>
         </div>
 
         <nav className={`mt-4 space-y-2 transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-4'}`}>
@@ -213,6 +238,143 @@ export default function Layout({ children, activeTab, setActiveTab, user, header
           {children}
         </div>
       </main>
+
+      {/* Account Switcher Modal */}
+      <AnimatePresence>
+        {showAccountSwitcher && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowAccountSwitcher(false)}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            
+            {/* Modal Card */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              className="relative w-full max-w-sm bg-[#0E0E10] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-[101]"
+            >
+              <div className="p-5 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+                    <Repeat size={16} className="text-emerald-500 animate-pulse" />
+                    အကောင့်ပြောင်းရန် / Switch Account
+                  </h3>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                    ဝင်ထားပြီးသား အခြားအကောင့်တစ်ခုသို့ တိုက်ရိုက်ပြောင်းရန် ရွေးချယ်ပါ
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAccountSwitcher(false)}
+                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-zinc-100 hover:bg-white/10 transition-all cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+
+              <div className="p-4 space-y-3 max-h-[350px] overflow-y-auto">
+                {/* Active Current Account */}
+                <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl flex items-center justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`}
+                      alt="Active Avatar"
+                      className="w-10 h-10 rounded-full border border-emerald-500/20 animate-none"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-emerald-400 tracking-wide truncate">
+                        {user?.displayName || 'Trader'}
+                      </p>
+                      <p className="text-[10px] text-zinc-400 truncate">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full select-none">
+                    Active (လက်ရှိ)
+                  </span>
+                </div>
+
+                {/* Other Saved Accounts */}
+                {savedAccounts.filter(acc => acc.email !== user?.email).length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest px-1 pt-1">
+                      အခြားသိမ်းဆည်းထားသောအကောင့်များ (Saved)
+                    </p>
+                    <div className="space-y-1.5">
+                      {savedAccounts
+                        .filter(acc => acc.email !== user?.email)
+                        .map((acc) => (
+                          <div
+                            key={acc.email}
+                            className="flex items-center justify-between p-2.5 rounded-xl bg-white/[0.02] hover:bg-white/5 border border-white/5 hover:border-white/10 group transition-all"
+                          >
+                            <button
+                              onClick={() => {
+                                setShowAccountSwitcher(false);
+                                onSwitchAccount?.(acc.email);
+                              }}
+                              className="flex items-center gap-3 text-left flex-1 cursor-pointer min-w-0"
+                            >
+                              <img
+                                src={acc.photoURL}
+                                alt={acc.displayName}
+                                className="w-8 h-8 rounded-full border border-white/10"
+                              />
+                              <div className="min-w-0">
+                                <p className="text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors truncate">
+                                  {acc.displayName}
+                                </p>
+                                <p className="text-[10px] text-zinc-500 truncate">
+                                  {acc.email}
+                                </p>
+                              </div>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onRemoveSavedAccount?.(acc.email);
+                              }}
+                              className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                              title="ဖယ်ရှားရန် / Remove profile"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="py-4 text-center border border-dashed border-white/5 bg-white/[0.01] rounded-2xl">
+                    <p className="text-[10px] text-zinc-600 italic select-none">
+                      အခြားသိမ်းထားသောအကောင့်မရှိသေးပါ
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Add account action */}
+              <div className="p-4 bg-white/[0.01] border-t border-white/5 space-y-2">
+                <button
+                  onClick={() => {
+                    setShowAccountSwitcher(false);
+                    onSwitchAccount?.();
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-white text-black hover:bg-zinc-200 transition-all text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-md active:scale-95"
+                >
+                  <UserPlus size={14} />
+                  အကောင့်အသစ်တစ်ခုထပ်ထည့်ရန် / Add Account
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

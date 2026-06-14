@@ -3,7 +3,8 @@ import {
   onAuthStateChanged, 
   signInWithPopup, 
   GoogleAuthProvider,
-  User
+  User,
+  signOut
 } from 'firebase/auth';
 import { 
   collection, 
@@ -37,6 +38,17 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [savedAccounts, setSavedAccounts] = useState<any[]>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('trading_journal_saved_accounts');
+      try {
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
   const [activeTab, setActiveTab] = useState('dashboard');
   const [calendarPanelDate, setCalendarPanelDate] = useState<Dayjs>(dayjs());
   const [previousTab, setPreviousTab] = useState('dashboard');
@@ -174,12 +186,65 @@ export default function App() {
     return () => unsubscribe();
   }, [user]);
 
+  useEffect(() => {
+    if (user) {
+      setSavedAccounts(prev => {
+        let updated = prev.filter(acc => acc.uid !== user.uid && acc.email !== user.email);
+        updated.unshift({
+          uid: user.uid,
+          email: user.email || '',
+          displayName: user.displayName || 'Trader',
+          photoURL: user.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`,
+          lastActive: Date.now()
+        });
+        updated = updated.slice(0, 5); // Limit to max 5 accounts
+        localStorage.setItem('trading_journal_saved_accounts', JSON.stringify(updated));
+        return updated;
+      });
+    }
+  }, [user]);
+
+  const handleRemoveSavedAccount = (email: string) => {
+    setSavedAccounts(prev => {
+      const updated = prev.filter(acc => acc.email !== email);
+      localStorage.setItem('trading_journal_saved_accounts', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     try {
       await signInWithPopup(auth, provider);
     } catch (error) {
       console.error("Login failed", error);
+    }
+  };
+
+  const handleLoginWithHint = async (emailHint?: string) => {
+    const provider = new GoogleAuthProvider();
+    const params: any = { prompt: 'select_account' };
+    if (emailHint) {
+      params.login_hint = emailHint;
+    }
+    provider.setCustomParameters(params);
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error) {
+      console.error("Login failed with hint", error);
+    }
+  };
+
+  const handleSwitchAccount = async (emailHint?: string) => {
+    setLoading(true);
+    try {
+      await signOut(auth);
+      await handleLoginWithHint(emailHint);
+    } catch (error) {
+      console.error("Error switching account:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -268,13 +333,68 @@ export default function App() {
             သင့်ရဲ့ Trading ခရီးလမ်းကို ပိုမိုကောင်းမွန်စေမယ့် အဆင့်မြင့် Trading Journal။
           </p>
 
-          <button
-            onClick={handleLogin}
-            className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl"
-          >
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-            Get Started with Google
-          </button>
+          {savedAccounts.length > 0 ? (
+            <div className="space-y-4 mb-8">
+              <div className="bg-[#121214] border border-white/5 rounded-2xl p-4 text-left">
+                <p className="text-[10px] font-black text-zinc-500 mb-3 uppercase tracking-widest px-1">
+                  ယခင်ဝင်ထားသော အကောင့်များ (Saved Accounts)
+                </p>
+                <div className="space-y-1.5">
+                  {savedAccounts.map((acc) => (
+                    <div 
+                      key={acc.email} 
+                      className="flex items-center justify-between p-2.5 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/5 group transition-all"
+                    >
+                      <button
+                        onClick={() => handleLoginWithHint(acc.email)}
+                        className="flex items-center gap-3 text-left flex-1 cursor-pointer min-w-0"
+                      >
+                        <img 
+                          src={acc.photoURL} 
+                          alt={acc.displayName} 
+                          className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-zinc-200 group-hover:text-emerald-400 transition-colors truncate">
+                            {acc.displayName}
+                          </p>
+                          <p className="text-[10px] text-zinc-500 truncate">
+                            {acc.email}
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveSavedAccount(acc.email);
+                        }}
+                        className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        title="ဖယ်ရှားရန် / Remove account"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              <button
+                onClick={handleLogin}
+                className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-base hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+                အကောင့်အသစ်ဖြင့်ဝင်မည် / Use another account
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleLogin}
+              className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"
+            >
+              <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+              Get Started with Google
+            </button>
+          )}
           
           <p className="mt-6 text-xs text-zinc-600">
             By signing in, you agree to our Terms of Service and Privacy Policy.
@@ -378,6 +498,9 @@ export default function App() {
       user={user}
       headerActions={headerActions}
       headerRightActions={headerRightActions}
+      savedAccounts={savedAccounts}
+      onSwitchAccount={handleSwitchAccount}
+      onRemoveSavedAccount={handleRemoveSavedAccount}
     >
       <AnimatePresence mode="wait">
         <motion.div
