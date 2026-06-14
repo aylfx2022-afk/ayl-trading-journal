@@ -29,6 +29,15 @@ export interface Trade {
   mentalState?: string;
   physicalState?: string;
   ticket?: string;
+  accountId?: string;
+}
+
+export interface TradingAccount {
+  id: string; // e.g., 'live', 'backtesting', or custom IDs
+  name: string;
+  type: 'live' | 'backtesting' | 'other';
+  description?: string;
+  createdAt?: Timestamp;
 }
 
 export interface UserProfile {
@@ -42,6 +51,7 @@ export interface UserProfile {
 export interface UserSettings {
   uid: string;
   customTags: string[];
+  tradingAccounts?: TradingAccount[];
 }
 
 export enum OperationType {

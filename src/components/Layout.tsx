@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
@@ -14,6 +14,9 @@ interface LayoutProps {
   savedAccounts?: any[];
   onSwitchAccount?: (email?: string) => void;
   onRemoveSavedAccount?: (email: string) => void;
+  activeAccountId?: string;
+  tradingAccounts?: any[];
+  onActiveAccountChange?: (id: string) => void;
 }
 
 export default function Layout({ 
@@ -25,7 +28,10 @@ export default function Layout({
   headerRightActions,
   savedAccounts = [],
   onSwitchAccount,
-  onRemoveSavedAccount
+  onRemoveSavedAccount,
+  activeAccountId = 'live',
+  tradingAccounts = [],
+  onActiveAccountChange
 }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(() => {
     if (typeof window !== 'undefined') {
@@ -83,6 +89,48 @@ export default function Layout({
             </div>
           </button>
         </div>
+
+        {/* Trading Account Selector */}
+        {!isCollapsed ? (
+          <div className="px-4 mb-4 text-left">
+            <label className="block text-[9px] font-bold text-zinc-500 uppercase tracking-widest mb-1 px-1">
+              Trading Profile (အကောင့်ခွဲ)
+            </label>
+            <div className="relative">
+              <select
+                value={activeAccountId}
+                onChange={(e) => onActiveAccountChange?.(e.target.value)}
+                className="w-full bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-zinc-300 focus:outline-none appearance-none cursor-pointer pr-8"
+              >
+                {tradingAccounts.map(acc => (
+                  <option key={acc.id} value={acc.id} className="bg-[#121214] text-zinc-300">
+                    {acc.name} ({acc.type})
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500">
+                <ChevronDown size={14} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-2 mb-4 flex justify-center">
+            <button 
+              onClick={() => {
+                const nextId = activeAccountId === 'live' ? 'backtesting' : 'live';
+                onActiveAccountChange?.(nextId);
+              }}
+              className={`w-10 h-10 rounded-xl border flex flex-col items-center justify-center font-black text-[8px] uppercase cursor-pointer select-none transition-all active:scale-95 duration-200 outline-none ${
+                activeAccountId === 'live'
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20'
+                  : 'bg-blue-500/10 text-blue-400 border-blue-500/25 hover:bg-blue-500/20'
+              }`}
+              title={`Active: ${activeAccountId === 'live' ? 'Live' : 'Backtest'}. Click to toggle.`}
+            >
+              <span>{activeAccountId === 'live' ? 'LIVE' : 'BKT'}</span>
+            </button>
+          </div>
+        )}
 
         <nav className={`mt-4 space-y-2 transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-4'}`}>
           <button
