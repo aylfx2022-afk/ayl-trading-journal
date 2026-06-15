@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { Trade } from '../types';
 import { format } from 'date-fns';
 import { Trash2, Search, MessageSquare, ChevronUp, ChevronDown, Edit3, Calendar as CalendarIcon, X, ArrowUpRight, ArrowDownRight, RefreshCcw } from 'lucide-react';
-import { db } from '../firebase';
+import { db, handleFirestoreError, OperationType } from '../firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { getSafeDate } from '../lib/dateUtils';
 
@@ -66,37 +66,18 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
   const handleDeleteTrade = async (e: React.MouseEvent, tradeId: string) => {
     e.stopPropagation();
     setConfirmModal({
-      isOpen: true,
-      message: isTrash ? 'Are you sure you want to permanently delete this trade?' : 'Are you sure you want to move this trade to trash?',
-      onConfirm: async () => {
-        setConfirmModal(prev => ({ ...prev, isOpen: false }));
-        if (isTrash) {
-          try {
-            await deleteDoc(doc(db, 'trades', tradeId));
-          } catch (error) {
-            console.error("Error permanently deleting trade:", error);
-            alert("Failed to delete trade. Please check your permissions.");
-          }
-        } else {
-          try {
-            await updateDoc(doc(db, 'trades', tradeId), { isDeleted: true });
-          } catch (error) {
-            console.error("Error moving trade to trash:", error);
-            alert("Failed to move trade to trash. Please check your permissions.");
-          }
-        }
-      }
+       isOpen: true,
+       message: 'Are you sure you want to permanently delete this trade?',
+       onConfirm: async () => {
+         setConfirmModal(prev => ({ ...prev, isOpen: false }));
+         try {
+           await deleteDoc(doc(db, 'trades', tradeId));
+         } catch (error) {
+           console.error("Error permanently deleting trade:", error);
+           handleFirestoreError(error, OperationType.DELETE, 'trades/' + tradeId);
+         }
+       }
     });
-  };
-
-  const handleRestoreTrade = async (e: React.MouseEvent, tradeId: string) => {
-    e.stopPropagation();
-    try {
-      await updateDoc(doc(db, 'trades', tradeId), { isDeleted: false });
-    } catch (error) {
-      console.error("Error restoring trade:", error);
-      alert("Failed to restore trade. Please check your permissions.");
-    }
   };
 
   const filteredTrades = React.useMemo(() => {
@@ -386,27 +367,16 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                    {!isTrash && (
-                      <button 
-                        className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-                        title="View Details"
-                      >
-                        <Edit3 size={16} />
-                      </button>
-                    )}
-                    {isTrash && (
-                      <button 
-                        onClick={(e) => handleRestoreTrade(e, trade.id!)}
-                        className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
-                        title="Restore Trade"
-                      >
-                        <RefreshCcw size={16} />
-                      </button>
-                    )}
+                    <button 
+                      className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"
+                      title="View Details"
+                    >
+                      <Edit3 size={16} />
+                    </button>
                     <button 
                       onClick={(e) => handleDeleteTrade(e, trade.id!)}
                       className="p-2 rounded-lg text-zinc-500 hover:text-red-500 hover:bg-red-500/10"
-                      title={isTrash ? "Delete Permanently" : "Move to Trash"}
+                      title="Delete Permanently"
                     >
                       <Trash2 size={16} />
                     </button>

@@ -4,7 +4,7 @@ import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2 } from 
 import { getSafeDate } from '../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
-import { db, auth } from '../firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -132,6 +132,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
     } catch (error) {
       console.error("Error updating trade:", error);
       setSavingStatus('idle');
+      handleFirestoreError(error, OperationType.UPDATE, 'trades/' + trade.id);
     }
   };
 

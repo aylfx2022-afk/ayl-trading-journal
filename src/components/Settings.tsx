@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { LogOut, Plus, X, Download, Upload, Calendar, Trash2 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, addDoc, getDocs, where, query, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, addDoc, getDocs, where, query, writeBatch, Timestamp } from 'firebase/firestore';
 import { Trade } from '../types';
+import { getSafeDate } from '../lib/dateUtils';
 
 interface SettingsProps {
   trades?: Trade[];
@@ -21,8 +22,9 @@ export default function Settings({ trades = [], journals = [] }: SettingsProps) 
 
   // Dynamic filter lists
   const tradesInRange = trades.filter(t => {
-    const tradeTime = t.openTime?.toMillis ? t.openTime.toMillis() : (t.openTime?.seconds ? t.openTime.seconds * 1000 : null);
-    if (!tradeTime) return false;
+    const d = getSafeDate(t.openTime);
+    if (!d) return false;
+    const tradeTime = d.getTime();
     const start = new Date(startDate + 'T00:00:00').getTime();
     const end = new Date(endDate + 'T23:59:59').getTime();
     return tradeTime >= start && tradeTime <= end;
@@ -79,6 +81,29 @@ export default function Settings({ trades = [], journals = [] }: SettingsProps) 
     URL.revokeObjectURL(url);
   };
 
+  const parseToTimestamp = (value: any): Timestamp | null => {
+    if (!value) return null;
+    if (typeof value.toDate === 'function') {
+      return value;
+    }
+    if (typeof value === 'object') {
+      const seconds = value.seconds !== undefined ? value.seconds : value._seconds;
+      const nanoseconds = value.nanoseconds !== undefined ? value.nanoseconds : (value._nanoseconds || 0);
+      if (seconds !== undefined) {
+        return new Timestamp(seconds, nanoseconds);
+      }
+    }
+    try {
+      const date = new Date(value);
+      if (!isNaN(date.getTime())) {
+        return Timestamp.fromDate(date);
+      }
+    } catch (e) {
+      // ignore
+    }
+    return null;
+  };
+
   const importTrades = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file || !auth.currentUser) return;
@@ -86,16 +111,50 @@ export default function Settings({ trades = [], journals = [] }: SettingsProps) 
     const reader = new FileReader();
     reader.onload = async (e) => {
       try {
-        const trades = JSON.parse(e.target?.result as string);
+        const tradesData = JSON.parse(e.target?.result as string);
+        const tradesArray = Array.isArray(tradesData) ? tradesData : [tradesData];
         const batch = writeBatch(db);
         
-        trades.forEach((trade: any) => {
+        tradesArray.forEach((trade: any) => {
+          const cleanTrade: any = { ...trade };
+          cleanTrade.userId = auth.currentUser!.uid;
+
+          // Convert specific timestamp fields if present
+          if (trade.openTime) {
+            cleanTrade.openTime = parseToTimestamp(trade.openTime) || Timestamp.now();
+          } else {
+            cleanTrade.openTime = Timestamp.now();
+          }
+
+          if (trade.closeTime !== undefined) {
+            cleanTrade.closeTime = parseToTimestamp(trade.closeTime);
+          }
+
+          if (trade.createdAt) {
+            cleanTrade.createdAt = parseToTimestamp(trade.createdAt) || Timestamp.now();
+          } else {
+            cleanTrade.createdAt = Timestamp.now();
+          }
+
+          if (trade.entryDateTime !== undefined) {
+            cleanTrade.entryDateTime = parseToTimestamp(trade.entryDateTime);
+          }
+          if (trade.exitDateTime !== undefined) {
+            cleanTrade.exitDateTime = parseToTimestamp(trade.exitDateTime);
+          }
+
+          // Ensure mandatory trade schema fields comply with Firebase Rules
+          if (cleanTrade.pair === undefined) cleanTrade.pair = cleanTrade.item || 'N/A';
+          if (cleanTrade.type === undefined) cleanTrade.type = trade.type === 'buy' || trade.type === 'sell' ? trade.type : 'buy';
+          if (cleanTrade.entryPrice === undefined) cleanTrade.entryPrice = cleanTrade.openPrice !== undefined ? Number(cleanTrade.openPrice) : 1;
+          if (cleanTrade.slPrice === undefined) cleanTrade.slPrice = 0;
+          if (cleanTrade.tpPrice === undefined) cleanTrade.tpPrice = 0;
+
+          // Remove doc ID field if present inside payload
+          delete cleanTrade.id;
+
           const newTradeRef = doc(collection(db, 'trades'));
-          batch.set(newTradeRef, {
-            ...trade,
-            userId: auth.currentUser!.uid,
-            // Convert timestamps back if needed, firestore handles standard JSON for values
-          });
+          batch.set(newTradeRef, cleanTrade);
         });
         
         await batch.commit();

@@ -66,13 +66,13 @@ service cloud.firestore {
              (!('exitPrice' in data) || data.exitPrice is number || data.exitPrice == null) &&
              (!('rr' in data) || data.rr is number || data.rr == null) &&
              (!('notes' in data) || data.notes is string) &&
-             data.userId == request.auth.uid;
+             (data.userId == request.auth.uid || isAdmin());
     }
 
     function isValidJournal(data) {
       return data.dateYMD is string &&
              data.content is string &&
-             data.userId == request.auth.uid &&
+             (data.userId == request.auth.uid || isAdmin()) &&
              data.updatedAt is string;
     }
 
@@ -85,16 +85,16 @@ service cloud.firestore {
     }
 
     match /trades/{tradeId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAuthenticated() && isValidTrade(request.resource.data);
-      allow update: if isDocOwner() && isValidTrade(request.resource.data);
-      allow delete: if isDocOwner();
+      allow update: if (isDocOwner() || isAdmin()) && isValidTrade(request.resource.data);
+      allow delete: if isDocOwner() || isAdmin();
     }
 
     match /journals/{journalId} {
-      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
       allow create, update: if isAuthenticated() && isValidJournal(request.resource.data);
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
     match /userSettings/{userId} {

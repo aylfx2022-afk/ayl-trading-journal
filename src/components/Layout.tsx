@@ -183,22 +183,7 @@ export default function Layout({
             {!isCollapsed && <span className="font-medium">Settings</span>}
           </button>
 
-          <button
-            onClick={() => setActiveTab('trash')}
-            className={`flex items-center transition-all duration-200 ${
-              isCollapsed 
-                ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                : 'w-full gap-3 px-4 py-3 rounded-xl'
-            } ${
-              activeTab === 'trash' 
-                ? 'bg-red-500/10 text-red-500 border border-red-500/20' 
-                : 'text-zinc-500 hover:text-red-400 hover:bg-white/5 border border-transparent'
-            }`}
-            title={isCollapsed ? 'Trash' : undefined}
-          >
-            <Trash2 size={20} />
-            {!isCollapsed && <span className="font-medium">Trash</span>}
-          </button>
+
         </nav>
 
         <div className={`absolute bottom-8 left-0 w-full transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-4'}`}>

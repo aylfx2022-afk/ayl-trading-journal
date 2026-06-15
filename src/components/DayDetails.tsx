@@ -8,8 +8,8 @@ import { getSafeDate } from '../lib/dateUtils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import MarkdownEditor from './MarkdownEditor';
-import { db, auth } from '../firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { db, auth, handleFirestoreError, OperationType } from '../firebase';
+import { doc, setDoc, deleteDoc } from 'firebase/firestore';
 
 interface DayDetailsProps {
   date: Dayjs;
@@ -243,15 +243,14 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddT
                         e.stopPropagation(); 
                         setConfirmModal({
                           isOpen: true,
-                          message: 'Are you sure you want to move this trade to trash?',
+                          message: 'Are you sure you want to permanently delete this trade?',
                           onConfirm: async () => {
                             setConfirmModal(prev => ({ ...prev, isOpen: false }));
                             try {
-                              await import('firebase/firestore').then(({ doc, updateDoc }) => {
-                                import('../firebase').then(({ db }) => updateDoc(doc(db, 'trades', trade.id!), { isDeleted: true }));
-                              });
+                              await deleteDoc(doc(db, 'trades', trade.id!));
                             } catch (e) {
-                              console.error("Error moving trade to trash:", e);
+                              console.error("Error deleting trade:", e);
+                              handleFirestoreError(e, OperationType.DELETE, 'trades/' + trade.id);
                             }
                           }
                         });
