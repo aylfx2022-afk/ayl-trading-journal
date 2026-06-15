@@ -100,5 +100,17 @@ service cloud.firestore {
     match /userSettings/{userId} {
       allow read, write: if isOwner(userId);
     }
+
+    function isValidTradingAccount(data) {
+      return data.keys().hasAll(['name', 'userId', 'type', 'createdAt']) &&
+             data.userId == request.auth.uid;
+    }
+
+    match /tradingAccounts/{accountId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && isValidTradingAccount(request.resource.data);
+      allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()) && isValidTradingAccount(request.resource.data);
+    }
+
   }
 }

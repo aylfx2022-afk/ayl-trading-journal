@@ -14,6 +14,7 @@ export interface Trade {
   notes?: string;
   chartUrls?: string[];
   userId: string;
+  accountId?: string; // Link to a specific trading profile
   createdAt: Timestamp;
   // New fields
   pair?: string;
@@ -42,6 +43,15 @@ export interface UserProfile {
 export interface UserSettings {
   uid: string;
   customTags: string[];
+}
+
+export interface TradingAccount {
+  id?: string;
+  name: string;
+  userId: string;
+  type: 'live' | 'backtest' | 'other';
+  createdAt: Timestamp;
+  isDefault?: boolean;
 }
 
 export enum OperationType {

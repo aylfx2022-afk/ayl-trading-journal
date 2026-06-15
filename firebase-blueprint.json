@@ -42,6 +42,19 @@
         "updatedAt": { "type": "string", "format": "date-time", "description": "Last updated" }
       },
       "required": ["dateYMD", "content", "userId", "updatedAt"]
+    },
+    "TradingAccount": {
+      "title": "TradingAccount",
+      "description": "Trading profile (live or backtest)",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["live", "backtest", "other"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isDefault": { "type": "boolean" }
+      },
+      "required": ["name", "userId", "type", "createdAt"]
     }
   },
   "firestore": {
@@ -56,6 +69,10 @@
     "/journals/{journalId}": {
       "schema": "Journal",
       "description": "Daily journal notes per day"
+    },
+    "/tradingAccounts/{accountId}": {
+      "schema": "TradingAccount",
+      "description": "User trading profiles"
     }
   }
 }

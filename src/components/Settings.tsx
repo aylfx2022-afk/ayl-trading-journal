@@ -9,9 +9,10 @@ import { getSafeDate } from '../lib/dateUtils';
 interface SettingsProps {
   trades?: Trade[];
   journals?: any[];
+  activeAccountId: string | null;
 }
 
-export default function Settings({ trades = [], journals = [] }: SettingsProps) {
+export default function Settings({ trades = [], journals = [], activeAccountId }: SettingsProps) {
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
   
@@ -67,8 +68,12 @@ export default function Settings({ trades = [], journals = [] }: SettingsProps) 
   };
 
   const exportTrades = async () => {
-    if (!auth.currentUser) return;
-    const q = query(collection(db, 'trades'), where('userId', '==', auth.currentUser.uid));
+    if (!auth.currentUser || !activeAccountId) return;
+    const q = query(
+      collection(db, 'trades'), 
+      where('userId', '==', auth.currentUser.uid),
+      where('accountId', '==', activeAccountId)
+    );
     const querySnapshot = await getDocs(q);
     const trades = querySnapshot.docs.map(doc => doc.data());
     
@@ -106,7 +111,7 @@ export default function Settings({ trades = [], journals = [] }: SettingsProps) 
 
   const importTrades = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file || !auth.currentUser) return;
+    if (!file || !auth.currentUser || !activeAccountId) return;
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -118,6 +123,7 @@ export default function Settings({ trades = [], journals = [] }: SettingsProps) 
         tradesArray.forEach((trade: any) => {
           const cleanTrade: any = { ...trade };
           cleanTrade.userId = auth.currentUser!.uid;
+          cleanTrade.accountId = activeAccountId;
 
           // Convert specific timestamp fields if present
           if (trade.openTime) {

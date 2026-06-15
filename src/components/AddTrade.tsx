@@ -13,9 +13,10 @@ import MarkdownEditor from './MarkdownEditor';
 interface AddTradeProps {
   onBack: () => void;
   initialDate?: Date;
+  activeAccountId: string | null;
 }
 
-export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
+export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTradeProps) {
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [tempChartUrl, setTempChartUrl] = useState('');
@@ -109,6 +110,7 @@ export default function AddTrade({ onBack, initialDate }: AddTradeProps) {
         tags: formData.tags,
         chartUrls: formData.chartUrls.filter(url => url.trim() !== ''),
         userId: auth.currentUser.uid,
+        accountId: activeAccountId,
         createdAt: Timestamp.now(),
         // New fields
         pair: formData.pair,

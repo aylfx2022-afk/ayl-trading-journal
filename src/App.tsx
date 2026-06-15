@@ -20,7 +20,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import { Trade } from './types';
+import { Trade, TradingAccount } from './types';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradeList from './components/TradeList';
@@ -56,6 +56,13 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [journals, setJournals] = useState<any[]>([]);
+  const [tradingAccounts, setTradingAccounts] = useState<TradingAccount[]>([]);
+  const [activeAccountId, setActiveAccountId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('active_trading_account_id');
+    }
+    return null;
+  });
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [addTradeInitialDate, setAddTradeInitialDate] = useState<Date | undefined>(undefined);
@@ -139,8 +146,77 @@ export default function App() {
     };
   }, []);
 
+  // Trading Accounts Listener
   useEffect(() => {
     if (!user) {
+      setTradingAccounts([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'tradingAccounts'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'asc')
+    );
+
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const accounts = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as TradingAccount[];
+      
+      setTradingAccounts(accounts);
+
+      // If no accounts exist, create a default one
+      if (accounts.length === 0 && !loading) {
+        try {
+          const newAccountRef = doc(collection(db, 'tradingAccounts'));
+          const defaultAccount: TradingAccount = {
+            name: 'Default Account',
+            userId: user.uid,
+            type: 'live',
+            createdAt: serverTimestamp() as any,
+            isDefault: true
+          };
+          await setDoc(newAccountRef, defaultAccount);
+          setActiveAccountId(newAccountRef.id);
+          localStorage.setItem('active_trading_account_id', newAccountRef.id);
+
+          // Migration: Link existing trades with no accountId to this default account
+          const legacyQuery = query(
+            collection(db, 'trades'),
+            where('userId', '==', user.uid)
+          );
+          const legacySnapshot = await getDocs(legacyQuery);
+          const migrationBatch = writeBatch(db);
+          let hasMigration = false;
+          legacySnapshot.docs.forEach(docSnap => {
+            if (!docSnap.data().accountId) {
+              migrationBatch.update(docSnap.ref, { accountId: newAccountRef.id });
+              hasMigration = true;
+            }
+          });
+          if (hasMigration) {
+            await migrationBatch.commit();
+          }
+        } catch (error) {
+          console.error("Error creating default account:", error);
+        }
+      } else if (accounts.length > 0) {
+        // If current active ID is not in accounts, reset to first account
+        if (!activeAccountId || !accounts.find(a => a.id === activeAccountId)) {
+          const firstAccount = accounts[0].id || null;
+          setActiveAccountId(firstAccount);
+          if (firstAccount) localStorage.setItem('active_trading_account_id', firstAccount);
+        }
+      }
+    }, (error) => {
+      console.error("Snapshot error:", error);
+    });
+  }, [user, loading]);
+
+  useEffect(() => {
+    if (!user || !activeAccountId) {
       setTrades([]);
       return;
     }
@@ -148,7 +224,7 @@ export default function App() {
     const q = query(
       collection(db, 'trades'),
       where('userId', '==', user.uid),
-      orderBy('closeTime', 'desc')
+      where('accountId', '==', activeAccountId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -156,11 +232,29 @@ export default function App() {
         id: doc.id,
         ...doc.data()
       })) as Trade[];
+
+      // Sort client-side by closeTime desc to avoid composite index requirements
+      tradeData.sort((a, b) => {
+        const getMillis = (timeVal: any): number => {
+          if (!timeVal) return 0;
+          if (typeof timeVal.toMillis === 'function') return timeVal.toMillis();
+          if (typeof timeVal.toDate === 'function') return timeVal.toDate().getTime();
+          if (timeVal.seconds !== undefined) return timeVal.seconds * 1000;
+          if (timeVal instanceof Date) return timeVal.getTime();
+          const d = new Date(timeVal);
+          return isNaN(d.getTime()) ? 0 : d.getTime();
+        };
+
+        return getMillis(b.closeTime) - getMillis(a.closeTime);
+      });
+
       setTrades(tradeData);
+    }, (error) => {
+      console.error("Trades snapshot listener error:", error);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, activeAccountId]);
 
   useEffect(() => {
     if (!user) {
@@ -247,11 +341,15 @@ export default function App() {
   };
 
   const handleClearAll = async () => {
-    if (!user) return;
+    if (!user || !activeAccountId) return;
     setIsDeletingAll(true);
     
     try {
-      const q = query(collection(db, 'trades'), where('userId', '==', user.uid));
+      const q = query(
+        collection(db, 'trades'), 
+        where('userId', '==', user.uid),
+        where('accountId', '==', activeAccountId)
+      );
       const snapshot = await getDocs(q);
       
       const batch = writeBatch(db);
@@ -379,15 +477,7 @@ export default function App() {
     );
   }
 
-  const headerActions = activeTab === 'history' && trades.length > 0 ? (
-    <button 
-      onClick={() => setShowDeleteConfirm(true)}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all text-xs font-bold uppercase tracking-widest border border-red-500/20 group"
-    >
-      <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
-      Clear All History
-    </button>
-  ) : activeTab === 'add-trade' ? (
+  const headerActions = activeTab === 'add-trade' ? (
     <div className="flex items-center gap-2">
       <button 
         onClick={() => setActiveTab('dashboard')}
@@ -408,7 +498,7 @@ export default function App() {
   ) : activeTab === 'day-details' ? (
     <button 
       onClick={() => navigateTo('calendar')}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
+      className="flex items-center justify-center gap-2 h-[50px] w-[233.328px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group text-center"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
       Back to Calendar
@@ -422,7 +512,7 @@ export default function App() {
           setActiveTab(previousTab);
         }
       }}
-      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group cursor-pointer"
+      className="flex items-center justify-center gap-2 h-[50px] w-[233.328px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group cursor-pointer text-center"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
       Back
@@ -467,6 +557,13 @@ export default function App() {
       savedAccounts={savedAccounts}
       onSwitchAccount={handleSwitchAccount}
       onRemoveSavedAccount={handleRemoveSavedAccount}
+      // New props for multi-account
+      tradingAccounts={tradingAccounts}
+      activeAccountId={activeAccountId}
+      onSwitchTradingAccount={(id) => {
+        setActiveAccountId(id);
+        localStorage.setItem('active_trading_account_id', id);
+      }}
     >
       <AnimatePresence mode="wait">
         <motion.div
@@ -478,7 +575,13 @@ export default function App() {
         >
           {activeTab === 'dashboard' && <Dashboard trades={trades} />}
           {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
-          {activeTab === 'history' && <TradeList trades={trades.filter(t => t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'history' && (
+            <TradeList 
+              trades={trades.filter(t => t.exitPrice)} 
+              onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} 
+              onClearHistory={() => setShowDeleteConfirm(true)} 
+            />
+          )}
           {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} journals={journals} />}
           {activeTab === 'day-details' && (
             <DayDetails 
@@ -503,9 +606,10 @@ export default function App() {
                 }
               }} 
               initialDate={addTradeInitialDate}
+              activeAccountId={activeAccountId}
             />
           )}
-          {activeTab === 'settings' && <Settings trades={trades} journals={journals} />}
+          {activeTab === 'settings' && <Settings trades={trades} journals={journals} activeAccountId={activeAccountId} />}
           {activeTab === 'trade-details' && selectedTrade && (
             <TradeDetails 
               key={selectedTrade.id}

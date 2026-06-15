@@ -13,6 +13,7 @@ interface TradeListProps {
   trades: Trade[];
   onSelectTrade: (trade: Trade) => void;
   isTrash?: boolean;
+  onClearHistory?: () => void;
 }
 
 type SortField = 'date' | 'pair' | 'rr' | 'type' | 'createdAt';
@@ -36,7 +37,7 @@ const PHYSICAL_STATES: Record<string, { label: string; tooltip: string; bg: stri
   sleepy: { label: 'Sleepy 💤', tooltip: 'Sleepy 💤 (အိပ်ငိုက်သော)', bg: 'bg-blue-500/10', text: 'text-blue-400/90', border: 'border-blue-500/15' },
 };
 
-export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListProps) {
+export default function TradeList({ trades, onSelectTrade, isTrash, onClearHistory }: TradeListProps) {
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     message: string;
@@ -399,59 +400,72 @@ export default function TradeList({ trades, onSelectTrade, isTrash }: TradeListP
         </table>
       </div>
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-2 pt-2">
-          <div className="text-xs text-zinc-500 font-medium">
-            Showing <span className="text-zinc-300">{(currentPage - 1) * pageSize + 1}</span> to <span className="text-zinc-300">{Math.min(currentPage * pageSize, filteredTrades.length)}</span> of <span className="text-zinc-300">{filteredTrades.length}</span> results
+      {filteredTrades.length > 0 && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2 pt-2">
+          <div className="text-xs text-zinc-500 font-medium flex flex-wrap items-center gap-3">
+            <span>
+              Showing <span className="text-zinc-300">{(currentPage - 1) * pageSize + 1}</span> to <span className="text-zinc-300">{Math.min(currentPage * pageSize, filteredTrades.length)}</span> of <span className="text-zinc-300">{filteredTrades.length}</span> results
+            </span>
+            {onClearHistory && (
+              <button
+                onClick={onClearHistory}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 transition-all text-[10px] font-bold uppercase tracking-wider cursor-pointer"
+              >
+                <Trash2 size={12} />
+                Clear All History
+              </button>
+            )}
           </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 transition-all"
-            >
-              Previous
-            </button>
-            <div className="flex items-center gap-1">
-              {[...Array(totalPages)].map((_, i) => {
-                const pageNum = i + 1;
-                // Only show a limited range of page numbers if there are many pages
-                if (
-                  totalPages <= 7 || 
-                  pageNum === 1 || 
-                  pageNum === totalPages || 
-                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                ) {
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
-                        currentPage === pageNum 
-                          ? 'bg-emerald-500 text-black' 
-                          : 'bg-white/5 text-zinc-500 hover:text-zinc-300'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                } else if (
-                  (pageNum === 2 && currentPage > 3) || 
-                  (pageNum === totalPages - 1 && currentPage < totalPages - 2)
-                ) {
-                  return <span key={pageNum} className="text-zinc-700 text-xs px-1">...</span>;
-                }
-                return null;
-              })}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 transition-all"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {[...Array(totalPages)].map((_, i) => {
+                  const pageNum = i + 1;
+                  // Only show a limited range of page numbers if there are many pages
+                  if (
+                    totalPages <= 7 || 
+                    pageNum === 1 || 
+                    pageNum === totalPages || 
+                    (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                  ) {
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                          currentPage === pageNum 
+                            ? 'bg-emerald-500 text-black' 
+                            : 'bg-white/5 text-zinc-500 hover:text-zinc-300'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  } else if (
+                    (pageNum === 2 && currentPage > 3) || 
+                    (pageNum === totalPages - 1 && currentPage < totalPages - 2)
+                  ) {
+                    return <span key={pageNum} className="text-zinc-700 text-xs px-1">...</span>;
+                  }
+                  return null;
+                })}
+              </div>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 transition-all"
+              >
+                Next
+              </button>
             </div>
-            <button
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-white disabled:opacity-30 disabled:hover:text-zinc-400 transition-all"
-            >
-              Next
-            </button>
-          </div>
+          )}
         </div>
       )}
     </div>
