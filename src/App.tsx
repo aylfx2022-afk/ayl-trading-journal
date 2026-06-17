@@ -498,7 +498,7 @@ export default function App() {
   ) : activeTab === 'day-details' ? (
     <button 
       onClick={() => navigateTo('calendar')}
-      className="flex items-center justify-center gap-2 h-[50px] w-[233.328px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group text-center"
+      className="flex items-center justify-center gap-2 h-[32px] w-[221.016px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group text-center"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
       Back to Calendar
@@ -512,7 +512,7 @@ export default function App() {
           setActiveTab(previousTab);
         }
       }}
-      className="flex items-center justify-center gap-2 h-[50px] w-[233.328px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group cursor-pointer text-center"
+      className="flex items-center justify-center gap-2 h-[32px] w-[221.016px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group cursor-pointer text-center"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
       Back
