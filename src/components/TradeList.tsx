@@ -7,7 +7,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { getSafeDate } from '../lib/dateUtils';
 
-import DatePicker from './ui/DatePicker';
+import DateRangePicker from './ui/DateRangePicker';
 
 interface TradeListProps {
   trades: Trade[];
@@ -217,39 +217,16 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
           </select>
 
           {/* Created Time Filter */}
-          <div className="flex items-center gap-1.5 bg-white/5 border border-white/5 rounded-xl px-2.5 h-10 group/range">
-            <CalendarIcon size={14} className="text-zinc-600 group-hover/range:text-emerald-500 transition-colors" />
-            
-            <div className="flex items-center gap-1">
-              <div className="w-24">
-                <DatePicker 
-                  value={startDate}
-                  onChange={setStartDate}
-                  compact={true}
-                  placeholder="Start"
-                />
-              </div>
-              <span className="text-zinc-700 text-[10px] font-bold">-</span>
-              <div className="w-24">
-                <DatePicker 
-                  value={endDate}
-                  onChange={setEndDate}
-                  compact={true}
-                  placeholder="End"
-                />
-              </div>
-            </div>
-
-            {(startDate || endDate) && (
-              <button 
-                onClick={() => { setStartDate(null); setEndDate(null); }}
-                className="p-1 rounded-md text-zinc-600 hover:text-white hover:bg-white/10 transition-all ml-1"
-                title="Clear Dates"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
+          <DateRangePicker 
+            startDate={startDate}
+            endDate={endDate}
+            onChange={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+            }}
+            placeholderStart="Start"
+            placeholderEnd="End"
+          />
         </div>
       </div>
 

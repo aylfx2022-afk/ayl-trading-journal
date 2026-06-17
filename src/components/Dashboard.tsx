@@ -4,7 +4,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList
 } from 'recharts';
-import DatePicker from './ui/DatePicker';
+import DateRangePicker from './ui/DateRangePicker';
 import { Trade } from '../types';
 import { TrendingUp, TrendingDown, Target, Zap } from 'lucide-react';
 import { format } from 'date-fns';
@@ -366,29 +366,16 @@ function DateFilter({ startDate, endDate, setStartDate, setEndDate }: {
   return (
     <div className="flex flex-wrap items-center justify-end gap-4 bg-[#0F0F0F] border border-white/5 rounded-3xl p-4">
       <h4 className="text-sm font-bold text-zinc-300">Filter:</h4>
-      <div className="w-40">
-        <DatePicker 
-          value={startDate}
-          onChange={setStartDate}
-          placeholder="Start date"
-          compact={true}
-        />
-      </div>
-      <span className="text-zinc-500">to</span>
-      <div className="w-40">
-        <DatePicker 
-          value={endDate}
-          onChange={setEndDate}
-          placeholder="End date"
-          compact={true}
-        />
-      </div>
-      <button 
-        onClick={() => { setStartDate(null); setEndDate(null); }}
-        className="text-xs text-zinc-500 hover:text-zinc-300 px-2"
-      >
-        Clear
-      </button>
+      <DateRangePicker 
+        startDate={startDate}
+        endDate={endDate}
+        onChange={(start, end) => {
+          setStartDate(start);
+          setEndDate(end);
+        }}
+        placeholderStart="Start Date"
+        placeholderEnd="End Date"
+      />
     </div>
   );
 }
