@@ -142,17 +142,6 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
   return (
     <div className="w-full space-y-8">
-      <div className="text-left">
-        <div>
-          <h2 className="text-3xl font-bold flex items-center gap-2">
-            Trade Details
-          </h2>
-          <p className="text-zinc-500 mt-1">
-            {pair} • {type.toUpperCase()}
-          </p>
-        </div>
-      </div>
-
       <div className="bg-[#0F0F0F] border border-white/10 rounded-2xl p-6 text-left w-full">
         <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8">
           
