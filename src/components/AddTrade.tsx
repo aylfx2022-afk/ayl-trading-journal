@@ -135,12 +135,11 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
   return (
     <div className="w-full">
-      <h2 className="text-2xl font-bold mb-6">New Trade</h2>
-      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 w-full text-left">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8">
+      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 w-full text-left lg:h-[calc(100vh-120px)] lg:flex lg:flex-col lg:overflow-hidden lg:min-h-[500px]">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8 lg:flex-1 lg:overflow-hidden lg:min-h-0">
           
           {/* Left Column (30% width) - Form Complete */}
-          <div className="lg:col-span-3 space-y-5">
+          <div className="lg:col-span-3 space-y-5 lg:h-full lg:overflow-y-auto lg:pr-3">
             {/* SELECT A PAIR */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Pair</label>
@@ -342,7 +341,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
           </div>
 
           {/* Right Column (70% width) - Large Chart Images */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 lg:h-full lg:overflow-y-auto lg:pr-3">
             <div className="space-y-3 bg-white/[0.01] p-5 rounded-2xl border border-white/5">
               <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
                 Chart Links (Max 5)

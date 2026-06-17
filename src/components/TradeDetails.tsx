@@ -141,12 +141,12 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const validChartUrls = charts.map(c => c.url).filter(url => url.trim() !== '');
 
   return (
-    <div className="w-full space-y-8">
-      <div className="bg-[#0F0F0F] border border-white/10 rounded-2xl p-6 text-left w-full">
-        <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8">
+    <div className="w-full">
+      <div className="bg-[#0F0F0F] border border-white/10 rounded-2xl p-6 text-left w-full lg:h-[calc(100vh-120px)] lg:flex lg:flex-col lg:overflow-hidden lg:min-h-[500px]">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8 lg:flex-1 lg:overflow-hidden lg:min-h-0">
           
           {/* Left Column (30% width) - Form Complete */}
-          <div className="lg:col-span-3 space-y-5">
+          <div className="lg:col-span-3 space-y-5 lg:h-full lg:overflow-y-auto lg:pr-3">
             {/* Pair Name */}
             <div className="space-y-1.5">
               <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Pair</p>
@@ -322,7 +322,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
           </div>
 
           {/* Right Column (70% width) - Large Chart Previews Stacked Vertically */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 lg:h-full lg:overflow-y-auto lg:pr-3">
             <div className="space-y-4 bg-white/[0.01] p-5 rounded-2xl border border-white/5">
               <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
                 <ImageIcon size={14} className="text-emerald-500" />
