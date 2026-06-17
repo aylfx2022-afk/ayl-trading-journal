@@ -136,10 +136,12 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
   return (
     <div className="w-full">
       <h2 className="text-2xl font-bold mb-6">New Trade</h2>
-      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 space-y-5 w-full text-left">
-        <div className="max-w-4xl mx-auto space-y-5">
-          {/* Section 1: Main Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 w-full text-left">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8">
+          
+          {/* Left Column (30% width) - Form Complete */}
+          <div className="lg:col-span-3 space-y-5">
+            {/* SELECT A PAIR */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Pair</label>
               <select 
@@ -167,6 +169,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               </select>
             </div>
 
+            {/* DATE */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry Time</label>
               <DatePicker 
@@ -175,6 +178,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               />
             </div>
 
+            {/* SELECT TYPE */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Type</label>
               <select 
@@ -194,10 +198,10 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                 <option value="sell" className="bg-[#18181b] text-red-500">SELL</option>
               </select>
             </div>
-          </div>
 
-          {/* Section 2: Pricing Logic */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <hr className="border-white/5 my-4" />
+
+            {/* ENTRY */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry</label>
               <input 
@@ -206,6 +210,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
               />
             </div>
+
+            {/* SL */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">SL</label>
               <input 
@@ -214,6 +220,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500/50 text-zinc-200 text-sm" 
               />
             </div>
+
+            {/* TP */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">TP</label>
               <input 
@@ -222,6 +230,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
               />
             </div>
+
+            {/* EXIT */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Exit</label>
               <input 
@@ -231,6 +241,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                 placeholder="Opt."
               />
             </div>
+
+            {/* RR */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">RR</label>
               <input 
@@ -238,10 +250,10 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-zinc-400 cursor-not-allowed font-bold text-sm" 
               />
             </div>
-          </div>
 
-          {/* Section 3: Notes & Tags */}
-          <div className="space-y-6 pt-2 border-t border-white/5">
+            <hr className="border-white/5 my-4" />
+
+            {/* COMMENTS */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Comments</label>
@@ -253,7 +265,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   {isEditingNotes ? 'Done' : 'Write'}
                 </button>
               </div>
-                {isEditingNotes ? (
+              {isEditingNotes ? (
                 <MarkdownEditor 
                   value={formData.notes} 
                   onChange={val => setFormData({...formData, notes: val})}
@@ -261,13 +273,15 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   minHeight="120px"
                 />
               ) : (
-                <div className="min-h-[120px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview">
+                <div className="min-h-[120px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview text-left">
                   {formData.notes ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{formData.notes}</ReactMarkdown>
                   ) : <span className="text-zinc-600">No notes yet...</span>}
                 </div>
               )}
             </div>
+
+            {/* TAGS */}
             <div className="space-y-3">
               <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Tags</label>
               <TagInput 
@@ -278,64 +292,69 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               />
             </div>
 
-            {/* Trader Psychology & Wellness */}
-            <div className="space-y-4 pt-4 border-t border-white/5">
-              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
-                Trader State (စိတ်နှင့်ခန္ဓာကိုယ်အခြေအနေ)
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Mental State */}
-                <div className="space-y-1.5">
-                  <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Mental State (စိတ်အခြေအနေ)</p>
-                  <select
-                    value={formData.mentalState}
-                    onChange={(e) => setFormData({ ...formData, mentalState: e.target.value })}
-                    className="w-full bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200"
-                  >
-                    <option value="" className="bg-[#111113] text-zinc-400">Select mental state / စိတ်အခြေအနေ ရွေးချယ်ရန်</option>
-                    <option value="neutral" className="bg-[#111113]">Neutral 😐 (သာမန်/ပုံမှန်)</option>
-                    <option value="focused" className="bg-[#111113]">Focused 🎯 (အာရုံစူးစိုက်မှုရှိသော)</option>
-                    <option value="calm" className="bg-[#111113]">Calm 🧘 (တည်ငြိမ်အေးချမ်းသော)</option>
-                    <option value="anxious" className="bg-[#111113]">Anxious 😟 (စိုးရိမ်ပူပန်သော)</option>
-                    <option value="greedy" className="bg-[#111113]">Greedy 🤑 (လောဘဇောတက်ကြွသော)</option>
-                    <option value="impatient" className="bg-[#111113]">Impatient ⏳ (စိတ်မရှည်စောဒကတက်သော)</option>
-                    <option value="excited" className="bg-[#111113]">Excited ⚡ (စိတ်လှုပ်ရှားတက်ကြွသော)</option>
-                  </select>
-                </div>
+            {/* MENTAL STATE */}
+            <div className="space-y-1.5">
+              <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Mental State (စိတ်အခြေအနေ)</p>
+              <select
+                value={formData.mentalState}
+                onChange={(e) => setFormData({ ...formData, mentalState: e.target.value })}
+                className="w-full bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200"
+              >
+                <option value="" className="bg-[#111113] text-zinc-400">Select mental state</option>
+                <option value="neutral" className="bg-[#111113]">Neutral 😐</option>
+                <option value="focused" className="bg-[#111113]">Focused 🎯</option>
+                <option value="calm" className="bg-[#111113]">Calm 🧘</option>
+                <option value="anxious" className="bg-[#111113]">Anxious 😟</option>
+                <option value="greedy" className="bg-[#111113]">Greedy 🤑</option>
+                <option value="impatient" className="bg-[#111113]">Impatient ⏳</option>
+                <option value="excited" className="bg-[#111113]">Excited ⚡</option>
+              </select>
+            </div>
 
-                {/* Physical State */}
-                <div className="space-y-1.5">
-                  <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Physical State (ခန္ဓာကိုယ်အခြေအနေ)</p>
-                  <select
-                    value={formData.physicalState}
-                    onChange={(e) => setFormData({ ...formData, physicalState: e.target.value })}
-                    className="w-full bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500/50 text-zinc-200"
-                  >
-                    <option value="" className="bg-[#111113] text-zinc-400">Select physical state / ခန္ဓာကိုယ်အခြေအနေ ရွေးချယ်ရန်</option>
-                    <option value="energetic" className="bg-[#111113]">Energetic ⚡ (အင်အားပြည့်ဝသော)</option>
-                    <option value="neutral" className="bg-[#111113]">Neutral 😐 (ပုံမှန်/အလယ်အလတ်)</option>
-                    <option value="tired" className="bg-[#111113]">Tired 😴 (နုံးခွေပင်ပန်းသော)</option>
-                    <option value="sick" className="bg-[#111113]">Sick 🤒 (နေမကောင်းဖြစ်သော)</option>
-                    <option value="sleepy" className="bg-[#111113]">Sleepy 💤 (အိပ်ငိုက်သော)</option>
-                  </select>
+            {/* PHYSICAL STATE */}
+            <div className="space-y-1.5">
+              <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Physical State (ခန္ဓာကိုယ်အခြေအနေ)</p>
+              <select
+                value={formData.physicalState}
+                onChange={(e) => setFormData({ ...formData, physicalState: e.target.value })}
+                className="w-full bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-blue-500/50 text-zinc-200"
+              >
+                <option value="" className="bg-[#111113] text-zinc-400">Select physical state</option>
+                <option value="energetic" className="bg-[#111113]">Energetic ⚡</option>
+                <option value="neutral" className="bg-[#111113]">Neutral 😐</option>
+                <option value="tired" className="bg-[#111113]">Tired 😴</option>
+                <option value="sick" className="bg-[#111113]">Sick 🤒</option>
+                <option value="sleepy" className="bg-[#111113]">Sleepy 💤</option>
+              </select>
+            </div>
+            
+            {/* Status Messages */}
+            <div className="pt-4">
+              {status === 'saving' && (
+                <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium animate-pulse">
+                  <div className="w-4 h-4 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                  Saving trade entries...
                 </div>
-              </div>
+              )}
+              {status === 'success' && <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
+              {status === 'error' && <div className="flex items-center justify-center gap-2 text-red-500 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
             </div>
           </div>
-        
-          {/* Section 4: Charts */}
-          <div className="space-y-4 pt-4 border-t border-white/5">
-            <div className="space-y-1.5 animate-fade-in">
-              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Chart Links (Max 5)</label>
+
+          {/* Right Column (70% width) - Large Chart Images */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="space-y-3 bg-white/[0.01] p-5 rounded-2xl border border-white/5">
+              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+                Chart Links (Max 5)
+              </label>
               
-              {/* Single Paste URL Box & Save Button */}
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={tempChartUrl}
                   onChange={(e) => setTempChartUrl(e.target.value)}
                   disabled={formData.chartUrls.length >= 5}
-                  placeholder={formData.chartUrls.length >= 5 ? "Maximum 5 chart URLs reached / ပုံ ၅ ပုံ ပြည့်သွားပါပြီ" : "Paste TradingView or image URL here... / Image URL ကို ဤနေရာတွင် ထည့်ပါ..."}
+                  placeholder={formData.chartUrls.length >= 5 ? "Maximum 5 chart URLs reached" : "Paste TradingView/Image URL here..."}
                   className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200 disabled:opacity-50 transition-all font-mono"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -355,77 +374,57 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               </div>
             </div>
 
-            {/* Grid display of all 5 slots */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
-              {[0, 1, 2, 3, 4].map((index) => {
-                const url = formData.chartUrls[index];
-                const isPlaceholder = !url || url.trim() === '';
-                
-                return (
-                  <div key={index} className="space-y-2 bg-[#121214] p-3 rounded-2xl border border-white/5 flex flex-col justify-between min-h-[135px] transition-all hover:border-white/10">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">
-                        URL {index + 1}
-                      </span>
-                      {!isPlaceholder && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveChart(index)}
-                          className="text-[9px] font-black text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-2 py-0.5 rounded-lg transition-all cursor-pointer"
-                        >
-                          DELETE
-                        </button>
-                      )}
-                    </div>
-                    
-                    {isPlaceholder ? (
-                      <div className="flex-1 flex items-center justify-center p-2 rounded-xl border border-dashed border-white/5 bg-white/[0.01]">
-                        <span className="text-[9px] text-zinc-600 font-medium italic select-none">Empty Slot</span>
-                      </div>
-                    ) : (
-                      <div className="flex-1 flex flex-col justify-between gap-1.5">
-                        <span className="text-[9px] text-zinc-400 break-all line-clamp-1 select-all h-4 mb-0.5" title={url}>
-                          {url}
-                        </span>
-                        
-                        <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/40">
-                          <img 
-                            src={url} 
-                            alt={`Chart ${index + 1}`}
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.style.display = 'none';
-                              const parent = target.parentElement;
-                              if (parent) {
-                                const errorMsg = document.createElement('div');
-                                errorMsg.className = 'absolute inset-0 flex items-center justify-center text-[8px] text-zinc-600 px-1 text-center font-bold uppercase';
-                                errorMsg.innerText = 'Invalid Link';
-                                parent.appendChild(errorMsg);
-                              }
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
+            {/* Large Image Previews Stacked Vertically */}
+            <div className="space-y-6">
+              {formData.chartUrls.map((url, index) => (
+                <div key={index} className="bg-[#121214] p-5 rounded-2xl border border-white/5 flex flex-col gap-4 transition-all hover:border-white/10 animate-fade-in shadow-xl">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-3">
+                    <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                      URL {index + 1} Preview
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveChart(index)}
+                      className="text-[9px] font-black text-red-500 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 px-3 py-1 rounded-lg transition-all cursor-pointer"
+                    >
+                      DELETE
+                    </button>
                   </div>
-                );
-              })}
+                  
+                  <div className="text-[10px] text-zinc-500 select-all font-mono break-all px-1">
+                    {url}
+                  </div>
+                  
+                  <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 w-full min-h-[300px] flex items-center justify-center">
+                    <img 
+                      src={url} 
+                      alt={`Chart ${index + 1}`}
+                      className="w-full h-auto object-contain max-h-[700px] rounded-xl"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          const errorMsg = document.createElement('div');
+                          errorMsg.className = 'absolute inset-0 flex items-center justify-center font-bold text-xs text-zinc-500 uppercase tracking-widest';
+                          errorMsg.innerText = 'Invalid Image Link';
+                          parent.appendChild(errorMsg);
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {formData.chartUrls.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-20 px-4 rounded-2xl border border-dashed border-white/5 bg-white/[0.01] text-zinc-500">
+                  <span className="text-sm font-medium italic select-none">No chart images added yet. Paste a URL and click Save URL.</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Status Messages */}
-          <div className="pt-2">
-            {status === 'saving' && (
-              <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium animate-pulse">
-                <div className="w-4 h-4 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
-                Saving trade entries...
-              </div>
-            )}
-            {status === 'success' && <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
-            {status === 'error' && <div className="flex items-center justify-center gap-2 text-red-500 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
-          </div>
         </div>
       </form>
     </div>
