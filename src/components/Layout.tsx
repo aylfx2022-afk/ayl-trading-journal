@@ -65,6 +65,14 @@ export default function Layout({
     };
   }, []);
 
+  React.useEffect(() => {
+    if (activeTab === 'trade-details' || activeTab === 'add-trade') {
+      setIsCollapsed(true);
+    } else {
+      setIsCollapsed(false);
+    }
+  }, [activeTab]);
+
   const activeAccount = tradingAccounts.find(a => a.id === activeAccountId);
 
   const handleCreateProfile = async (e: React.FormEvent) => {
