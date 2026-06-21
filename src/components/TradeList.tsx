@@ -22,11 +22,18 @@ type SortOrder = 'asc' | 'desc';
 const MENTAL_STATES: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
   neutral: { label: 'Neutral 😐', tooltip: 'Neutral 😐 (သာမန်/ပုံမှန်)', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/10' },
   focused: { label: 'Focused 🎯', tooltip: 'Focused 🎯 (အာရုံစူးစိုက်မှုရှိသော)', bg: 'bg-emerald-500/10', text: 'text-emerald-400/90', border: 'border-emerald-500/15' },
-  calm: { label: 'Calm 🧘', tooltip: 'Calm 🧘 (တည်ငြိမ်အေးချမ်းသော)', bg: 'bg-sky-500/10', text: 'text-sky-400/90', border: 'border-sky-500/15' },
-  anxious: { label: 'Anxious 😟', tooltip: 'Anxious 😟 (စိုးရိမ်ပူပန်သော)', bg: 'bg-amber-500/10', text: 'text-amber-400/90', border: 'border-amber-500/15' },
+  calm: { label: 'Calm 🧘', tooltip: 'Calm 🧘 (တည်ငြိမ်ခြင်း)', bg: 'bg-teal-500/10', text: 'text-teal-400/90', border: 'border-teal-500/15' },
+  disciplined: { label: 'Disciplined 📜', tooltip: 'Disciplined 📜 (စည်းကမ်းစနစ်ကျသော)', bg: 'bg-cyan-500/10', text: 'text-cyan-400/90', border: 'border-cyan-500/15' },
+  fomo: { label: 'FOMO 🚀', tooltip: 'FOMO 🚀 (အခွင့်အရေးလွတ်သွားမည်စိုးရိမ်ခြင်း)', bg: 'bg-purple-500/10', text: 'text-purple-400/90', border: 'border-purple-500/15' },
+  revenge: { label: 'Revenge Trade 😡', tooltip: 'Revenge Trade 😡 (ရှုံးမဲမဲ၍ ပြန်လိုက်ဆော့ခြင်း)', bg: 'bg-red-500/10', text: 'text-red-400/90', border: 'border-red-500/15' },
+  overconfident: { label: 'Overconfident 😎', tooltip: 'Overconfident 😎 (ယုံကြည်မှုလွန်ကဲခြင်း)', bg: 'bg-indigo-500/10', text: 'text-indigo-400/90', border: 'border-indigo-500/15' },
+  anxious: { label: 'Anxious 😟', tooltip: 'Anxious 😟 (စိုးရိမ်ပူပန်သော)', bg: 'bg-orange-500/10', text: 'text-orange-400/90', border: 'border-orange-500/15' },
   greedy: { label: 'Greedy 🤑', tooltip: 'Greedy 🤑 (လောဘဇောတက်ကြွသော)', bg: 'bg-yellow-500/10', text: 'text-yellow-400/90', border: 'border-yellow-500/15' },
-  impatient: { label: 'Impatient ⏳', tooltip: 'Impatient ⏳ (စိတ်မရှည်စောဒကတက်သော)', bg: 'bg-orange-500/10', text: 'text-orange-400/90', border: 'border-orange-500/15' },
-  excited: { label: 'Excited ⚡', tooltip: 'Excited ⚡ (စိတ်လှုပ်ရှားတက်ကြွသော)', bg: 'bg-purple-500/10', text: 'text-purple-400/90', border: 'border-purple-500/15' },
+  impatient: { label: 'Impatient ⏳', tooltip: 'Impatient ⏳ (စိတ်မရှည်စောဒကတက်သော)', bg: 'bg-amber-500/10', text: 'text-amber-400/90', border: 'border-amber-500/15' },
+  hesitant: { label: 'Hesitant 😨', tooltip: 'Hesitant 😨 (တွေဝေတုံ့ဆိုင်းသော)', bg: 'bg-pink-500/10', text: 'text-pink-400/90', border: 'border-pink-500/15' },
+  excited: { label: 'Excited ⚡', tooltip: 'Excited ⚡ (စိတ်လှုပ်ရှားတက်ကြွသော)', bg: 'bg-violet-500/10', text: 'text-violet-400/90', border: 'border-violet-500/15' },
+  frustrated: { label: 'Frustrated 😫', tooltip: 'Frustrated 😫 (စိတ်တို/စိတ်ပျက်အားလျော့သော)', bg: 'bg-fuchsia-500/10', text: 'text-fuchsia-400/90', border: 'border-fuchsia-500/15' },
+  bored: { label: 'Bored 🥱', tooltip: 'Bored 🥱 (ပျင်းရိငြီးငွေ့သော)', bg: 'bg-slate-500/10', text: 'text-slate-400', border: 'border-slate-500/15' },
 };
 
 const PHYSICAL_STATES: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {

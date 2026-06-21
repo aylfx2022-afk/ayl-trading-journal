@@ -547,6 +547,14 @@ export default function App() {
     </div>
   ) : null;
 
+  const defaultAccount = tradingAccounts.find(a => a.isDefault);
+  const filteredJournals = journals.filter(j => {
+    if (j.accountId) {
+      return j.accountId === activeAccountId;
+    }
+    return defaultAccount && activeAccountId === defaultAccount.id;
+  });
+
   return (
     <Layout 
       activeTab={activeTab} 
@@ -582,7 +590,7 @@ export default function App() {
               onClearHistory={() => setShowDeleteConfirm(true)} 
             />
           )}
-          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} journals={journals} />}
+          {activeTab === 'calendar' && <CalendarView trades={trades} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} onSelectDay={(day) => { setSelectedDay(day); navigateTo('day-details'); }} panelDate={calendarPanelDate} setPanelDate={setCalendarPanelDate} journals={filteredJournals} />}
           {activeTab === 'day-details' && (
             <DayDetails 
               date={selectedDay} 
@@ -593,7 +601,9 @@ export default function App() {
                 setAddTradeInitialDate(selectedDay.toDate());
                 navigateTo('add-trade');
               }}
-              journals={journals}
+              journals={filteredJournals}
+              activeAccountId={activeAccountId}
+              activeAccountIsDefault={!!defaultAccount && activeAccountId === defaultAccount.id}
             />
           )}
           {activeTab === 'add-trade' && (
@@ -609,7 +619,7 @@ export default function App() {
               activeAccountId={activeAccountId}
             />
           )}
-          {activeTab === 'settings' && <Settings trades={trades} journals={journals} activeAccountId={activeAccountId} />}
+          {activeTab === 'settings' && <Settings trades={trades} journals={filteredJournals} activeAccountId={activeAccountId} />}
           {activeTab === 'trade-details' && selectedTrade && (
             <TradeDetails 
               key={selectedTrade.id}

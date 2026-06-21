@@ -18,9 +18,20 @@ interface DayDetailsProps {
   onBack: () => void;
   onAddTrade: () => void;
   journals?: any[];
+  activeAccountId?: string | null;
+  activeAccountIsDefault?: boolean;
 }
 
-export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddTrade, journals }: DayDetailsProps) {
+export default function DayDetails({ 
+  date, 
+  trades, 
+  onSelectTrade, 
+  onBack, 
+  onAddTrade, 
+  journals,
+  activeAccountId,
+  activeAccountIsDefault
+}: DayDetailsProps) {
   const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -57,14 +68,17 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddT
       }
 
       try {
-        const journalId = `${user.uid}_${dateKey}`;
+        const journalId = activeAccountIsDefault 
+          ? `${user.uid}_${dateKey}` 
+          : `${user.uid}_${activeAccountId}_${dateKey}`;
         const journalRef = doc(db, 'journals', journalId);
         
         await setDoc(journalRef, {
           dateYMD: dateKey,
           content: journalText,
           userId: user.uid,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          accountId: activeAccountId || null
         });
         setSaveStatus('saved');
         setTimeout(() => setSaveStatus('idle'), 2000);
@@ -75,7 +89,7 @@ export default function DayDetails({ date, trades, onSelectTrade, onBack, onAddT
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [journalText, dateKey, journalForDate]);
+  }, [journalText, dateKey, journalForDate, activeAccountId, activeAccountIsDefault]);
   
   const tradesForDate = trades.filter(trade => {
     if (!trade.openTime) return false;
