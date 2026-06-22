@@ -205,12 +205,12 @@ export default function ChartCarousel({
               animate="center"
               exit="exit"
               onClick={() => onViewFullscreen(currentChart.url)}
-              className="w-full h-full absolute inset-0 flex items-center justify-center cursor-pointer group p-3"
+              className="w-full h-full absolute inset-0 flex items-center justify-center cursor-pointer p-3"
             >
               <img
                 src={currentChart.url}
                 alt={`Chart Slide ${safeIndex + 1}`}
-                className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-[1.01] rounded-lg"
+                className="max-w-full max-h-full object-contain rounded-lg"
                 referrerPolicy="no-referrer"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -224,11 +224,6 @@ export default function ChartCarousel({
                   }
                 }}
               />
-              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none rounded-lg">
-                <div className="bg-black/60 backdrop-blur-md rounded-full p-2.5 border border-white/20">
-                  <Maximize2 size={16} className="text-white" />
-                </div>
-              </div>
             </motion.div>
           ) : (
             <motion.div
