@@ -2,8 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { getSafeDate } from '../lib/dateUtils';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList,
-  RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar
+  PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList
 } from 'recharts';
 import DateRangePicker from './ui/DateRangePicker';
 import { Trade } from '../types';
@@ -129,66 +128,55 @@ export default function Dashboard({ trades }: DashboardProps) {
       .sort((a, b) => a.orderDate.getTime() - b.orderDate.getTime())
       .map(({ month, rr }) => ({ month, rr }));
 
-    // Mental State Performance Aggregation
-    const mentalStatsMap: Record<string, { wins: number; total: number; totalRR: number }> = {
-      neutral: { wins: 0, total: 0, totalRR: 0 },
-      focused: { wins: 0, total: 0, totalRR: 0 },
-      calm: { wins: 0, total: 0, totalRR: 0 },
-      disciplined: { wins: 0, total: 0, totalRR: 0 },
-      fomo: { wins: 0, total: 0, totalRR: 0 },
-      revenge: { wins: 0, total: 0, totalRR: 0 },
-      overconfident: { wins: 0, total: 0, totalRR: 0 },
-      anxious: { wins: 0, total: 0, totalRR: 0 },
-      greedy: { wins: 0, total: 0, totalRR: 0 },
-      impatient: { wins: 0, total: 0, totalRR: 0 },
-      hesitant: { wins: 0, total: 0, totalRR: 0 },
-      excited: { wins: 0, total: 0, totalRR: 0 },
-      frustrated: { wins: 0, total: 0, totalRR: 0 },
-      bored: { wins: 0, total: 0, totalRR: 0 },
+    // Pre-Trade Emotion Data Aggregation
+    const preTradeMap: Record<string, { label: string; count: number; color: string }> = {
+      calm: { label: '🧘 Calm / တည်ငြိမ်မှု', count: 0, color: '#10b981' },
+      excited: { label: '⚡ Excited / စိတ်လှုပ်ရှား', count: 0, color: '#8b5cf6' },
+      confident: { label: '💪 Confident / ယုံကြည်မှု', count: 0, color: '#0d9488' },
+      hesitant: { label: '😟 Hesitant / တွန့်ဆုတ်', count: 0, color: '#d97706' },
+      fomo: { label: '🚀 FOMO / နောက်ကျစိုးရိမ်', count: 0, color: '#a855f7' },
+      impatient: { label: '⏳ Impatient / စိတ်မရှည်', count: 0, color: '#ea580c' },
+      bored: { label: '🥱 Bored / ပျင်းရိ', count: 0, color: '#71717a' }
     };
 
-    closedTrades.forEach(t => {
-      const state = t.mentalState ? t.mentalState.toLowerCase() : 'neutral';
-      if (mentalStatsMap[state] !== undefined) {
-        mentalStatsMap[state].total += 1;
-        mentalStatsMap[state].totalRR += (t.rr || 0);
-        if ((t.rr || 0) > 0) {
-          mentalStatsMap[state].wins += 1;
-        }
+    // During-Trade Emotion Data Aggregation
+    const duringTradeMap: Record<string, { label: string; count: number; color: string }> = {
+      peaceful: { label: '🕊️ Peaceful / စိတ်အေးချမ်း', count: 0, color: '#0ea5e9' },
+      anxious: { label: '😰 Anxious / စိုးရိမ်ပူပန်', count: 0, color: '#ef4444' },
+      relaxed: { label: '🍹 Relaxed / စိတ်ပေါ့ပါး', count: 0, color: '#6366f1' },
+      obsessive: { label: '👁️ Obsessive / စခရင်ကြည့်', count: 0, color: '#d97706' },
+      fearing_loss: { label: '📉 Fear Loss / ရှုံးမည်စိုး', count: 0, color: '#f43f5e' },
+      greed_surge: { label: '🤑 Greed / ပိုလိုချင်စိတ်', count: 0, color: '#eab308' },
+      confident: { label: '🛡️ Confident / ယုံကြည်မှုအတိုင်း', count: 0, color: '#0d9488' }
+    };
+
+    // Post-Trade Emotion Data Aggregation
+    const postTradeMap: Record<string, { label: string; count: number; color: string }> = {
+      satisfied_disciplined: { label: '🏆 Disciplined / စည်းကမ်း', count: 0, color: '#10b981' },
+      satisfied_lucky: { label: '🍀 Lucky Win / ကံကောင်းမှု', count: 0, color: '#eab308' },
+      relieved: { label: '😌 Relieved / သက်ပြင်းချနိုင်', count: 0, color: '#0d9488' },
+      frustrated: { label: '😫 Frustrated / စိတ်ပျက်ဒေါသ', count: 0, color: '#ec4899' },
+      regretful_sl: { label: '🤦 Regret SL / ရှုံး၍နောင်တ', count: 0, color: '#ef4444' },
+      regretful_early_exit: { label: '😢 Early Exit / စောထွက်မိနောင်တ', count: 0, color: '#f97316' },
+      neutral_accepting: { label: '🤝 Neutral / အေးဆေးလက်ခံ', count: 0, color: '#71717a' }
+    };
+
+    filteredTrades.forEach(t => {
+      if (t.preTradeEmotion && preTradeMap[t.preTradeEmotion]) {
+        preTradeMap[t.preTradeEmotion].count += 1;
+      }
+      if (t.duringTradeEmotion && duringTradeMap[t.duringTradeEmotion]) {
+        duringTradeMap[t.duringTradeEmotion].count += 1;
+      }
+      if (t.postTradeEmotion && postTradeMap[t.postTradeEmotion]) {
+        postTradeMap[t.postTradeEmotion].count += 1;
       }
     });
 
-    const mentalLabels: Record<string, string> = {
-      neutral: 'Neutral 😐',
-      focused: 'Focused 🎯',
-      calm: 'Calm 🧘',
-      disciplined: 'Disciplined 📜',
-      fomo: 'FOMO 🚀',
-      revenge: 'Revenge Trade 😡',
-      overconfident: 'Overconfident 😎',
-      anxious: 'Anxious 😟',
-      greedy: 'Greedy 🤑',
-      impatient: 'Impatient ⏳',
-      hesitant: 'Hesitant 😨',
-      excited: 'Excited ⚡',
-      frustrated: 'Frustrated 😫',
-      bored: 'Bored 🥱'
-    };
+    const preTradeData = Object.values(preTradeMap);
+    const duringTradeData = Object.values(duringTradeMap);
+    const postTradeData = Object.values(postTradeMap);
 
-    const radarData = Object.entries(mentalStatsMap).map(([key, data]) => {
-      const winRate = data.total > 0 ? (data.wins / data.total) * 100 : 0;
-      const avgRR = data.total > 0 ? data.totalRR / data.total : 0;
-      return {
-        key,
-        subject: mentalLabels[key] || key,
-        'Win Rate (%)': Math.round(winRate),
-        'Avg RR': Number(avgRR.toFixed(2)),
-        'RR Score': Math.max(0, Math.min(100, Math.round(avgRR * 20))),
-        trades: data.total,
-        wins: data.wins
-      };
-    });
-    
     return {
       totalProfit,
       totalRR,
@@ -199,7 +187,9 @@ export default function Dashboard({ trades }: DashboardProps) {
       losses: losses.length,
       equityData,
       monthlyRRData,
-      radarData,
+      preTradeData,
+      duringTradeData,
+      postTradeData,
       avgProfit: closedTrades.length > 0 ? totalProfit / closedTrades.length : 0
     };
   }, [trades, startDate, endDate]);
@@ -350,12 +340,12 @@ export default function Dashboard({ trades }: DashboardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Win/Loss Ratio */}
         <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
           <h3 className="text-lg font-semibold mb-8">Win/Loss Ratio</h3>
-          <div className="flex-1 flex items-center justify-center">
-            <div className="h-[300px] w-full">
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div className="h-[300px] w-full max-w-sm">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -379,72 +369,139 @@ export default function Dashboard({ trades }: DashboardProps) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-          </div>
-          <div className="mt-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-zinc-500">Wins</span>
-              <span className="text-emerald-500 font-medium">{stats.wins}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-zinc-500">Losses</span>
-              <span className="text-red-500 font-medium">{stats.losses}</span>
+            <div className="w-full max-w-xs mt-4 space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500 font-sans">Wins</span>
+                <span className="text-emerald-500 font-medium font-sans">{stats.wins}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-zinc-500 font-sans">Losses</span>
+                <span className="text-red-500 font-medium font-sans">{stats.losses}</span>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Mental State Radar Chart */}
-        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-          <h3 className="text-lg font-semibold">Performance by Mental State</h3>
-          <h4 className="text-xs text-zinc-500 mb-6">စိတ်လှုပ်ရှားမှုနှင့် စိတ်ဓာတ်အခြေအနေအလိုက် Performance အန်နလစ်တစ်စ်</h4>
-          
-          <div className="flex-1 flex items-center justify-center">
-            {stats.radarData && stats.radarData.some(d => d.trades > 0) ? (
-              <div className="h-[300px] w-full">
+      {/* Trader Psychology Analysis */}
+      <div className="space-y-6">
+        <div className="border-t border-white/5 pt-6">
+          <h3 className="text-lg font-semibold text-emerald-500">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာဆန်းစစ်ချက်များ)</h3>
+          <p className="text-xs text-zinc-500 mt-1">
+            ပရီ-ထရိတ် (မဝင်ခင်) ၊ မစ်-ထရိတ် (ဝင်ထားစဉ်) နှင့် ပို့စ်-ထရိတ် (ထွက်ပြီးနောက်) ခံစားချက်များအပေါ်အခြေခံ၍ ရရှိလာသည့် စိတ်ခံစားမှုပုံစံများ
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Pre-Trade Emotions Chart */}
+          <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-zinc-300">Feeling BEFORE Entry</h4>
+              <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade မဝင်ခင် ခံစားရသော စိတ်အခြေအနေ</p>
+            </div>
+            <div className="h-[280px] w-full">
+              {stats.preTradeData.some(d => d.count > 0) ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="75%" data={stats.radarData}>
-                    <PolarGrid stroke="#ffffff08" />
-                    <PolarAngleAxis 
-                      dataKey="subject" 
-                      tick={{ fill: '#a1a1aa', fontSize: 10, fontWeight: 700 }}
+                  <BarChart
+                    layout="vertical"
+                    data={stats.preTradeData}
+                    margin={{ left: 5, right: 30, top: 10, bottom: 10 }}
+                  >
+                    <XAxis type="number" stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="label" stroke="#a1a1aa" fontSize={9} tickLine={false} axisLine={false} width={130} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
+                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                      formatter={(value: any) => [value, "Trades"]}
                     />
-                    <PolarRadiusAxis 
-                      angle={30} 
-                      domain={[0, 100]} 
-                      tick={{ fill: '#52525b', fontSize: 8 }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <Radar 
-                      name="Win Rate (%)" 
-                      dataKey="Win Rate (%)" 
-                      stroke="#10b981" 
-                      fill="#10b981" 
-                      fillOpacity={0.15} 
-                    />
-                    <Radar 
-                      name="Avg RR Score" 
-                      dataKey="RR Score" 
-                      stroke="#3b82f6" 
-                      fill="#3b82f6" 
-                      fillOpacity={0.1} 
-                    />
-                    <Tooltip content={<RadarTooltip />} />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36} 
-                      iconType="circle"
-                      iconSize={8}
-                      wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em', color: '#71717a', paddingTop: '10px' }}
-                    />
-                  </RadarChart>
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={12}>
+                      {stats.preTradeData.map((entry, index) => (
+                        <Cell key={`cell-pre-${index}`} fill={entry.color} />
+                      ))}
+                      <LabelList dataKey="count" position="right" fill="#a1a1aa" fontSize={9} offset={8} />
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-center text-zinc-600">
-                <p className="text-sm">No mental state data found in filtered range.</p>
-                <p className="text-xs mt-1">Add mental state logs when editing trades to view emotional performance!</p>
-              </div>
-            )}
+              ) : (
+                <div className="h-full flex items-center justify-center text-center p-4">
+                  <p className="text-xs text-zinc-600 font-sans">Trade မဝင်ခင် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* During-Trade Emotions Chart */}
+          <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-zinc-300">Feeling DURING Active Trade</h4>
+              <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade ဝင်ထားစဉ် ဖြစ်ပေါ်သော စိတ်အခြေအနေ</p>
+            </div>
+            <div className="h-[280px] w-full">
+              {stats.duringTradeData.some(d => d.count > 0) ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={stats.duringTradeData}
+                    margin={{ left: 5, right: 30, top: 10, bottom: 10 }}
+                  >
+                    <XAxis type="number" stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="label" stroke="#a1a1aa" fontSize={9} tickLine={false} axisLine={false} width={130} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
+                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                      formatter={(value: any) => [value, "Trades"]}
+                    />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={12}>
+                      {stats.duringTradeData.map((entry, index) => (
+                        <Cell key={`cell-during-${index}`} fill={entry.color} />
+                      ))}
+                      <LabelList dataKey="count" position="right" fill="#a1a1aa" fontSize={9} offset={8} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-center p-4">
+                  <p className="text-xs text-zinc-600 font-sans">Trade ဝင်ထားစဉ် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Post-Trade Emotions Chart */}
+          <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-zinc-300">Feeling AFTER Exit</h4>
+              <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade ထွက်ပြီးနောက် ကြုံရသော စိတ်အခြေအနေ</p>
+            </div>
+            <div className="h-[280px] w-full">
+              {stats.postTradeData.some(d => d.count > 0) ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={stats.postTradeData}
+                    margin={{ left: 5, right: 30, top: 10, bottom: 10 }}
+                  >
+                    <XAxis type="number" stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
+                    <YAxis type="category" dataKey="label" stroke="#a1a1aa" fontSize={9} tickLine={false} axisLine={false} width={130} />
+                    <Tooltip 
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
+                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
+                      formatter={(value: any) => [value, "Trades"]}
+                    />
+                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={12}>
+                      {stats.postTradeData.map((entry, index) => (
+                        <Cell key={`cell-post-${index}`} fill={entry.color} />
+                      ))}
+                      <LabelList dataKey="count" position="right" fill="#a1a1aa" fontSize={9} offset={8} />
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex items-center justify-center text-center p-4">
+                  <p className="text-xs text-zinc-600 font-sans">Trade ထွက်ပြီးနောက် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -498,35 +555,4 @@ function DateFilter({ startDate, endDate, setStartDate, setEndDate }: {
   );
 }
 
-function RadarTooltip({ active, payload }: any) {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload;
-    return (
-      <div className="bg-[#18181b] border border-white/10 rounded-2xl p-4 shadow-2xl max-w-[240px] text-zinc-200">
-        <p className="font-bold text-sm text-zinc-100 mb-2 border-b border-white/5 pb-1 flex items-center justify-between">
-          <span>{data.subject}</span>
-          <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2.5 py-0.5 rounded-full font-black">
-            {data.trades} {data.trades === 1 ? 'Trade' : 'Trades'}
-          </span>
-        </p>
-        <div className="space-y-1.5 text-xs font-bold">
-          <div className="flex justify-between gap-4">
-            <span className="text-zinc-500">Win Rate:</span>
-            <span className="text-emerald-400">{data['Win Rate (%)']}%</span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-zinc-500">Average RR:</span>
-            <span className={data['Avg RR'] >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
-              {data['Avg RR'] >= 0 ? '+' : ''}{data['Avg RR'].toFixed(2)} R
-            </span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-zinc-500">Wins/Losses:</span>
-            <span className="text-zinc-300">{data.wins}W - {data.trades - data.wins}L</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-  return null;
-}
+

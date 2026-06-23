@@ -98,6 +98,36 @@ const physicalOptions = [
   { value: 'sleepy', label: 'Sleepy', emoji: '💤' }
 ];
 
+const preTradeEmotionOptions = [
+  { value: 'calm', label: 'Calm / တည်ငြိမ်မှုရှိ', emoji: '🧘' },
+  { value: 'excited', label: 'Excited / စိတ်လှုပ်ရှားနေ', emoji: '⚡' },
+  { value: 'confident', label: 'Confident / ယုံကြည်မှုရှိ', emoji: '💪' },
+  { value: 'hesitant', label: 'Hesitant / တွန့်ဆုတ်နေ', emoji: '😟' },
+  { value: 'fomo', label: 'FOMO / နောက်ကျကျန်စိုးရိမ်', emoji: '🚀' },
+  { value: 'impatient', label: 'Impatient / စိတ်မရှည်ဖြစ်နေ', emoji: '⏳' },
+  { value: 'bored', label: 'Bored / ပျင်းရိနေ', emoji: '🥱' }
+];
+
+const duringTradeEmotionOptions = [
+  { value: 'peaceful', label: 'Peaceful / စိတ်အေးချမ်း', emoji: '🕊️' },
+  { value: 'anxious', label: 'Anxious / စိုးရိမ်ပူပန်', emoji: '😰' },
+  { value: 'relaxed', label: 'Relaxed / စိတ်ပေါ့ပါး', emoji: '🍹' },
+  { value: 'obsessive', label: 'Obsessive Screen watching / စခရင်အမြဲကြည့်နေ', emoji: '👁️' },
+  { value: 'fearing_loss', label: 'Fearing Loss / ရှုံးမှာကြောက်နေ', emoji: '📉' },
+  { value: 'greed_surge', label: 'Greed Surge / ပိုလိုချင်စိတ်စွတ်', emoji: '🤑' },
+  { value: 'confident', label: 'Confident / ယုံကြည်မှုအတိုင်း', emoji: '🛡️' }
+];
+
+const postTradeEmotionOptions = [
+  { value: 'satisfied_disciplined', label: 'Satisfied & Disciplined / စည်းကမ်းလိုက်နာခဲ့၍ကျေနပ်', emoji: '🏆' },
+  { value: 'satisfied_lucky', label: 'Satisfied but Lucky / ကံကောင်း၍ကျေနပ်', emoji: '🍀' },
+  { value: 'relieved', label: 'Relieved / သက်ပြင်းချနိုင်ခဲ့', emoji: '😌' },
+  { value: 'frustrated', label: 'Frustrated / စိတ်ပျက်ဒေါသထွက်', emoji: '😫' },
+  { value: 'regretful_sl', label: 'Regretful SL / ရှုံး၍နောင်တရ', emoji: '🤦' },
+  { value: 'regretful_early_exit', label: 'Regretful Early Exit / စောထွက်မိ၍နောင်တရ', emoji: '😢' },
+  { value: 'neutral_accepting', label: 'Neutral & Accepting / ရလဒ်ကိုသာမန်အတိုင်းလက်ခံ', emoji: '🤝' }
+];
+
 interface TradeDetailsProps {
   trade: Trade;
   onBack: () => void;
@@ -111,6 +141,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [tags, setTags] = useState<string[]>(trade.tags || []);
   const [mentalState, setMentalState] = useState(trade.mentalState || '');
   const [physicalState, setPhysicalState] = useState(trade.physicalState || '');
+  const [preTradeEmotion, setPreTradeEmotion] = useState(trade.preTradeEmotion || '');
+  const [duringTradeEmotion, setDuringTradeEmotion] = useState(trade.duringTradeEmotion || '');
+  const [postTradeEmotion, setPostTradeEmotion] = useState(trade.postTradeEmotion || '');
   const [type, setType] = useState<'buy' | 'sell'>(trade.type || 'buy');
   
   React.useEffect(() => {
@@ -188,7 +221,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       handleSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags, mentalState, physicalState, type]);
+  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags, mentalState, physicalState, preTradeEmotion, duringTradeEmotion, postTradeEmotion, type]);
 
   const handleSave = async () => {
     if (!trade.id) return;
@@ -211,7 +244,10 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         openTime: entryDateTime ? Timestamp.fromDate(entryDateTime) : trade.openTime,
         closeTime: null,
         mentalState,
-        physicalState
+        physicalState,
+        preTradeEmotion,
+        duringTradeEmotion,
+        postTradeEmotion
       });
       setSavingStatus('saved');
       setTimeout(() => setSavingStatus('idle'), 2000);
@@ -339,28 +375,44 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               />
             </div>
 
-            {/* Mental State dropdown */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Mental State (စိတ်အခြေအနေ)</p>
-              <CustomSelect
-                value={mentalState}
-                onChange={setMentalState}
-                options={mentalOptions}
-                placeholder="Select mental state"
-                typeStyle="mental"
-              />
-            </div>
+            <div className="space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+              <p className="text-[10.5px] uppercase font-black text-emerald-500 tracking-wider font-sans">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာ)</p>
+              
+              {/* PRE-TRADE EMOTION */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1 font-sans">Feeling BEFORE Entry (Trade မဝင်ခင် ခံစားချက်)</p>
+                <CustomSelect
+                  value={preTradeEmotion}
+                  onChange={setPreTradeEmotion}
+                  options={preTradeEmotionOptions}
+                  placeholder="Select pre-trade emotion"
+                  typeStyle="mental"
+                />
+              </div>
 
-            {/* Physical state dropdown */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Physical State (ခန္ဓာကိုယ်အခြေအနေ)</p>
-              <CustomSelect
-                value={physicalState}
-                onChange={setPhysicalState}
-                options={physicalOptions}
-                placeholder="Select physical state"
-                typeStyle="physical"
-              />
+              {/* DURING-TRADE EMOTION */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1 font-sans">Feeling DURING Active Trade (ဝင်ထားစဉ် ခံစားချက်)</p>
+                <CustomSelect
+                  value={duringTradeEmotion}
+                  onChange={setDuringTradeEmotion}
+                  options={duringTradeEmotionOptions}
+                  placeholder="Select during-trade emotion"
+                  typeStyle="mental"
+                />
+              </div>
+
+              {/* POST-TRADE EMOTION */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1 font-sans">Feeling AFTER Exit (ထွက်ပြီးနောက် ခံစားချက်)</p>
+                <CustomSelect
+                  value={postTradeEmotion}
+                  onChange={setPostTradeEmotion}
+                  options={postTradeEmotionOptions}
+                  placeholder="Select post-trade emotion"
+                  typeStyle="mental"
+                />
+              </div>
             </div>
 
             {/* Saving history footer status message */}

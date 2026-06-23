@@ -95,6 +95,36 @@ const physicalOptions = [
   { value: 'sleepy', label: 'Sleepy', emoji: '💤' }
 ];
 
+const preTradeEmotionOptions = [
+  { value: 'calm', label: 'Calm / တည်ငြိမ်မှုရှိ', emoji: '🧘' },
+  { value: 'excited', label: 'Excited / စိတ်လှုပ်ရှားနေ', emoji: '⚡' },
+  { value: 'confident', label: 'Confident / ယုံကြည်မှုရှိ', emoji: '💪' },
+  { value: 'hesitant', label: 'Hesitant / တွန့်ဆုတ်နေ', emoji: '😟' },
+  { value: 'fomo', label: 'FOMO / နောက်ကျကျန်စိုးရိမ်', emoji: '🚀' },
+  { value: 'impatient', label: 'Impatient / စိတ်မရှည်ဖြစ်နေ', emoji: '⏳' },
+  { value: 'bored', label: 'Bored / ပျင်းရိနေ', emoji: '🥱' }
+];
+
+const duringTradeEmotionOptions = [
+  { value: 'peaceful', label: 'Peaceful / စိတ်အေးချမ်း', emoji: '🕊️' },
+  { value: 'anxious', label: 'Anxious / စိုးရိမ်ပူပန်', emoji: '😰' },
+  { value: 'relaxed', label: 'Relaxed / စိတ်ပေါ့ပါး', emoji: '🍹' },
+  { value: 'obsessive', label: 'Obsessive Screen watching / စခရင်အမြဲကြည့်နေ', emoji: '👁️' },
+  { value: 'fearing_loss', label: 'Fearing Loss / ရှုံးမှာကြောက်နေ', emoji: '📉' },
+  { value: 'greed_surge', label: 'Greed Surge / ပိုလိုချင်စိတ်စွတ်', emoji: '🤑' },
+  { value: 'confident', label: 'Confident / ယုံကြည်မှုအတိုင်း', emoji: '🛡️' }
+];
+
+const postTradeEmotionOptions = [
+  { value: 'satisfied_disciplined', label: 'Satisfied & Disciplined / စည်းကမ်းလိုက်နာခဲ့၍ကျေနပ်', emoji: '🏆' },
+  { value: 'satisfied_lucky', label: 'Satisfied but Lucky / ကံကောင်း၍ကျေနပ်', emoji: '🍀' },
+  { value: 'relieved', label: 'Relieved / သက်ပြင်းချနိုင်ခဲ့', emoji: '😌' },
+  { value: 'frustrated', label: 'Frustrated / စိတ်ပျက်ဒေါသထွက်', emoji: '😫' },
+  { value: 'regretful_sl', label: 'Regretful SL / ရှုံး၍နောင်တရ', emoji: '🤦' },
+  { value: 'regretful_early_exit', label: 'Regretful Early Exit / စောထွက်မိ၍နောင်တရ', emoji: '😢' },
+  { value: 'neutral_accepting', label: 'Neutral & Accepting / ရလဒ်ကိုသာမန်အတိုင်းလက်ခံ', emoji: '🤝' }
+];
+
 interface AddTradeProps {
   onBack: () => void;
   initialDate?: Date;
@@ -121,7 +151,10 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
     tags: [] as string[],
     entryDateTime: initialDate || new Date(),
     mentalState: '',
-    physicalState: ''
+    physicalState: '',
+    preTradeEmotion: '',
+    duringTradeEmotion: '',
+    postTradeEmotion: ''
   });
 
   React.useEffect(() => {
@@ -210,7 +243,10 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
         exitPrice: formData.exitPrice !== '' ? Number(formData.exitPrice) : null,
         rr: formData.rr !== '' ? Number(formData.rr) : null,
         mentalState: formData.mentalState,
-        physicalState: formData.physicalState
+        physicalState: formData.physicalState,
+        preTradeEmotion: formData.preTradeEmotion,
+        duringTradeEmotion: formData.duringTradeEmotion,
+        postTradeEmotion: formData.postTradeEmotion
       });
       setStatus('success');
       setTimeout(() => {
@@ -355,28 +391,44 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               />
             </div>
 
-            {/* MENTAL STATE */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Mental State (စိတ်အခြေအနေ)</p>
-              <CustomSelect
-                value={formData.mentalState}
-                onChange={val => setFormData({...formData, mentalState: val})}
-                options={mentalOptions}
-                placeholder="Select mental state"
-                typeStyle="mental"
-              />
-            </div>
+            <div className="space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
+              <p className="text-[10.5px] uppercase font-black text-emerald-500 tracking-wider">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာ)</p>
+              
+              {/* PRE-TRADE EMOTION */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1">Feeling BEFORE Entry (Trade မဝင်ခင် ခံစားချက်)</p>
+                <CustomSelect
+                  value={formData.preTradeEmotion}
+                  onChange={val => setFormData({...formData, preTradeEmotion: val})}
+                  options={preTradeEmotionOptions}
+                  placeholder="Select pre-trade emotion"
+                  typeStyle="mental"
+                />
+              </div>
 
-            {/* PHYSICAL STATE */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] uppercase font-bold text-zinc-400 px-1">Physical State (ခန္ဓာကိုယ်အခြေအနေ)</p>
-              <CustomSelect
-                value={formData.physicalState}
-                onChange={val => setFormData({...formData, physicalState: val})}
-                options={physicalOptions}
-                placeholder="Select physical state"
-                typeStyle="physical"
-              />
+              {/* DURING-TRADE EMOTION */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1">Feeling DURING Active Trade (ဝင်ထားစဉ် ခံစားချက်)</p>
+                <CustomSelect
+                  value={formData.duringTradeEmotion}
+                  onChange={val => setFormData({...formData, duringTradeEmotion: val})}
+                  options={duringTradeEmotionOptions}
+                  placeholder="Select during-trade emotion"
+                  typeStyle="mental"
+                />
+              </div>
+
+              {/* POST-TRADE EMOTION */}
+              <div className="space-y-1.5">
+                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1">Feeling AFTER Exit (ထွက်ပြီးနောက် ခံစားချက်)</p>
+                <CustomSelect
+                  value={formData.postTradeEmotion}
+                  onChange={val => setFormData({...formData, postTradeEmotion: val})}
+                  options={postTradeEmotionOptions}
+                  placeholder="Select post-trade emotion"
+                  typeStyle="mental"
+                />
+              </div>
             </div>
             
             {/* Status Messages */}

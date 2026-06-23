@@ -44,6 +44,36 @@ const PHYSICAL_STATES: Record<string, { label: string; tooltip: string; bg: stri
   sleepy: { label: 'Sleepy 💤', tooltip: 'Sleepy 💤 (အိပ်ငိုက်သော)', bg: 'bg-blue-500/10', text: 'text-blue-400/90', border: 'border-blue-500/15' },
 };
 
+const PRE_TRADE_EMOTIONS: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
+  calm: { label: '🧘 Calm', tooltip: 'Calm / တည်ငြိမ်မှုရှိ', bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/15' },
+  excited: { label: '⚡ Excited', tooltip: 'Excited / စိတ်လှုပ်ရှားနေ', bg: 'bg-violet-500/10', text: 'text-violet-400', border: 'border-violet-500/15' },
+  confident: { label: '💪 Confident', tooltip: 'Confident / ယုံကြည်မှုရှိ', bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/15' },
+  hesitant: { label: '😟 Hesitant', tooltip: 'Hesitant / တွန့်ဆုတ်နေ', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/15' },
+  fomo: { label: '🚀 FOMO', tooltip: 'FOMO / နောက်ကျကျန်စိုးရိမ်', bg: 'bg-purple-500/10', text: 'text-purple-400', border: 'border-purple-500/15' },
+  impatient: { label: '⏳ Impatient', tooltip: 'Impatient / စိတ်မရှည်ဖြစ်နေ', bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/15' },
+  bored: { label: '🥱 Bored', tooltip: 'Bored / ပျင်းရိနေ', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/15' }
+};
+
+const DURING_TRADE_EMOTIONS: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
+  peaceful: { label: '🕊️ Peaceful', tooltip: 'Peaceful / စိတ်အေးချမ်း', bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/15' },
+  anxious: { label: '😰 Anxious', tooltip: 'Anxious / စိုးရိမ်ပူပန်', bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/15' },
+  relaxed: { label: '🍹 Relaxed', tooltip: 'Relaxed / စိတ်ပေါ့ပါး', bg: 'bg-indigo-500/10', text: 'text-indigo-400', border: 'border-indigo-500/15' },
+  obsessive: { label: '👁️ Obsessive', tooltip: 'Obsessive Screen watching / စခရင်အမြဲကြည့်နေ', bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/15' },
+  fearing_loss: { label: '📉 Fear Loss', tooltip: 'Fearing Loss / ရှုံးမှာကြောက်နေ', bg: 'bg-rose-500/10', text: 'text-rose-400', border: 'border-rose-500/15' },
+  greed_surge: { label: '🤑 Greed Surge', tooltip: 'Greed Surge / ပိုလိုချင်စိတ်စွတ်', bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/15' },
+  confident: { label: '🛡️ Confident', tooltip: 'Confident / ယုံကြည်မှုအတိုင်း', bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/15' }
+};
+
+const POST_TRADE_EMOTIONS: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
+  satisfied_disciplined: { label: '🏆 Disciplined', tooltip: 'Satisfied & Disciplined / စည်းကမ်းလိုက်နာခဲ့၍ကျေနပ်', bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/15' },
+  satisfied_lucky: { label: '🍀 Lucky Win', tooltip: 'Satisfied but Lucky / ကံကောင်း၍ကျေနပ်', bg: 'bg-yellow-500/10', text: 'text-yellow-400', border: 'border-yellow-500/15' },
+  relieved: { label: '😌 Relieved', tooltip: 'Relieved / သက်ပြင်းချနိုင်ခဲ့', bg: 'bg-teal-500/10', text: 'text-teal-400', border: 'border-teal-500/15' },
+  frustrated: { label: '😫 Frustrated', tooltip: 'Frustrated / စိတ်ပျက်ဒေါသထွက်', bg: 'bg-pink-500/10', text: 'text-pink-400', border: 'border-pink-500/15' },
+  regretful_sl: { label: '🤦 Regret SL', tooltip: 'Regretful SL / ရှုံး၍နောင်တရ', bg: 'bg-red-500/10', text: 'text-red-400', border: 'border-red-500/15' },
+  regretful_early_exit: { label: '😢 Early Exit', tooltip: 'Regretful Early Exit / စောထွက်မိ၍နောင်တရ', bg: 'bg-orange-500/10', text: 'text-orange-400', border: 'border-orange-500/15' },
+  neutral_accepting: { label: '🤝 Neutral', tooltip: 'Neutral & Accepting / ရလဒ်ကိုသာမန်အတိုင်းလက်ခံ', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/15' }
+};
+
 export default function TradeList({ trades, onSelectTrade, isTrash, onClearHistory }: TradeListProps) {
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
@@ -257,8 +287,9 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                 <div className="flex items-center gap-1">RR <SortIcon field="rr" /></div>
               </th>
               <th className="px-6 py-4 font-bold">Journal</th>
-              <th className="px-6 py-4 font-bold text-zinc-400/90 whitespace-nowrap">Mental State</th>
-              <th className="px-6 py-4 font-bold text-zinc-400/90 whitespace-nowrap">Physical State</th>
+              <th className="px-6 py-4 font-bold text-emerald-500/90 whitespace-nowrap">Pre-Trade Feel</th>
+              <th className="px-6 py-4 font-bold text-emerald-500/90 whitespace-nowrap">Mid-Trade Feel</th>
+              <th className="px-6 py-4 font-bold text-emerald-500/90 whitespace-nowrap">Post-Trade Feel</th>
               <th className="px-6 py-4 font-bold">Tags</th>
               <th className="px-6 py-4 font-bold text-right">Actions</th>
             </tr>
@@ -302,18 +333,18 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {trade.mentalState ? (
+                  {trade.preTradeEmotion ? (
                     (() => {
-                      const m = MENTAL_STATES[trade.mentalState];
-                      return m ? (
+                      const emo = PRE_TRADE_EMOTIONS[trade.preTradeEmotion];
+                      return emo ? (
                         <span 
-                          title={m.tooltip}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${m.bg} ${m.text} ${m.border}`}
+                          title={emo.tooltip}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${emo.bg} ${emo.text} ${emo.border}`}
                         >
-                          {m.label}
+                          {emo.label}
                         </span>
                       ) : (
-                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.mentalState}</span>
+                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.preTradeEmotion}</span>
                       );
                     })()
                   ) : (
@@ -321,18 +352,37 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {trade.physicalState ? (
+                  {trade.duringTradeEmotion ? (
                     (() => {
-                      const p = PHYSICAL_STATES[trade.physicalState];
-                      return p ? (
+                      const emo = DURING_TRADE_EMOTIONS[trade.duringTradeEmotion];
+                      return emo ? (
                         <span 
-                          title={p.tooltip}
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${p.bg} ${p.text} ${p.border}`}
+                          title={emo.tooltip}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${emo.bg} ${emo.text} ${emo.border}`}
                         >
-                          {p.label}
+                          {emo.label}
                         </span>
                       ) : (
-                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.physicalState}</span>
+                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.duringTradeEmotion}</span>
+                      );
+                    })()
+                  ) : (
+                    <span className="text-zinc-600 text-xs">-</span>
+                  )}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {trade.postTradeEmotion ? (
+                    (() => {
+                      const emo = POST_TRADE_EMOTIONS[trade.postTradeEmotion];
+                      return emo ? (
+                        <span 
+                          title={emo.tooltip}
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded text-[10px] font-semibold border cursor-help whitespace-nowrap ${emo.bg} ${emo.text} ${emo.border}`}
+                        >
+                          {emo.label}
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 font-medium capitalize bg-white/5 border border-white/5 px-2 py-0.5 rounded whitespace-nowrap">{trade.postTradeEmotion}</span>
                       );
                     })()
                   ) : (

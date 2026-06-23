@@ -30,6 +30,9 @@ export interface Trade {
   mentalState?: string;
   physicalState?: string;
   ticket?: string;
+  preTradeEmotion?: string;
+  duringTradeEmotion?: string;
+  postTradeEmotion?: string;
 }
 
 export interface UserProfile {
