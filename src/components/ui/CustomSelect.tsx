@@ -36,6 +36,7 @@ export default function CustomSelect({
   typeStyle = 'default'
 }: CustomSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Close when clicking outside
@@ -48,6 +49,22 @@ export default function CustomSelect({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Determine open direction based on viewport space
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const dropdownHeight = 300; // max-h is 285px + buffer
+      const spaceAbove = rect.top;
+      // Open upwards if space below is limited and we have more space above
+      if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+        setOpenUpwards(true);
+      } else {
+        setOpenUpwards(false);
+      }
+    }
+  }, [isOpen]);
 
   // Find currently selected option
   const allOptions = groups 
@@ -101,11 +118,15 @@ export default function CustomSelect({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            initial={{ opacity: 0, y: openUpwards ? -8 : 8, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            exit={{ opacity: 0, y: openUpwards ? -8 : 8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute z-[110] mt-1.5 left-0 w-full bg-[#141416] border border-white/15 rounded-xl shadow-2xl overflow-hidden max-h-[285px] overflow-y-auto p-1.5 focus:outline-none origin-top"
+            className={`absolute z-[110] left-0 w-full bg-[#141416] border border-white/15 rounded-xl shadow-2xl overflow-hidden max-h-[285px] overflow-y-auto p-1.5 focus:outline-none ${
+              openUpwards 
+                ? 'bottom-full mb-1.5 origin-bottom' 
+                : 'top-full mt-1.5 origin-top'
+            }`}
           >
             {/* Show Flat Options */}
             {options && options.map((opt) => {
