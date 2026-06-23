@@ -399,31 +399,38 @@ export default function Dashboard({ trades }: DashboardProps) {
               <h4 className="text-sm font-semibold text-zinc-300">Feeling BEFORE Entry</h4>
               <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade မဝင်ခင် ခံစားရသော စိတ်အခြေအနေ</p>
             </div>
-            <div className="h-[280px] w-full">
+            <div className="flex-1 py-1">
               {stats.preTradeData.some(d => d.count > 0) ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={stats.preTradeData}
-                    margin={{ left: 5, right: 30, top: 10, bottom: 10 }}
-                  >
-                    <XAxis type="number" stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="label" stroke="#a1a1aa" fontSize={9} tickLine={false} axisLine={false} width={130} />
-                    <Tooltip 
-                      cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
-                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
-                      formatter={(value: any) => [value, "Trades"]}
-                    />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={12}>
-                      {stats.preTradeData.map((entry, index) => (
-                        <Cell key={`cell-pre-${index}`} fill={entry.color} />
-                      ))}
-                      <LabelList dataKey="count" position="right" fill="#a1a1aa" fontSize={9} offset={8} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="space-y-4">
+                  {stats.preTradeData.map((item, index) => {
+                    const maxCount = Math.max(...stats.preTradeData.map(d => d.count), 1);
+                    const widthPercent = (item.count / maxCount) * 100;
+                    return (
+                      <div key={index} className="space-y-1.5">
+                        <div className="text-[11px] font-bold text-zinc-300 flex justify-between items-center px-1">
+                          <span>{item.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-3.5">
+                            <div 
+                              className="h-full rounded-full transition-all duration-500 shadow-sm"
+                              style={{ 
+                                width: `${widthPercent}%`, 
+                                backgroundColor: item.color,
+                                opacity: item.count > 0 ? 1 : 0 
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-black min-w-[20px] text-right font-mono" style={{ color: item.count > 0 ? item.color : '#3f3f46' }}>
+                            {item.count}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="h-full flex items-center justify-center text-center p-4">
+                <div className="h-[280px] flex items-center justify-center text-center p-4">
                   <p className="text-xs text-zinc-600 font-sans">Trade မဝင်ခင် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
                 </div>
               )}
@@ -436,31 +443,38 @@ export default function Dashboard({ trades }: DashboardProps) {
               <h4 className="text-sm font-semibold text-zinc-300">Feeling DURING Active Trade</h4>
               <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade ဝင်ထားစဉ် ဖြစ်ပေါ်သော စိတ်အခြေအနေ</p>
             </div>
-            <div className="h-[280px] w-full">
+            <div className="flex-1 py-1">
               {stats.duringTradeData.some(d => d.count > 0) ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={stats.duringTradeData}
-                    margin={{ left: 5, right: 30, top: 10, bottom: 10 }}
-                  >
-                    <XAxis type="number" stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="label" stroke="#a1a1aa" fontSize={9} tickLine={false} axisLine={false} width={130} />
-                    <Tooltip 
-                      cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
-                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
-                      formatter={(value: any) => [value, "Trades"]}
-                    />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={12}>
-                      {stats.duringTradeData.map((entry, index) => (
-                        <Cell key={`cell-during-${index}`} fill={entry.color} />
-                      ))}
-                      <LabelList dataKey="count" position="right" fill="#a1a1aa" fontSize={9} offset={8} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="space-y-4">
+                  {stats.duringTradeData.map((item, index) => {
+                    const maxCount = Math.max(...stats.duringTradeData.map(d => d.count), 1);
+                    const widthPercent = (item.count / maxCount) * 100;
+                    return (
+                      <div key={index} className="space-y-1.5">
+                        <div className="text-[11px] font-bold text-zinc-300 flex justify-between items-center px-1">
+                          <span>{item.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-3.5">
+                            <div 
+                              className="h-full rounded-full transition-all duration-500 shadow-sm"
+                              style={{ 
+                                width: `${widthPercent}%`, 
+                                backgroundColor: item.color,
+                                opacity: item.count > 0 ? 1 : 0 
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-black min-w-[20px] text-right font-mono" style={{ color: item.count > 0 ? item.color : '#3f3f46' }}>
+                            {item.count}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="h-full flex items-center justify-center text-center p-4">
+                <div className="h-[280px] flex items-center justify-center text-center p-4">
                   <p className="text-xs text-zinc-600 font-sans">Trade ဝင်ထားစဉ် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
                 </div>
               )}
@@ -473,31 +487,38 @@ export default function Dashboard({ trades }: DashboardProps) {
               <h4 className="text-sm font-semibold text-zinc-300">Feeling AFTER Exit</h4>
               <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade ထွက်ပြီးနောက် ကြုံရသော စိတ်အခြေအနေ</p>
             </div>
-            <div className="h-[280px] w-full">
+            <div className="flex-1 py-1">
               {stats.postTradeData.some(d => d.count > 0) ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={stats.postTradeData}
-                    margin={{ left: 5, right: 30, top: 10, bottom: 10 }}
-                  >
-                    <XAxis type="number" stroke="#52525b" fontSize={9} tickLine={false} axisLine={false} allowDecimals={false} />
-                    <YAxis type="category" dataKey="label" stroke="#a1a1aa" fontSize={9} tickLine={false} axisLine={false} width={130} />
-                    <Tooltip 
-                      cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
-                      contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
-                      formatter={(value: any) => [value, "Trades"]}
-                    />
-                    <Bar dataKey="count" radius={[0, 4, 4, 0]} barSize={12}>
-                      {stats.postTradeData.map((entry, index) => (
-                        <Cell key={`cell-post-${index}`} fill={entry.color} />
-                      ))}
-                      <LabelList dataKey="count" position="right" fill="#a1a1aa" fontSize={9} offset={8} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <div className="space-y-4">
+                  {stats.postTradeData.map((item, index) => {
+                    const maxCount = Math.max(...stats.postTradeData.map(d => d.count), 1);
+                    const widthPercent = (item.count / maxCount) * 100;
+                    return (
+                      <div key={index} className="space-y-1.5">
+                        <div className="text-[11px] font-bold text-zinc-300 flex justify-between items-center px-1">
+                          <span>{item.label}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex-1 h-3.5">
+                            <div 
+                              className="h-full rounded-full transition-all duration-500 shadow-sm"
+                              style={{ 
+                                width: `${widthPercent}%`, 
+                                backgroundColor: item.color,
+                                opacity: item.count > 0 ? 1 : 0 
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs font-black min-w-[20px] text-right font-mono" style={{ color: item.count > 0 ? item.color : '#3f3f46' }}>
+                            {item.count}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="h-full flex items-center justify-center text-center p-4">
+                <div className="h-[280px] flex items-center justify-center text-center p-4">
                   <p className="text-xs text-zinc-600 font-sans">Trade ထွက်ပြီးနောက် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
                 </div>
               )}
