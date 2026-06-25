@@ -29,6 +29,7 @@ import Settings from './components/Settings';
 import TradeDetails from './components/TradeDetails';
 import DayDetails from './components/DayDetails';
 import AddTrade from './components/AddTrade';
+import GalleryView from './components/GalleryView';
 import { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { TrendingUp, Trash2, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -620,6 +621,13 @@ export default function App() {
             />
           )}
           {activeTab === 'settings' && <Settings trades={trades} journals={filteredJournals} activeAccountId={activeAccountId} />}
+          {activeTab === 'gallery' && (
+            <GalleryView 
+              trades={trades} 
+              onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} 
+              onAddTrade={() => navigateTo('add-trade')}
+            />
+          )}
           {activeTab === 'trade-details' && selectedTrade && (
             <TradeDetails 
               key={selectedTrade.id}

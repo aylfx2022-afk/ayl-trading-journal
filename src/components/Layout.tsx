@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
@@ -354,6 +354,23 @@ export default function Layout({
             </button>
 
             <button
+              onClick={() => setActiveTab('gallery')}
+              className={`flex items-center transition-all duration-200 ${
+                isCollapsed 
+                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
+                  : 'w-full gap-3 px-4 py-3 rounded-xl'
+              } ${
+                activeTab === 'gallery' 
+                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
+                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+              }`}
+              title={isCollapsed ? 'Chart Gallery' : undefined}
+            >
+              <ImageIcon size={20} />
+              {!isCollapsed && <span className="font-medium">Chart Gallery</span>}
+            </button>
+
+            <button
               onClick={() => setActiveTab('settings')}
               className={`flex items-center transition-all duration-200 ${
                 isCollapsed 
@@ -398,7 +415,7 @@ export default function Layout({
           
           <div className="flex items-center justify-center">
             <h1 className="text-xl font-semibold capitalize text-center select-none whitespace-nowrap flex items-center gap-3">
-              {activeTab === 'calendar' ? 'Trading Calendar' : activeTab.replace('-', ' ')}
+              {activeTab === 'calendar' ? 'Trading Calendar' : activeTab === 'gallery' ? 'Chart Gallery' : activeTab.replace('-', ' ')}
               {activeAccount && (
                 <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
                   {activeAccount.name}
