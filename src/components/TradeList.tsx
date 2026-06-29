@@ -301,10 +301,10 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                 onClick={() => onSelectTrade(trade)}
                 className="hover:bg-white/[0.02] transition-colors group cursor-pointer"
               >
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 whitespace-nowrap">
                   <span className="font-bold text-zinc-200">{trade.pair || trade.item}</span>
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
                     trade.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                   }`}>
@@ -312,16 +312,16 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                     {trade.type}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">
+                <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">
                   {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy') : '-'}
                 </td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.entryPrice?.toFixed(5)}</td>
-                <td className="px-6 py-4 text-sm font-medium text-zinc-400">{trade.exitPrice?.toFixed(5) || '-'}</td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">{trade.entryPrice?.toFixed(5)}</td>
+                <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">{trade.exitPrice?.toFixed(5) || '-'}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   {getStatusBadge(trade.rr || 0)}
                 </td>
-                <td className="px-6 py-4 text-sm font-black text-zinc-200">{trade.rr?.toFixed(2) || '0.00'}</td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 text-sm font-black text-zinc-200 whitespace-nowrap">{trade.rr?.toFixed(2) || '0.00'}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   {trade.notes && (
                     <button
                        onClick={(e) => { e.stopPropagation(); setSelectedNote({ note: trade.notes!, pair: trade.pair || trade.item || 'Trade' }); }}
@@ -389,18 +389,18 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                     <span className="text-zinc-600 text-xs">-</span>
                   )}
                 </td>
-                <td className="px-6 py-4">
+                <td className="px-6 py-4 whitespace-nowrap">
                   {trade.tags && trade.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex gap-1 overflow-x-auto max-w-[200px] no-scrollbar">
                       {trade.tags.map((tag, i) => (
-                        <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400/70 border border-zinc-500/10 transition-colors hover:bg-zinc-500/20">
+                        <span key={i} className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-zinc-500/10 text-zinc-400/70 border border-zinc-500/10 transition-colors hover:bg-zinc-500/20 whitespace-nowrap">
                           #{tag}
                         </span>
                       ))}
                     </div>
                   )}
                 </td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-6 py-4 text-right whitespace-nowrap">
                   <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                     <button 
                       className="p-2 rounded-lg text-zinc-500 hover:text-emerald-500 hover:bg-emerald-500/10"

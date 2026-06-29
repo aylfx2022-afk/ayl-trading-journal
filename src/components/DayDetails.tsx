@@ -190,19 +190,19 @@ export default function DayDetails({
                     onClick={() => onSelectTrade(trade)}
                     className="group hover:bg-white/[0.02] transition-colors cursor-pointer text-[11px]"
                   >
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 whitespace-nowrap">
                       <span className="font-bold text-zinc-300">{trade.pair || trade.item}</span>
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 whitespace-nowrap">
                       <span className={`text-[9px] font-black px-2 py-0.5 rounded-sm uppercase ${
                         trade.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
                       }`}>
                         {trade.type}
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-mono">{trade.entryPrice?.toFixed(5) || trade.openPrice.toFixed(5)}</td>
-                    <td className="px-5 py-3 font-mono">{trade.exitPrice?.toFixed(5) || trade.closePrice?.toFixed(5) || '-'}</td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.entryPrice?.toFixed(5) || trade.openPrice.toFixed(5)}</td>
+                    <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.exitPrice?.toFixed(5) || trade.closePrice?.toFixed(5) || '-'}</td>
+                    <td className="px-5 py-3 whitespace-nowrap">
                       {(() => {
                         const rr = trade.rr || 0;
                         const exitPrice = trade.exitPrice || trade.closePrice;
@@ -228,10 +228,10 @@ export default function DayDetails({
                         );
                       })()}
                     </td>
-                    <td className={`px-5 py-3 font-black ${(trade.rr || 0) > 0 ? 'text-emerald-500' : (trade.rr || 0) < 0 ? 'text-red-500' : 'text-zinc-300'}`}>
+                    <td className={`px-5 py-3 font-black whitespace-nowrap ${(trade.rr || 0) > 0 ? 'text-emerald-500' : (trade.rr || 0) < 0 ? 'text-red-500' : 'text-zinc-300'}`}>
                       {(trade.rr || 0).toFixed(2)}R
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 whitespace-nowrap">
                       {trade.notes ? (
                         <button 
                           onClick={(e) => { e.stopPropagation(); setSelectedNote({ note: trade.notes!, pair: trade.pair || trade.item || 'Trade' }); }}
@@ -241,18 +241,18 @@ export default function DayDetails({
                         </button>
                       ) : <span className="text-zinc-700">-</span>}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 whitespace-nowrap">
                       {trade.tags && trade.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex gap-1 overflow-x-auto max-w-[120px] no-scrollbar">
                           {trade.tags.map((tag, i) => (
-                            <span key={i} className="text-[8px] font-bold px-1 py-0 rounded-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/10">
+                            <span key={i} className="text-[8px] font-bold px-1 py-0 rounded-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/10 whitespace-nowrap">
                               #{tag}
                             </span>
                           ))}
                         </div>
                       )}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-5 py-3 whitespace-nowrap">
                       <button onClick={(e) => { 
                         e.stopPropagation(); 
                         setConfirmModal({
