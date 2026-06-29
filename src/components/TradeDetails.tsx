@@ -302,28 +302,34 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
             <hr className="border-white/5 my-2.5" />
 
-            {/* Entry Price */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Entry</p>
-              <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+            {/* Entry & Exit Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Entry Price */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Entry</p>
+                <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+              </div>
+
+              {/* Exit Price */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Exit</p>
+                <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+              </div>
             </div>
 
-            {/* Stop Loss SL Price */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">SL</p>
-              <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-red-500/50" />
-            </div>
+            {/* SL & TP Row */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Stop Loss SL Price */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">SL</p>
+                <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-red-500/50" />
+              </div>
 
-            {/* Take Profit TP Price */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">TP</p>
-              <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
-            </div>
-
-            {/* Exit Price */}
-            <div className="space-y-1.5">
-              <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Exit</p>
-              <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+              {/* Take Profit TP Price */}
+              <div className="space-y-1.5">
+                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">TP</p>
+                <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+              </div>
             </div>
 
             {/* RR Ratio */}

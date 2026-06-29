@@ -300,45 +300,51 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
             <hr className="border-white/5 my-2.5" />
 
-            {/* ENTRY */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry</label>
-              <input 
-                type="number" step="0.00001" required value={formData.entryPrice} 
-                onChange={e => setFormData({...formData, entryPrice: e.target.value})} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
-              />
+            {/* ENTRY & EXIT ROW */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* ENTRY */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry</label>
+                <input 
+                  type="number" step="0.00001" required value={formData.entryPrice} 
+                  onChange={e => setFormData({...formData, entryPrice: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
+                />
+              </div>
+
+              {/* EXIT */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Exit</label>
+                <input 
+                  type="number" step="0.00001" value={formData.exitPrice} 
+                  onChange={e => setFormData({...formData, exitPrice: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
+                  placeholder="Opt."
+                />
+              </div>
             </div>
 
-            {/* SL */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">SL</label>
-              <input 
-                type="number" step="0.00001" required value={formData.slPrice} 
-                onChange={e => setFormData({...formData, slPrice: e.target.value})} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500/50 text-zinc-200 text-sm" 
-              />
-            </div>
+            {/* SL & TP ROW */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* SL */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">SL</label>
+                <input 
+                  type="number" step="0.00001" required value={formData.slPrice} 
+                  onChange={e => setFormData({...formData, slPrice: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-red-500/50 text-zinc-200 text-sm" 
+                />
+              </div>
 
-            {/* TP */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">TP</label>
-              <input 
-                type="number" step="0.00001" required value={formData.tpPrice} 
-                onChange={e => setFormData({...formData, tpPrice: e.target.value})} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
-              />
-            </div>
-
-            {/* EXIT */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Exit</label>
-              <input 
-                type="number" step="0.00001" value={formData.exitPrice} 
-                onChange={e => setFormData({...formData, exitPrice: e.target.value})} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
-                placeholder="Opt."
-              />
+              {/* TP */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">TP</label>
+                <input 
+                  type="number" step="0.00001" required value={formData.tpPrice} 
+                  onChange={e => setFormData({...formData, tpPrice: e.target.value})} 
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
+                />
+              </div>
             </div>
 
             {/* RR */}

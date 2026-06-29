@@ -166,33 +166,73 @@ export default function ChartCarousel({
       </div>
 
       {/* Dynamic Slide Frame */}
-      <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black/40 w-full min-h-[320px] lg:flex-1 flex items-center justify-center">
-        {/* Absolute Arrow Overlays */}
-        {charts.length > 1 && (
-          <>
+      <div className="relative rounded-xl overflow-hidden border border-white/10 bg-black/40 w-full min-h-[320px] lg:flex-1 flex items-center justify-center select-none">
+        {/* Interactive 3-part Overlay Zone */}
+        {currentChart.url && currentChart.url.trim() !== '' && (
+          <div className="absolute inset-0 z-30 flex w-full h-full select-none pointer-events-auto">
+            {/* Left 1/3: Previous Slide */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                handlePrev();
+                if (charts.length > 1) {
+                  handlePrev();
+                }
               }}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/60 hover:bg-emerald-500 hover:text-black text-zinc-300 border border-white/10 hover:border-transparent transition-all cursor-pointer shadow-lg active:scale-90 flex items-center justify-center"
-              title="Previous Slide"
+              disabled={charts.length <= 1}
+              className={`w-1/3 h-full absolute top-0 left-0 flex items-center justify-start pl-6 outline-none transition-all duration-300 select-none ${
+                charts.length > 1 
+                  ? 'cursor-pointer hover:bg-gradient-to-r hover:from-black/20 hover:to-transparent group' 
+                  : 'cursor-default'
+              }`}
+              title={charts.length > 1 ? "Previous Slide" : undefined}
             >
-              <ChevronLeft size={18} />
+              {charts.length > 1 && (
+                <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/50 hover:bg-black/75 p-2 rounded-full border border-white/10 text-zinc-300 active:scale-90 transform">
+                  <ChevronLeft size={18} />
+                </div>
+              )}
             </button>
+
+            {/* Middle 1/3: View Fullscreen */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                handleNext();
+                onViewFullscreen(currentChart.url);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-black/60 hover:bg-emerald-500 hover:text-black text-zinc-300 border border-white/10 hover:border-transparent transition-all cursor-pointer shadow-lg active:scale-90 flex items-center justify-center"
-              title="Next Slide"
+              className="w-1/3 h-full absolute top-0 left-1/3 flex items-center justify-center cursor-zoom-in outline-none transition-all duration-300 select-none hover:bg-black/10 group"
+              title="View Fullscreen"
             >
-              <ChevronRight size={18} />
+              <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/50 hover:bg-black/75 p-2 rounded-full border border-white/10 text-zinc-300 active:scale-90 transform">
+                <Maximize2 size={18} />
+              </div>
             </button>
-          </>
+
+            {/* Right 1/3: Next Slide */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (charts.length > 1) {
+                  handleNext();
+                }
+              }}
+              disabled={charts.length <= 1}
+              className={`w-1/3 h-full absolute top-0 right-0 flex items-center justify-end pr-6 outline-none transition-all duration-300 select-none ${
+                charts.length > 1 
+                  ? 'cursor-pointer hover:bg-gradient-to-l hover:from-black/20 hover:to-transparent group' 
+                  : 'cursor-default'
+              }`}
+              title={charts.length > 1 ? "Next Slide" : undefined}
+            >
+              {charts.length > 1 && (
+                <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/50 hover:bg-black/75 p-2 rounded-full border border-white/10 text-zinc-300 active:scale-90 transform">
+                  <ChevronRight size={18} />
+                </div>
+              )}
+            </button>
+          </div>
         )}
 
         <AnimatePresence mode="popLayout" initial={false} custom={direction}>
@@ -204,8 +244,7 @@ export default function ChartCarousel({
               initial="enter"
               animate="center"
               exit="exit"
-              onClick={() => onViewFullscreen(currentChart.url)}
-              className="w-full h-full absolute inset-0 flex items-center justify-center cursor-pointer p-3"
+              className="w-full h-full absolute inset-0 flex items-center justify-center p-3 select-none pointer-events-none"
             >
               <img
                 src={currentChart.url}
