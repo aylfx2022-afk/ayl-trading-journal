@@ -17,6 +17,7 @@ import {
   doc, 
   getDoc, 
   setDoc, 
+  deleteDoc,
   serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
@@ -67,6 +68,7 @@ export default function App() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeletingAll, setIsDeletingAll] = useState(false);
   const [addTradeInitialDate, setAddTradeInitialDate] = useState<Date | undefined>(undefined);
+  const isCreatingDefaultsRef = React.useRef(false);
 
   // Navigation lists for trade-details Previous / Next functionality
   const navTrades = React.useMemo(() => {
@@ -123,9 +125,71 @@ export default function App() {
               createdAt: serverTimestamp()
             });
           }
+
+          // Initialize default trading account profiles if they don't exist
+          const accountsQuery = query(
+            collection(db, 'tradingAccounts'),
+            where('userId', '==', user.uid)
+          );
+          const accountsSnapshot = await getDocs(accountsQuery);
+          
+          if (accountsSnapshot.empty && !isCreatingDefaultsRef.current) {
+            isCreatingDefaultsRef.current = true;
+            try {
+              const batch = writeBatch(db);
+              
+              const defaultAccountRef = doc(collection(db, 'tradingAccounts'));
+              const defaultAccount: TradingAccount = {
+                name: 'Default Account Profile',
+                userId: user.uid,
+                type: 'live',
+                createdAt: serverTimestamp() as any,
+                isDefault: true
+              };
+              batch.set(defaultAccountRef, defaultAccount);
+
+              const backtestAccountRef = doc(collection(db, 'tradingAccounts'));
+              const backtestAccount: TradingAccount = {
+                name: 'Backtesting Account Profile',
+                userId: user.uid,
+                type: 'backtest',
+                createdAt: serverTimestamp() as any,
+                isDefault: true
+              };
+              batch.set(backtestAccountRef, backtestAccount);
+
+              await batch.commit();
+
+              // Switch to default profile
+              setActiveAccountId(defaultAccountRef.id);
+              localStorage.setItem('active_trading_account_id', defaultAccountRef.id);
+
+              // Migration: Link existing trades with no accountId to this default account
+              const legacyQuery = query(
+                collection(db, 'trades'),
+                where('userId', '==', user.uid)
+              );
+              const legacySnapshot = await getDocs(legacyQuery);
+              const migrationBatch = writeBatch(db);
+              let hasMigration = false;
+              legacySnapshot.docs.forEach(docSnap => {
+                if (!docSnap.data().accountId) {
+                  migrationBatch.update(docSnap.ref, { accountId: defaultAccountRef.id });
+                  hasMigration = true;
+                }
+              });
+              if (hasMigration) {
+                await migrationBatch.commit();
+              }
+            } catch (error) {
+              console.error("Error creating default accounts on login:", error);
+            } finally {
+              isCreatingDefaultsRef.current = false;
+            }
+          }
         } catch (error: any) {
           if (!error.message?.includes('offline')) {
-            console.error("Error initializing user profile:", error);
+            console.error("Error initializing user profile or trading accounts:", error);
           }
         }
 
@@ -156,65 +220,41 @@ export default function App() {
 
     const q = query(
       collection(db, 'tradingAccounts'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'asc')
+      where('userId', '==', user.uid)
     );
 
-    const unsubscribe = onSnapshot(q, async (snapshot) => {
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const accounts = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       })) as TradingAccount[];
       
+      // Sort client-side by createdAt asc to avoid composite index requirements in Firestore
+      accounts.sort((a, b) => {
+        const t1 = a.createdAt?.seconds || 0;
+        const t2 = b.createdAt?.seconds || 0;
+        return t1 - t2;
+      });
+
       setTradingAccounts(accounts);
 
-      // If no accounts exist, create a default one
-      if (accounts.length === 0 && !loading) {
-        try {
-          const newAccountRef = doc(collection(db, 'tradingAccounts'));
-          const defaultAccount: TradingAccount = {
-            name: 'Default Account',
-            userId: user.uid,
-            type: 'live',
-            createdAt: serverTimestamp() as any,
-            isDefault: true
-          };
-          await setDoc(newAccountRef, defaultAccount);
-          setActiveAccountId(newAccountRef.id);
-          localStorage.setItem('active_trading_account_id', newAccountRef.id);
-
-          // Migration: Link existing trades with no accountId to this default account
-          const legacyQuery = query(
-            collection(db, 'trades'),
-            where('userId', '==', user.uid)
-          );
-          const legacySnapshot = await getDocs(legacyQuery);
-          const migrationBatch = writeBatch(db);
-          let hasMigration = false;
-          legacySnapshot.docs.forEach(docSnap => {
-            if (!docSnap.data().accountId) {
-              migrationBatch.update(docSnap.ref, { accountId: newAccountRef.id });
-              hasMigration = true;
-            }
-          });
-          if (hasMigration) {
-            await migrationBatch.commit();
-          }
-        } catch (error) {
-          console.error("Error creating default account:", error);
-        }
-      } else if (accounts.length > 0) {
-        // If current active ID is not in accounts, reset to first account
-        if (!activeAccountId || !accounts.find(a => a.id === activeAccountId)) {
+      if (accounts.length > 0) {
+        // Restore active account from localStorage or use the first available
+        const savedActiveId = localStorage.getItem('active_trading_account_id');
+        if (savedActiveId && accounts.find(a => a.id === savedActiveId)) {
+          setActiveAccountId(savedActiveId);
+        } else if (!activeAccountId || !accounts.find(a => a.id === activeAccountId)) {
           const firstAccount = accounts[0].id || null;
           setActiveAccountId(firstAccount);
           if (firstAccount) localStorage.setItem('active_trading_account_id', firstAccount);
         }
       }
     }, (error) => {
-      console.error("Snapshot error:", error);
+      console.error("Trading Accounts Snapshot error:", error);
     });
-  }, [user, loading]);
+
+    return () => unsubscribe();
+  }, [user]);
 
   useEffect(() => {
     if (!user || !activeAccountId) {
@@ -548,6 +588,47 @@ export default function App() {
     </div>
   ) : null;
 
+  const handleDeleteTradingAccount = async (id: string) => {
+    if (!user) return;
+    try {
+      const accountToDelete = tradingAccounts.find(acc => acc.id === id);
+      if (!accountToDelete || accountToDelete.isDefault) {
+        console.error("Cannot delete a default account profile.");
+        return;
+      }
+
+      // If we are deleting the active account, switch to another account first
+      if (activeAccountId === id) {
+        const remainingAccounts = tradingAccounts.filter(acc => acc.id !== id);
+        const defaultAcc = remainingAccounts.find(acc => acc.isDefault) || remainingAccounts[0];
+        if (defaultAcc && defaultAcc.id) {
+          setActiveAccountId(defaultAcc.id);
+          localStorage.setItem('active_trading_account_id', defaultAcc.id);
+        } else {
+          setActiveAccountId(null);
+          localStorage.removeItem('active_trading_account_id');
+        }
+      }
+
+      // Delete the trading account doc
+      await deleteDoc(doc(db, 'tradingAccounts', id));
+
+      // Delete associated trades
+      const tradesQuery = query(
+        collection(db, 'trades'),
+        where('accountId', '==', id)
+      );
+      const tradesSnapshot = await getDocs(tradesQuery);
+      const batch = writeBatch(db);
+      tradesSnapshot.docs.forEach((docSnap) => {
+        batch.delete(docSnap.ref);
+      });
+      await batch.commit();
+    } catch (error) {
+      console.error("Error deleting trading account:", error);
+    }
+  };
+
   const defaultAccount = tradingAccounts.find(a => a.isDefault);
   const filteredJournals = journals.filter(j => {
     if (j.accountId) {
@@ -573,6 +654,7 @@ export default function App() {
         setActiveAccountId(id);
         localStorage.setItem('active_trading_account_id', id);
       }}
+      onDeleteTradingAccount={handleDeleteTradingAccount}
     >
       <AnimatePresence mode="wait">
         <motion.div

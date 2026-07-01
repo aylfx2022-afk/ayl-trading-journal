@@ -22,6 +22,7 @@ interface LayoutProps {
   tradingAccounts?: TradingAccount[];
   activeAccountId?: string | null;
   onSwitchTradingAccount?: (id: string) => void;
+  onDeleteTradingAccount?: (id: string) => void;
 }
 
 export default function Layout({ 
@@ -36,7 +37,8 @@ export default function Layout({
   onRemoveSavedAccount,
   tradingAccounts = [],
   activeAccountId,
-  onSwitchTradingAccount
+  onSwitchTradingAccount,
+  onDeleteTradingAccount
 }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(() => {
     if (typeof window !== 'undefined') {
@@ -50,6 +52,7 @@ export default function Layout({
   const [newProfileType, setNewProfileType] = React.useState<'live' | 'backtest'>('live');
   const [isCreatingProfile, setIsCreatingProfile] = React.useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  const [profileToDelete, setProfileToDelete] = React.useState<{ id: string; name: string } | null>(null);
 
   const dropdownRef = React.useRef<HTMLDivElement>(null);
 
@@ -85,7 +88,8 @@ export default function Layout({
         name: newProfileName.trim(),
         userId: user.uid,
         type: newProfileType,
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
+        isDefault: false
       });
       onSwitchTradingAccount?.(docRef.id);
       setNewProfileName('');
@@ -170,24 +174,46 @@ export default function Layout({
                   </p>
                   <div className="space-y-1 max-h-[200px] overflow-y-auto">
                     {tradingAccounts.map(acc => (
-                      <button
+                      <div
                         key={acc.id}
-                        onClick={() => onSwitchTradingAccount?.(acc.id!)}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-between transition-all cursor-pointer ${
+                        className={`w-full flex items-center justify-between rounded-lg transition-all ${
                           activeAccountId === acc.id
                             ? 'bg-emerald-500 text-black'
                             : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
                         }`}
                       >
-                        <span className="truncate mr-2">{acc.name}</span>
-                        <span className={`text-[8px] font-black uppercase tracking-wider px-1 rounded ${
-                          activeAccountId === acc.id
-                            ? 'bg-black/15 text-black'
-                            : 'bg-zinc-850 text-zinc-400'
-                        }`}>
-                          {acc.type === 'backtest' ? 'BT' : 'LV'}
-                        </span>
-                      </button>
+                        <button
+                          onClick={() => onSwitchTradingAccount?.(acc.id!)}
+                          className="flex-1 text-left px-2.5 py-1.5 text-[11px] font-bold truncate cursor-pointer focus:outline-none"
+                        >
+                          <span className="truncate block max-w-[100px]">{acc.name}</span>
+                        </button>
+                        <div className="flex items-center gap-1 pr-1.5 shrink-0">
+                          <span className={`text-[8px] font-black uppercase tracking-wider px-1 rounded ${
+                            activeAccountId === acc.id
+                              ? 'bg-black/15 text-black'
+                              : 'bg-zinc-800 text-zinc-400'
+                          }`}>
+                            {acc.type === 'backtest' ? 'BT' : 'LV'}
+                          </span>
+                          {!acc.isDefault && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProfileToDelete({ id: acc.id!, name: acc.name });
+                              }}
+                              className={`p-1 rounded transition-colors ${
+                                activeAccountId === acc.id
+                                  ? 'text-black/60 hover:text-red-700'
+                                  : 'text-zinc-500 hover:text-red-400 hover:bg-white/10'
+                              }`}
+                              title="Delete Profile"
+                            >
+                              <Trash2 size={10} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -240,29 +266,51 @@ export default function Layout({
                       className="absolute left-4 right-4 mt-1 bg-[#121214] border border-white/10 rounded-xl p-1.5 shadow-2xl z-45 max-h-[180px] overflow-y-auto space-y-0.5 backdrop-blur-md"
                     >
                       {tradingAccounts.map(acc => (
-                        <button
+                        <div
                           key={acc.id}
-                          onClick={() => {
-                            onSwitchTradingAccount?.(acc.id!);
-                            setIsDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
+                          className={`w-full flex items-center justify-between rounded-xl transition-all ${
                             activeAccountId === acc.id
                               ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/10'
                               : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
                           }`}
                         >
-                          <span className="truncate max-w-[130px]">{acc.name}</span>
-                          <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                            activeAccountId === acc.id
-                              ? 'bg-black/10 text-black' 
-                              : acc.type === 'backtest' 
-                                ? 'bg-blue-500/10 text-blue-450' 
-                                : 'bg-emerald-500/10 text-emerald-440'
-                          }`}>
-                            {acc.type === 'backtest' ? 'BT' : 'LIVE'}
-                          </span>
-                        </button>
+                          <button
+                            onClick={() => {
+                              onSwitchTradingAccount?.(acc.id!);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="flex-1 text-left px-3 py-2 text-xs font-semibold truncate cursor-pointer focus:outline-none"
+                          >
+                            <span className="truncate block max-w-[115px]">{acc.name}</span>
+                          </button>
+                          <div className="flex items-center gap-1.5 pr-2.5 shrink-0">
+                            <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
+                              activeAccountId === acc.id
+                                ? 'bg-black/10 text-black' 
+                                : acc.type === 'backtest' 
+                                  ? 'bg-blue-500/10 text-blue-450' 
+                                  : 'bg-emerald-500/10 text-emerald-440'
+                            }`}>
+                              {acc.type === 'backtest' ? 'BT' : 'LIVE'}
+                            </span>
+                            {!acc.isDefault && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setProfileToDelete({ id: acc.id!, name: acc.name });
+                                }}
+                                className={`p-1 rounded-md transition-colors ${
+                                  activeAccountId === acc.id
+                                    ? 'text-black/60 hover:text-red-750 hover:bg-black/5'
+                                    : 'text-zinc-500 hover:text-red-400 hover:bg-white/10'
+                                }`}
+                                title="Delete Profile"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </motion.div>
                   )}
@@ -647,6 +695,58 @@ export default function Layout({
                 >
                   <UserPlus size={14} />
                   အကောင့်အသစ်တစ်ခုထပ်ထည့်ရန် / Add Account
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Delete Profile Confirmation Modal */}
+      <AnimatePresence>
+        {profileToDelete && (
+          <div className="fixed inset-0 z-[115] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/85 backdrop-blur-sm"
+              onClick={() => setProfileToDelete(null)}
+            />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-sm bg-[#121214] border border-white/10 rounded-3xl p-8 shadow-2xl z-[116]"
+            >
+              <div className="flex items-center gap-3 text-red-500 mb-4">
+                <Trash2 size={24} />
+                <h3 className="text-lg font-bold">Delete Trading Profile</h3>
+              </div>
+              <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+                Are you sure you want to delete <span className="text-zinc-200 font-bold">"{profileToDelete.name}"</span>? 
+                All trades in this profile will be permanently deleted. This action cannot be undone.
+              </p>
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (onDeleteTradingAccount) {
+                      await onDeleteTradingAccount(profileToDelete.id);
+                    }
+                    setProfileToDelete(null);
+                  }}
+                  className="flex-1 py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all active:scale-95 cursor-pointer"
+                >
+                  Delete
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setProfileToDelete(null)}
+                  className="flex-1 py-3 bg-white/5 text-zinc-300 font-bold rounded-xl hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                >
+                  Cancel
                 </button>
               </div>
             </motion.div>
