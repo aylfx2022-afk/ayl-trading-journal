@@ -20,7 +20,7 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
   const handleSaveChartUrl = () => {
     const trimmed = tempChartUrl.trim();
     if (!trimmed) return;
-    if (chartUrls.length >= 5) return;
+    if (chartUrls.length >= 10) return;
     setChartUrls(prev => [...prev, trimmed]);
     setTempChartUrl('');
   };
@@ -107,7 +107,7 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
             <div className="space-y-2 animate-fade-in">
               <label className="flex items-center gap-2 text-sm font-semibold text-zinc-300">
                 <ImageIcon size={16} className="text-emerald-500" />
-                TradingView Chart Links (Max 5)
+                TradingView Chart Links (Max 10)
               </label>
               
               {/* Single Paste URL Box & Save Button */}
@@ -116,8 +116,8 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
                   type="text"
                   value={tempChartUrl}
                   onChange={(e) => setTempChartUrl(e.target.value)}
-                  disabled={chartUrls.length >= 5}
-                  placeholder={chartUrls.length >= 5 ? "Maximum 5 chart URLs reached" : "Paste TradingView or image URL here..."}
+                  disabled={chartUrls.length >= 10}
+                  placeholder={chartUrls.length >= 10 ? "Maximum 10 chart URLs reached" : "Paste TradingView or image URL here..."}
                   className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:border-emerald-500/50 text-zinc-200 disabled:opacity-50 transition-all font-mono"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
@@ -129,7 +129,7 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
                 <button
                   type="button"
                   onClick={handleSaveChartUrl}
-                  disabled={!tempChartUrl.trim() || chartUrls.length >= 5}
+                  disabled={!tempChartUrl.trim() || chartUrls.length >= 10}
                   className="px-6 rounded-xl bg-emerald-500 text-black font-bold hover:bg-emerald-400 transition-all text-xs disabled:opacity-30 disabled:bg-zinc-800 disabled:text-zinc-500 cursor-pointer disabled:cursor-not-allowed flex items-center justify-center whitespace-nowrap active:scale-95"
                 >
                   Save URL
@@ -137,9 +137,9 @@ export default function TradeModal({ trade, onClose }: TradeModalProps) {
               </div>
             </div>
 
-            {/* Grid display of all 5 slots */}
+            {/* Grid display of all 10 slots */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
-              {[0, 1, 2, 3, 4].map((index) => {
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((index) => {
                 const url = chartUrls[index];
                 const isPlaceholder = !url || url.trim() === '';
                 

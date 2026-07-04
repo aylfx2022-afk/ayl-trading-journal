@@ -196,7 +196,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   }, [type, entryPrice, slPrice, exitPrice]);
 
   const handleAddChart = () => {
-    if (charts.length < 5) {
+    if (charts.length < 10) {
       setCharts([...charts, { id: `chart-${Date.now()}`, url: '' }]);
     }
   };

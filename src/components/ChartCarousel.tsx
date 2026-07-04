@@ -125,7 +125,7 @@ export default function ChartCarousel({
 
         {/* Right: Actions and Navigation */}
         <div className="flex items-center gap-1.5 shrink-0 justify-end flex-wrap">
-          {charts.length < 5 && (
+          {charts.length < 10 && (
             <button
               type="button"
               onClick={onAdd}
