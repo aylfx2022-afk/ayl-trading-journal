@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { getSafeDate } from '../lib/dateUtils';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList
+  PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList, ReferenceLine
 } from 'recharts';
 import DateRangePicker from './ui/DateRangePicker';
 import { Trade } from '../types';
@@ -177,6 +177,40 @@ export default function Dashboard({ trades }: DashboardProps) {
     const duringTradeData = Object.values(duringTradeMap);
     const postTradeData = Object.values(postTradeMap);
 
+    // Day of week calculation (Monday to Friday)
+    const dayOfWeekMap: Record<string, { wins: number; losses: number; rawLosses: number }> = {
+      'Monday': { wins: 0, losses: 0, rawLosses: 0 },
+      'Tuesday': { wins: 0, losses: 0, rawLosses: 0 },
+      'Wednesday': { wins: 0, losses: 0, rawLosses: 0 },
+      'Thursday': { wins: 0, losses: 0, rawLosses: 0 },
+      'Friday': { wins: 0, losses: 0, rawLosses: 0 },
+    };
+
+    closedTrades.forEach(t => {
+      const d = getSafeDate(t.openTime);
+      if (!d) return;
+      const dayIndex = d.getDay(); // 0 is Sunday, 1 is Monday, ..., 5 is Friday, 6 is Saturday
+      if (dayIndex >= 1 && dayIndex <= 5) {
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayName = days[dayIndex];
+        const rr = t.rr || 0;
+        if (rr > 0) {
+          dayOfWeekMap[dayName].wins += 1;
+        } else {
+          dayOfWeekMap[dayName].losses += 1; // positive value to stack upwards along with wins
+          dayOfWeekMap[dayName].rawLosses += 1; // real count for display
+        }
+      }
+    });
+
+    const dayOfWeekData = [
+      { day: 'Monday', wins: dayOfWeekMap['Monday'].wins, losses: dayOfWeekMap['Monday'].losses, rawLosses: dayOfWeekMap['Monday'].rawLosses },
+      { day: 'Tuesday', wins: dayOfWeekMap['Tuesday'].wins, losses: dayOfWeekMap['Tuesday'].losses, rawLosses: dayOfWeekMap['Tuesday'].rawLosses },
+      { day: 'Wednesday', wins: dayOfWeekMap['Wednesday'].wins, losses: dayOfWeekMap['Wednesday'].losses, rawLosses: dayOfWeekMap['Wednesday'].rawLosses },
+      { day: 'Thursday', wins: dayOfWeekMap['Thursday'].wins, losses: dayOfWeekMap['Thursday'].losses, rawLosses: dayOfWeekMap['Thursday'].rawLosses },
+      { day: 'Friday', wins: dayOfWeekMap['Friday'].wins, losses: dayOfWeekMap['Friday'].losses, rawLosses: dayOfWeekMap['Friday'].rawLosses },
+    ];
+
     return {
       totalProfit,
       totalRR,
@@ -187,6 +221,7 @@ export default function Dashboard({ trades }: DashboardProps) {
       losses: losses.length,
       equityData,
       monthlyRRData,
+      dayOfWeekData,
       preTradeData,
       duringTradeData,
       postTradeData,
@@ -340,12 +375,12 @@ export default function Dashboard({ trades }: DashboardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
         {/* Win/Loss Ratio */}
-        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-          <h3 className="text-lg font-semibold mb-8">Win/Loss Ratio</h3>
+        <div className="lg:col-span-1 p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+          <h3 className="text-sm font-semibold mb-6 font-sans text-zinc-400">Win/Loss Ratio</h3>
           <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="h-[300px] w-full max-w-sm">
+            <div className="h-[180px] w-full flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -353,9 +388,9 @@ export default function Dashboard({ trades }: DashboardProps) {
                       { name: 'Wins', value: stats.wins },
                       { name: 'Losses', value: stats.losses }
                     ]}
-                    innerRadius={70}
-                    outerRadius={100}
-                    paddingAngle={5}
+                    innerRadius={40}
+                    outerRadius={58}
+                    paddingAngle={4}
                     dataKey="value"
                   >
                     {COLORS.map((color, index) => (
@@ -369,14 +404,90 @@ export default function Dashboard({ trades }: DashboardProps) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="w-full max-w-xs mt-4 space-y-2">
-              <div className="flex justify-between text-sm">
+            <div className="w-full mt-4 space-y-2.5">
+              <div className="flex justify-between text-xs">
                 <span className="text-zinc-500 font-sans">Wins</span>
-                <span className="text-emerald-500 font-medium font-sans">{stats.wins}</span>
+                <span className="text-emerald-500 font-bold font-sans">{stats.wins}</span>
               </div>
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-xs">
                 <span className="text-zinc-500 font-sans">Losses</span>
-                <span className="text-red-500 font-medium font-sans">{stats.losses}</span>
+                <span className="text-red-500 font-bold font-sans">{stats.losses}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Day of Week Performance */}
+        <div className="lg:col-span-4 p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+          <h3 className="text-lg font-semibold mb-2 font-sans">Day of Week Performance</h3>
+          <p className="text-xs text-zinc-500 mb-6 font-sans">
+            Monday to Friday trade win/loss distribution based on RR value
+          </p>
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={stats.dayOfWeekData}
+                  margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                  <XAxis 
+                    dataKey="day" 
+                    type="category" 
+                    stroke="#52525b" 
+                    fontSize={11} 
+                    tickLine={false} 
+                    axisLine={false}
+                  />
+                  <YAxis 
+                    type="number" 
+                    stroke="#52525b" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false}
+                    tickFormatter={(value) => Math.abs(value).toString()} // Show absolute count
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-[#18181b] border border-white/10 rounded-xl p-3 shadow-xl space-y-1">
+                            <p className="text-xs font-bold text-zinc-200 mb-1 font-sans">{data.day}</p>
+                            <p className="text-xs text-emerald-500 font-medium flex justify-between gap-6">
+                              <span className="font-sans">{"Wins (RR > 0):"}</span>
+                              <span className="font-mono font-bold">{data.wins}</span>
+                            </p>
+                            <p className="text-xs text-red-500 font-medium flex justify-between gap-6">
+                              <span className="font-sans">{"Losses (RR ≤ 0):"}</span>
+                              <span className="font-mono font-bold">{data.rawLosses}</span>
+                            </p>
+                            <div className="border-t border-white/5 my-1.5 pt-1.5 flex justify-between text-xs font-bold text-zinc-300 gap-6 font-sans">
+                              <span>Total Trades:</span>
+                              <span className="font-mono text-emerald-400">{data.wins + data.rawLosses}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <ReferenceLine y={0} stroke="#ffffff20" />
+                  <Bar dataKey="losses" fill="#ef4444" stackId="stack" radius={0} />
+                  <Bar dataKey="wins" fill="#10b981" stackId="stack" radius={0} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            {/* Legend */}
+            <div className="flex items-center justify-center gap-6 mt-4 text-xs text-zinc-500 font-sans">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-500" />
+                <span>{"Losses (RR ≤ 0)"}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <span>{"Wins (RR > 0)"}</span>
               </div>
             </div>
           </div>
