@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2 } from 'lucide-react';
+import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2, Check } from 'lucide-react';
 import { getSafeDate } from '../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
@@ -8,6 +8,8 @@ import { db, auth, handleFirestoreError, OperationType } from '../firebase';
 import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+const TIMEFRAME_PRESETS = ['1m', '3m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
 
 import DatePicker from './ui/DatePicker';
 import TagInput from './ui/TagInput';
@@ -145,6 +147,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [duringTradeEmotion, setDuringTradeEmotion] = useState(trade.duringTradeEmotion || '');
   const [postTradeEmotion, setPostTradeEmotion] = useState(trade.postTradeEmotion || '');
   const [type, setType] = useState<'buy' | 'sell'>(trade.type || 'buy');
+  const [entryTimeframe, setEntryTimeframe] = useState(trade.entryTimeframe || '');
+  const [showCustomTf, setShowCustomTf] = useState(false);
+  const [customTfValue, setCustomTfValue] = useState('');
   
   React.useEffect(() => {
     const fetchTags = async () => {
@@ -221,7 +226,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       handleSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags, mentalState, physicalState, preTradeEmotion, duringTradeEmotion, postTradeEmotion, type]);
+  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags, mentalState, physicalState, preTradeEmotion, duringTradeEmotion, postTradeEmotion, type, entryTimeframe]);
 
   const handleSave = async () => {
     if (!trade.id) return;
@@ -247,7 +252,8 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         physicalState,
         preTradeEmotion,
         duringTradeEmotion,
-        postTradeEmotion
+        postTradeEmotion,
+        entryTimeframe
       });
       setSavingStatus('saved');
       setTimeout(() => setSavingStatus('idle'), 2000);
@@ -364,6 +370,97 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                   {notes ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{notes}</ReactMarkdown>
                   ) : <span className="text-zinc-600">No notes yet...</span>}
+                </div>
+              )}
+            </div>
+
+            {/* ENTRY TIMEFRAME */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry Timeframe</label>
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {TIMEFRAME_PRESETS.map((tf) => (
+                  <button
+                    key={tf}
+                    type="button"
+                    onClick={() => setEntryTimeframe(tf)}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all ${
+                      entryTimeframe === tf
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold'
+                        : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                    }`}
+                  >
+                    {tf}
+                  </button>
+                ))}
+                {showCustomTf ? (
+                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg pl-2 pr-1 py-0.5">
+                    <input
+                      type="text"
+                      value={customTfValue}
+                      onChange={(e) => setCustomTfValue(e.target.value)}
+                      placeholder="e.g. 12h"
+                      className="bg-transparent text-xs text-zinc-200 outline-none w-14 font-semibold"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = customTfValue.trim();
+                          if (val) {
+                            setEntryTimeframe(val);
+                            setCustomTfValue('');
+                            setShowCustomTf(false);
+                          }
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = customTfValue.trim();
+                        if (val) {
+                          setEntryTimeframe(val);
+                          setCustomTfValue('');
+                          setShowCustomTf(false);
+                        }
+                      }}
+                      className="p-1 text-emerald-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all"
+                    >
+                      <Check size={12} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomTf(false);
+                        setCustomTfValue('');
+                      }}
+                      className="p-1 text-zinc-500 hover:text-zinc-400 hover:bg-white/5 rounded-md transition-all"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomTf(true)}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-dashed border-zinc-700 bg-transparent text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 transition-all"
+                  >
+                    + Custom
+                  </button>
+                )}
+              </div>
+              {entryTimeframe && !TIMEFRAME_PRESETS.includes(entryTimeframe) && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-xs px-1">
+                  <span className="text-zinc-500">Selected Custom:</span>
+                  <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500 text-emerald-400 rounded-md font-semibold">
+                    {entryTimeframe}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setEntryTimeframe('')}
+                    className="text-zinc-500 hover:text-red-400 text-[10px] uppercase font-black tracking-widest ml-1"
+                  >
+                    Clear
+                  </button>
                 </div>
               )}
             </div>

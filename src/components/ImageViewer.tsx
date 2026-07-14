@@ -10,14 +10,26 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Trade } from '../types';
+
+interface ImageMetadata {
+  tradeId?: string;
+  tradeName?: string;
+  dateStr?: string;
+  type?: 'buy' | 'sell';
+  rr?: number;
+  trade?: Trade;
+}
 
 interface ImageViewerProps {
   images: string[];
   initialIndex: number;
   onClose: () => void;
+  metadata?: ImageMetadata[];
+  onSelectTrade?: (trade: Trade) => void;
 }
 
-export default function ImageViewer({ images, initialIndex, onClose }: ImageViewerProps) {
+export default function ImageViewer({ images, initialIndex, onClose, metadata, onSelectTrade }: ImageViewerProps) {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
   const [isZoomed, setIsZoomed] = useState(false);
@@ -120,6 +132,52 @@ export default function ImageViewer({ images, initialIndex, onClose }: ImageView
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
+      {/* Top Left Metadata Display */}
+      {metadata && metadata[currentIndex] && (
+        <div className="fixed top-6 left-6 z-[210] flex flex-col gap-1 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl px-4 py-2.5 shadow-2xl max-w-xs sm:max-w-md">
+          <div className="flex items-center gap-2">
+            <span className={`text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded ${
+              metadata[currentIndex].type === 'buy'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+            }`}>
+              {metadata[currentIndex].type}
+            </span>
+            <span className="text-sm font-bold text-zinc-100 uppercase tracking-tight">
+              {metadata[currentIndex].tradeName}
+            </span>
+            {metadata[currentIndex].rr !== undefined && (
+              <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
+                (metadata[currentIndex].rr || 0) > 0
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  : (metadata[currentIndex].rr || 0) < 0
+                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                    : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+              }`}>
+                {metadata[currentIndex].rr > 0 ? '+' : ''}{metadata[currentIndex].rr.toFixed(2)} R
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] text-zinc-500 font-bold">
+            {metadata[currentIndex].dateStr}
+          </span>
+          {onSelectTrade && metadata[currentIndex].trade && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (metadata[currentIndex].trade) {
+                  onSelectTrade(metadata[currentIndex].trade);
+                  onClose();
+                }
+              }}
+              className="mt-1.5 self-start text-[10px] font-black text-emerald-400 hover:text-emerald-300 uppercase tracking-wider flex items-center gap-1 transition-all"
+            >
+              View Trade Details <ExternalLink size={10} />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Top Control Bar */}
       <div className="fixed top-6 right-6 z-[210] flex items-center gap-2">
         <div className="flex items-center gap-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full p-1 shadow-2xl">

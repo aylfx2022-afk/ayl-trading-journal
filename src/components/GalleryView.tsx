@@ -1,7 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Trade } from '../types';
 import { 
-  Search, 
   Filter, 
   Calendar, 
   TrendingUp, 
@@ -13,7 +12,8 @@ import {
   Maximize2,
   CalendarDays,
   Flame,
-  Plus
+  Plus,
+  X
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getSafeDate } from '../lib/dateUtils';
@@ -30,17 +30,111 @@ type FilterType = 'all' | 'wins' | 'losses' | 'open' | 'buy' | 'sell';
 type SortType = 'newest' | 'oldest' | 'largest-win' | 'largest-loss';
 
 export default function GalleryView({ trades, onSelectTrade, onAddTrade }: GalleryViewProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<FilterType>('all');
-  const [sortType, setSortType] = useState<SortType>('newest');
+  const [searchTerm, setSearchTerm] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem('gallery_search');
+      return stored ? JSON.parse(stored) : '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [filterType, setFilterType] = useState<FilterType>(() => {
+    try {
+      const stored = localStorage.getItem('gallery_filter');
+      return stored ? JSON.parse(stored) : 'all';
+    } catch {
+      return 'all';
+    }
+  });
+
+  const [sortType, setSortType] = useState<SortType>(() => {
+    try {
+      const stored = localStorage.getItem('gallery_sort');
+      return stored ? JSON.parse(stored) : 'newest';
+    } catch {
+      return 'newest';
+    }
+  });
+
+  const [previewSize, setPreviewSize] = useState<'small' | 'medium' | 'large'>(() => {
+    try {
+      const stored = localStorage.getItem('gallery_preview_size');
+      return stored ? JSON.parse(stored) : 'medium';
+    } catch {
+      return 'medium';
+    }
+  });
+
+  const [timeframeFilter, setTimeframeFilter] = useState<string>(() => {
+    try {
+      const stored = localStorage.getItem('gallery_timeframe');
+      return stored ? JSON.parse(stored) : 'all';
+    } catch {
+      return 'all';
+    }
+  });
+
+  // Sync state changes to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('gallery_search', JSON.stringify(searchTerm));
+    } catch {}
+  }, [searchTerm]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('gallery_filter', JSON.stringify(filterType));
+    } catch {}
+  }, [filterType]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('gallery_sort', JSON.stringify(sortType));
+    } catch {}
+  }, [sortType]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('gallery_preview_size', JSON.stringify(previewSize));
+    } catch {}
+  }, [previewSize]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('gallery_timeframe', JSON.stringify(timeframeFilter));
+    } catch {}
+  }, [timeframeFilter]);
   
   // Lightbox state
-  const [viewerState, setViewerState] = useState<{ isOpen: boolean; images: string[]; initialIndex: number } | null>(null);
+  const [viewerState, setViewerState] = useState<{ 
+    isOpen: boolean; 
+    images: string[]; 
+    initialIndex: number;
+    metadata?: {
+      tradeId?: string;
+      tradeName?: string;
+      dateStr?: string;
+      type?: 'buy' | 'sell';
+      rr?: number;
+      trade?: Trade;
+    }[];
+  } | null>(null);
 
   // Filter out trades that do not have any images
   const tradesWithImages = useMemo(() => {
     return trades.filter(t => t.chartUrls && t.chartUrls.length > 0);
   }, [trades]);
+
+  // Compute unique non-empty entryTimeframes present in trades list
+  const uniqueTimeframes = useMemo(() => {
+    const tfs = tradesWithImages
+      .map(t => t.entryTimeframe)
+      .filter((tf): tf is string => typeof tf === 'string' && tf.trim() !== '');
+    return Array.from(new Set(tfs)).sort((a, b) => {
+      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }, [tradesWithImages]);
 
   // Process filters and sorting
   const processedTrades = useMemo(() => {
@@ -73,6 +167,11 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
       }
     }
 
+    // Timeframe filter
+    if (timeframeFilter !== 'all') {
+      result = result.filter(t => t.entryTimeframe === timeframeFilter);
+    }
+
     // Sort order
     result.sort((a, b) => {
       const dateA = getSafeDate(a.openTime)?.getTime() || 0;
@@ -91,14 +190,42 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
     });
 
     return result;
-  }, [tradesWithImages, searchTerm, filterType, sortType]);
+  }, [tradesWithImages, searchTerm, filterType, sortType, timeframeFilter]);
 
-  const handleOpenViewer = (images: string[], index: number, e: React.MouseEvent) => {
-    e.stopPropagation(); // Avoid triggering card click (onSelectTrade)
+  // Construct a flat list of all images with metadata in the current filtered/sorted gallery
+  const galleryImages = useMemo(() => {
+    const list: { url: string; trade: Trade; dateStr: string }[] = [];
+    processedTrades.forEach(trade => {
+      const safeDate = getSafeDate(trade.openTime);
+      const dateStr = safeDate ? format(safeDate, 'MMM dd, yyyy HH:mm') : 'Unknown';
+      const firstUrl = trade.chartUrls?.[0];
+      if (firstUrl) {
+        list.push({
+          url: firstUrl,
+          trade,
+          dateStr
+        });
+      }
+    });
+    return list;
+  }, [processedTrades]);
+
+  const handleCardClick = (trade: Trade) => {
+    const firstUrl = trade.chartUrls?.[0];
+    if (!firstUrl) return;
+    const index = galleryImages.findIndex(img => img.url === firstUrl && img.trade.id === trade.id);
     setViewerState({
       isOpen: true,
-      images,
-      initialIndex: index
+      images: galleryImages.map(item => item.url),
+      initialIndex: index >= 0 ? index : 0,
+      metadata: galleryImages.map(item => ({
+        tradeId: item.trade.id,
+        tradeName: item.trade.pair || item.trade.item || 'UNKNOWN',
+        dateStr: item.dateStr,
+        type: item.trade.type,
+        rr: item.trade.rr,
+        trade: item.trade
+      }))
     });
   };
 
@@ -106,23 +233,35 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
     <div className="space-y-6">
       {/* Search and Filters Header */}
       <div className="bg-[#0F0F11]/60 border border-white/5 p-4 rounded-3xl flex flex-col md:flex-row gap-4 justify-between items-center backdrop-blur-md">
-        {/* Search */}
-        <div className="relative w-full md:w-80">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-          <input
-            type="text"
-            placeholder="Pair, Tag သို့မဟုတ် Comment ရှာရန်..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-11 pr-4 py-2.5 text-xs font-semibold focus:outline-none focus:border-emerald-500/50 text-zinc-200 transition-all placeholder:text-zinc-600"
-          />
-        </div>
+        <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
+          <ImageIcon size={18} className="text-emerald-400" />
+          Chart Gallery
+        </h2>
 
         {/* Filter and Sort Controllers */}
         <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
+          {/* Preview Size Selector */}
+          <div className="flex bg-white/[0.02] border border-white/5 rounded-2xl p-1 gap-1">
+            {(['small', 'medium', 'large'] as const).map((size) => (
+              <button
+                key={size}
+                onClick={() => setPreviewSize(size)}
+                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                  previewSize === size
+                    ? 'bg-emerald-500 text-black shadow-md'
+                    : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5'
+                }`}
+              >
+                {size === 'small' && 'Small'}
+                {size === 'medium' && 'Medium'}
+                {size === 'large' && 'Large'}
+              </button>
+            ))}
+          </div>
+
           {/* Quick Filters */}
           <div className="flex bg-white/[0.02] border border-white/5 rounded-2xl p-1 gap-1">
-            {(['all', 'wins', 'losses', 'open'] as const).map((type) => (
+            {(['all', 'wins', 'losses', 'open', 'buy', 'sell'] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
@@ -136,6 +275,8 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
                 {type === 'wins' && 'Wins 🟢'}
                 {type === 'losses' && 'Losses 🔴'}
                 {type === 'open' && 'Open 🔵'}
+                {type === 'buy' && 'Buy 📈'}
+                {type === 'sell' && 'Sell 📉'}
               </button>
             ))}
           </div>
@@ -151,12 +292,46 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
             <option value="largest-win">Largest Wins</option>
             <option value="largest-loss">Largest Losses</option>
           </select>
+
+          {/* Timeframe Selection */}
+          <select
+            value={timeframeFilter}
+            onChange={(e) => setTimeframeFilter(e.target.value)}
+            className="bg-[#141416] border border-white/5 rounded-2xl px-4 py-2 text-xs font-semibold focus:outline-none text-zinc-300 transition-all cursor-pointer hover:border-white/10"
+          >
+            <option value="all">All Timeframes</option>
+            {uniqueTimeframes.map(tf => (
+              <option key={tf} value={tf}>{tf}</option>
+            ))}
+          </select>
+
+          {/* Clear Filters Button */}
+          {(searchTerm !== '' || filterType !== 'all' || timeframeFilter !== 'all') && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setFilterType('all');
+                setTimeframeFilter('all');
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/10 hover:border-red-500/20 transition-all text-xs font-semibold cursor-pointer h-[34px]"
+              title="Clear all filters"
+            >
+              <X size={13} />
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main Grid Content */}
       {processedTrades.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className={
+          previewSize === 'small'
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+            : previewSize === 'medium'
+              ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+        }>
           {processedTrades.map((trade) => {
             const hasMultipleImages = trade.chartUrls && trade.chartUrls.length > 1;
             const imagesCount = trade.chartUrls?.length || 0;
@@ -170,11 +345,11 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
               <motion.div
                 key={trade.id}
                 layoutId={`gallery-card-${trade.id}`}
-                onClick={() => onSelectTrade(trade)}
+                onClick={() => handleCardClick(trade)}
                 className="group bg-[#0F0F11]/60 border border-white/5 hover:border-white/10 rounded-3xl overflow-hidden transition-all duration-300 cursor-pointer flex flex-col hover:shadow-2xl hover:shadow-emerald-500/[0.02]"
               >
                 {/* Image Showcase Cover */}
-                <div className="relative aspect-video w-full bg-zinc-950 overflow-hidden border-b border-white/5">
+                <div className="relative aspect-video w-full bg-zinc-950 overflow-hidden">
                   <img
                     src={trade.chartUrls?.[0]}
                     alt={`${trade.pair || trade.item} Chart`}
@@ -182,23 +357,6 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
                     referrerPolicy="no-referrer"
                     loading="lazy"
                   />
-
-                  {/* Multi-image indicator badge */}
-                  {hasMultipleImages && (
-                    <div className="absolute right-3 bottom-3 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-1 rounded-lg flex items-center gap-1.5 shadow-lg select-none">
-                      <ImageIcon size={11} className="text-zinc-300" />
-                      <span className="text-[10px] font-mono font-black text-zinc-200">+{imagesCount - 1} More</span>
-                    </div>
-                  )}
-
-                  {/* Quick Expand button */}
-                  <button
-                    onClick={(e) => handleOpenViewer(trade.chartUrls || [], 0, e)}
-                    className="absolute top-3 right-3 p-2 rounded-xl bg-black/60 hover:bg-emerald-500 hover:text-black border border-white/10 text-zinc-300 transition-all shadow-lg scale-90 opacity-0 group-hover:opacity-100 group-hover:scale-100"
-                    title="Fullscreen Lightbox"
-                  >
-                    <Maximize2 size={13} />
-                  </button>
 
                   {/* Buy/Sell badge floating on image */}
                   <div className="absolute top-3 left-3 select-none">
@@ -210,39 +368,6 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
                       {trade.type}
                     </span>
                   </div>
-                </div>
-
-                {/* Details Section */}
-                <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-sm font-bold text-zinc-100 group-hover:text-emerald-400 transition-colors uppercase tracking-tight">
-                        {trade.pair || trade.item || 'UNKNOWN'}
-                      </h4>
-                      {/* PnL Display (RR Value) */}
-                      {isOpen ? (
-                        <span className="text-xs font-black text-blue-400 uppercase tracking-widest bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-lg select-none">
-                          Running
-                        </span>
-                      ) : (
-                        <span className={`text-xs font-black px-2 py-0.5 rounded-lg border font-mono select-none ${
-                          (trade.rr || 0) > 0 
-                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' 
-                            : (trade.rr || 0) < 0 
-                              ? 'bg-red-500/10 text-red-400 border-red-500/20'
-                              : 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20'
-                        }`}>
-                          {(trade.rr || 0) > 0 ? '+' : ''}{(trade.rr || 0).toFixed(2)} R
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1.5 text-zinc-500 text-[10px] font-bold">
-                      <CalendarDays size={11} className="text-zinc-600" />
-                      <span>{dateStr}</span>
-                    </div>
-                  </div>
-
                 </div>
               </motion.div>
             );
@@ -280,6 +405,8 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
           <ImageViewer
             images={viewerState.images}
             initialIndex={viewerState.initialIndex}
+            metadata={viewerState.metadata}
+            onSelectTrade={onSelectTrade}
             onClose={() => setViewerState(null)}
           />
         )}

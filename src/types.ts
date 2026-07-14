@@ -33,6 +33,7 @@ export interface Trade {
   preTradeEmotion?: string;
   duringTradeEmotion?: string;
   postTradeEmotion?: string;
+  entryTimeframe?: string;
 }
 
 export interface UserProfile {

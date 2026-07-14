@@ -174,6 +174,7 @@ export default function DayDetails({
                 <tr className="border-b border-white/[0.02] text-[10px] font-black text-zinc-600 uppercase tracking-widest">
                   <th className="px-5 py-3 font-black">Pair</th>
                   <th className="px-5 py-3 font-black">Type</th>
+                  <th className="px-5 py-3 font-black">Timeframe</th>
                   <th className="px-5 py-3 font-black">Entry Price</th>
                   <th className="px-5 py-3 font-black">Exit Price</th>
                   <th className="px-5 py-3 font-black">Status</th>
@@ -199,6 +200,15 @@ export default function DayDetails({
                       }`}>
                         {trade.type}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 whitespace-nowrap">
+                      {trade.entryTimeframe ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/15 text-xs text-emerald-400 font-bold">
+                          {trade.entryTimeframe}
+                        </span>
+                      ) : (
+                        <span className="text-zinc-600 font-medium">-</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.entryPrice?.toFixed(5) || trade.openPrice.toFixed(5)}</td>
                     <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.exitPrice?.toFixed(5) || trade.closePrice?.toFixed(5) || '-'}</td>

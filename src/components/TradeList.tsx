@@ -14,6 +14,7 @@ interface TradeListProps {
   onSelectTrade: (trade: Trade) => void;
   isTrash?: boolean;
   onClearHistory?: () => void;
+  pageId?: string;
 }
 
 type SortField = 'date' | 'pair' | 'rr' | 'type' | 'createdAt';
@@ -74,7 +75,7 @@ const POST_TRADE_EMOTIONS: Record<string, { label: string; tooltip: string; bg: 
   neutral_accepting: { label: '🤝 Neutral', tooltip: 'Neutral & Accepting / ရလဒ်ကိုသာမန်အတိုင်းလက်ခံ', bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/15' }
 };
 
-export default function TradeList({ trades, onSelectTrade, isTrash, onClearHistory }: TradeListProps) {
+export default function TradeList({ trades, onSelectTrade, isTrash, onClearHistory, pageId = 'default' }: TradeListProps) {
   const [confirmModal, setConfirmModal] = useState<{
     isOpen: boolean;
     message: string;
@@ -82,17 +83,119 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
   }>({ isOpen: false, message: '', onConfirm: () => {} });
 
   const [selectedNote, setSelectedNote] = useState<{ note: string, pair: string } | null>(null);
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>('all');
-  const [startDate, setStartDate] = React.useState<Date | null>(null);
-  const [endDate, setEndDate] = React.useState<Date | null>(null);
-  const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>({ field: 'createdAt', order: 'desc' });
+  
+  // Persisted state initializers
+  const [searchTerm, setSearchTerm] = React.useState<string>(() => {
+    try {
+      const stored = localStorage.getItem(`tradelist_search_${pageId}`);
+      return stored ? JSON.parse(stored) : '';
+    } catch {
+      return '';
+    }
+  });
+
+  const [typeFilter, setTypeFilter] = React.useState<'all' | 'buy' | 'sell'>(() => {
+    try {
+      const stored = localStorage.getItem(`tradelist_type_${pageId}`);
+      return stored ? JSON.parse(stored) : 'all';
+    } catch {
+      return 'all';
+    }
+  });
+
+  const [startDate, setStartDate] = React.useState<Date | null>(() => {
+    try {
+      const stored = localStorage.getItem(`tradelist_startdate_${pageId}`);
+      if (stored) {
+        const val = JSON.parse(stored);
+        return val ? new Date(val) : null;
+      }
+    } catch {}
+    return null;
+  });
+
+  const [endDate, setEndDate] = React.useState<Date | null>(() => {
+    try {
+      const stored = localStorage.getItem(`tradelist_enddate_${pageId}`);
+      if (stored) {
+        const val = JSON.parse(stored);
+        return val ? new Date(val) : null;
+      }
+    } catch {}
+    return null;
+  });
+
+  const [sortConfig, setSortConfig] = React.useState<{ field: SortField, order: SortOrder }>(() => {
+    try {
+      const stored = localStorage.getItem(`tradelist_sort_${pageId}`);
+      return stored ? JSON.parse(stored) : { field: 'createdAt', order: 'desc' };
+    } catch {
+      return { field: 'createdAt', order: 'desc' };
+    }
+  });
+
+  const [timeframeFilter, setTimeframeFilter] = React.useState<string>(() => {
+    try {
+      const stored = localStorage.getItem(`tradelist_timeframe_${pageId}`);
+      return stored ? JSON.parse(stored) : 'all';
+    } catch {
+      return 'all';
+    }
+  });
+
   const [currentPage, setCurrentPage] = React.useState(1);
   const pageSize = 20;
 
+  // Sync state changes to localStorage
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(`tradelist_search_${pageId}`, JSON.stringify(searchTerm));
+    } catch {}
+  }, [searchTerm, pageId]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(`tradelist_type_${pageId}`, JSON.stringify(typeFilter));
+    } catch {}
+  }, [typeFilter, pageId]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(`tradelist_startdate_${pageId}`, JSON.stringify(startDate ? startDate.toISOString() : null));
+    } catch {}
+  }, [startDate, pageId]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(`tradelist_enddate_${pageId}`, JSON.stringify(endDate ? endDate.toISOString() : null));
+    } catch {}
+  }, [endDate, pageId]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(`tradelist_sort_${pageId}`, JSON.stringify(sortConfig));
+    } catch {}
+  }, [sortConfig, pageId]);
+
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(`tradelist_timeframe_${pageId}`, JSON.stringify(timeframeFilter));
+    } catch {}
+  }, [timeframeFilter, pageId]);
+
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, typeFilter, startDate, endDate, sortConfig]);
+  }, [searchTerm, typeFilter, startDate, endDate, sortConfig, timeframeFilter]);
+
+  // Compute unique non-empty entryTimeframes present in trades list
+  const uniqueTimeframes = React.useMemo(() => {
+    const tfs = trades
+      .map(t => t.entryTimeframe)
+      .filter((tf): tf is string => typeof tf === 'string' && tf.trim() !== '');
+    return Array.from(new Set(tfs)).sort((a, b) => {
+      return a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }, [trades]);
 
   const handleSort = (field: SortField) => {
     setSortConfig(prev => ({
@@ -137,7 +240,9 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
         matchesEndDate = tradeDate <= endOfDay;
       }
       
-      return matchesSearch && matchesType && matchesStartDate && matchesEndDate;
+      const matchesTimeframe = timeframeFilter === 'all' || t.entryTimeframe === timeframeFilter;
+      
+      return matchesSearch && matchesType && matchesStartDate && matchesEndDate && matchesTimeframe;
     }).sort((a, b) => {
       let comparison = 0;
       switch (sortConfig.field) {
@@ -226,7 +331,9 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold capitalize">Trade History</h2>
+          <h2 className="text-2xl font-bold capitalize">
+            {pageId === 'opening-positions' ? 'Opening Positions' : 'Trade History'}
+          </h2>
         </div>
         
         <div className="flex flex-wrap items-center gap-3 ml-auto">
@@ -253,6 +360,18 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
             <option value="sell">Sell Only</option>
           </select>
 
+          {/* Timeframe Filter */}
+          <select 
+            value={timeframeFilter}
+            onChange={(e) => setTimeframeFilter(e.target.value)}
+            className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 transition-all cursor-pointer h-10"
+          >
+            <option value="all">All Timeframes</option>
+            {uniqueTimeframes.map(tf => (
+              <option key={tf} value={tf}>{tf}</option>
+            ))}
+          </select>
+
           {/* Created Time Filter */}
           <DateRangePicker 
             startDate={startDate}
@@ -264,6 +383,24 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
             placeholderStart="Start"
             placeholderEnd="End"
           />
+
+          {/* Clear Filters Button */}
+          {(searchTerm !== '' || typeFilter !== 'all' || timeframeFilter !== 'all' || startDate !== null || endDate !== null) && (
+            <button
+              onClick={() => {
+                setSearchTerm('');
+                setTypeFilter('all');
+                setStartDate(null);
+                setEndDate(null);
+                setTimeframeFilter('all');
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/10 hover:border-red-500/20 transition-all text-xs font-semibold cursor-pointer h-10"
+              title="Clear all filters"
+            >
+              <X size={14} />
+              Clear Filters
+            </button>
+          )}
         </div>
       </div>
 
@@ -280,6 +417,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
               <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('date')}>
                 <div className="flex items-center gap-1">Entry Date <SortIcon field="date" /></div>
               </th>
+              <th className="px-6 py-4 font-bold">Timeframe</th>
               <th className="px-6 py-4 font-bold">Entry Price</th>
               <th className="px-6 py-4 font-bold">Exit Price</th>
               <th className="px-6 py-4 font-bold">Status</th>
@@ -314,6 +452,15 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">
                   {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy') : '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  {trade.entryTimeframe ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/15 text-xs text-emerald-400 font-bold">
+                      {trade.entryTimeframe}
+                    </span>
+                  ) : (
+                    <span className="text-zinc-600 font-medium">-</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">{trade.entryPrice?.toFixed(5)}</td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">{trade.exitPrice?.toFixed(5) || '-'}</td>

@@ -665,9 +665,10 @@ export default function App() {
           transition={{ duration: 0.2 }}
         >
           {activeTab === 'dashboard' && <Dashboard trades={trades} />}
-          {activeTab === 'opening-positions' && <TradeList trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
+          {activeTab === 'opening-positions' && <TradeList pageId="opening-positions" trades={trades.filter(t => !t.exitPrice)} onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} />}
           {activeTab === 'history' && (
             <TradeList 
+              pageId="history"
               trades={trades.filter(t => t.exitPrice)} 
               onSelectTrade={(trade) => { setSelectedTrade(trade); navigateTo('trade-details'); }} 
               onClearHistory={() => setShowDeleteConfirm(true)} 

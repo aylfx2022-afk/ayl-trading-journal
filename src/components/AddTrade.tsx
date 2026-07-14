@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { db, auth } from '../firebase';
 import { collection, addDoc, Timestamp, doc, getDoc } from 'firebase/firestore';
-import { Save, AlertCircle, CheckCircle2, Image as ImageIcon, Maximize2 } from 'lucide-react';
+import { Save, AlertCircle, CheckCircle2, Image as ImageIcon, Maximize2, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+
+const TIMEFRAME_PRESETS = ['1m', '3m', '5m', '15m', '30m', '1h', '4h', '1d', '1w'];
 
 import DatePicker from './ui/DatePicker';
 import TagInput from './ui/TagInput';
@@ -138,6 +140,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
     [{ id: `chart-0-${Date.now()}`, url: '' }]
   );
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [showCustomTf, setShowCustomTf] = useState(false);
+  const [customTfValue, setCustomTfValue] = useState('');
 
   const [formData, setFormData] = useState({
     pair: '',
@@ -154,7 +158,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
     physicalState: '',
     preTradeEmotion: '',
     duringTradeEmotion: '',
-    postTradeEmotion: ''
+    postTradeEmotion: '',
+    entryTimeframe: ''
   });
 
   React.useEffect(() => {
@@ -246,7 +251,8 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
         physicalState: formData.physicalState,
         preTradeEmotion: formData.preTradeEmotion,
         duringTradeEmotion: formData.duringTradeEmotion,
-        postTradeEmotion: formData.postTradeEmotion
+        postTradeEmotion: formData.postTradeEmotion,
+        entryTimeframe: formData.entryTimeframe || ''
       });
       setStatus('success');
       setTimeout(() => {
@@ -382,6 +388,97 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   {formData.notes ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{formData.notes}</ReactMarkdown>
                   ) : <span className="text-zinc-600">No notes yet...</span>}
+                </div>
+              )}
+            </div>
+
+            {/* ENTRY TIMEFRAME */}
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry Timeframe</label>
+              <div className="flex flex-wrap gap-1.5 px-1">
+                {TIMEFRAME_PRESETS.map((tf) => (
+                  <button
+                    key={tf}
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, entryTimeframe: tf }))}
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all ${
+                      formData.entryTimeframe === tf
+                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold'
+                        : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                    }`}
+                  >
+                    {tf}
+                  </button>
+                ))}
+                {showCustomTf ? (
+                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg pl-2 pr-1 py-0.5">
+                    <input
+                      type="text"
+                      value={customTfValue}
+                      onChange={(e) => setCustomTfValue(e.target.value)}
+                      placeholder="e.g. 12h"
+                      className="bg-transparent text-xs text-zinc-200 outline-none w-14 font-semibold"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const val = customTfValue.trim();
+                          if (val) {
+                            setFormData(prev => ({ ...prev, entryTimeframe: val }));
+                            setCustomTfValue('');
+                            setShowCustomTf(false);
+                          }
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const val = customTfValue.trim();
+                        if (val) {
+                          setFormData(prev => ({ ...prev, entryTimeframe: val }));
+                          setCustomTfValue('');
+                          setShowCustomTf(false);
+                        }
+                      }}
+                      className="p-1 text-emerald-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all"
+                    >
+                      <Check size={12} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCustomTf(false);
+                        setCustomTfValue('');
+                      }}
+                      className="p-1 text-zinc-500 hover:text-zinc-400 hover:bg-white/5 rounded-md transition-all"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomTf(true)}
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-dashed border-zinc-700 bg-transparent text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 transition-all"
+                  >
+                    + Custom
+                  </button>
+                )}
+              </div>
+              {formData.entryTimeframe && !TIMEFRAME_PRESETS.includes(formData.entryTimeframe) && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-xs px-1">
+                  <span className="text-zinc-500">Selected Custom:</span>
+                  <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500 text-emerald-400 rounded-md font-semibold">
+                    {formData.entryTimeframe}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, entryTimeframe: '' }))}
+                    className="text-zinc-500 hover:text-red-400 text-[10px] uppercase font-black tracking-widest ml-1"
+                  >
+                    Clear
+                  </button>
                 </div>
               )}
             </div>
