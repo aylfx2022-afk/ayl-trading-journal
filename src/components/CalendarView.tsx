@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
-import { Calendar, ConfigProvider, theme, Badge, Button, Select, Row, Col } from 'antd';
+import React, { useMemo } from 'react';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { Trade } from '../types';
-import { format, isSameDay } from 'date-fns';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format } from 'date-fns';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import YearlyPerformance from './YearlyPerformance';
 import { getSafeDate } from '../lib/dateUtils';
 
@@ -17,10 +16,13 @@ interface CalendarViewProps {
   journals?: any[];
 }
 
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 export default function CalendarView({ trades, onSelectTrade, onSelectDay, panelDate, setPanelDate, journals }: CalendarViewProps) {
 
   // Optimize: Group trades by date and pre-calculate totals to avoid repeated iteration in cell renders
-  const tradesByDate = React.useMemo(() => {
+  const tradesByDate = useMemo(() => {
     const map: Record<string, { trades: Trade[], totalRR: number, isPositive: boolean }> = {};
     trades.forEach(trade => {
       if (trade.openTime) {
@@ -44,7 +46,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
     return map;
   }, [trades]);
 
-  const monthlyStats = React.useMemo(() => {
+  const monthlyStats = useMemo(() => {
     const currentMonth = panelDate.month();
     const currentYear = panelDate.year();
     
@@ -67,26 +69,16 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
     };
   }, [panelDate, trades]);
 
-  const onSelect = (date: Dayjs, info: { source: string }) => {
-    setPanelDate(date);
-    if (info.source === 'date') {
-      onSelectDay(date);
-    }
-  };
-
-  const onPanelChange = (value: Dayjs) => {
-    setPanelDate(value);
-  };
-
-  const weeklyData = React.useMemo(() => {
+  const weeklyData = useMemo(() => {
     if (!panelDate || typeof panelDate.startOf !== 'function') return [];
     
-    const startOfCalendar = panelDate.startOf('month').startOf('week');
+    const startOfMonth = panelDate.startOf('month');
+    const startDayOfWeek = startOfMonth.day(); // 0 is Sunday, 1 is Monday, etc.
+    const startOfCalendar = startOfMonth.subtract(startDayOfWeek, 'day');
     const weeks = [];
     
     for (let i = 0; i < 6; i++) {
-      const weekStart = startOfCalendar.add(i, 'week');
-      const weekEnd = weekStart.endOf('week');
+      const weekStart = startOfCalendar.add(i * 7, 'day');
       
       let weeklyTradesCount = 0;
       let weeklyTotalRR = 0;
@@ -112,243 +104,227 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
     return weeks;
   }, [panelDate, tradesByDate]);
 
-  const fullCellRender = (value: Dayjs, info: any) => {
-    if (info.type !== 'date') return info.originNode;
-
-    const isCurrentMonth = value.month() === panelDate.month() && value.year() === panelDate.year();
-
-    const currentKey = value.format('YYYY-MM-DD');
-    const dayData = tradesByDate[currentKey];
-    const tradesOnDay = dayData?.trades || [];
-    const totalRR = dayData ? dayData.totalRR : null;
-    const isPositive = dayData ? dayData.isPositive : false;
-    const isToday = value.isSame(dayjs(), 'day');
-    const hasNotes = tradesOnDay.some(t => t.notes);
-    const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
-
-    return (
-      <div className={`custom-calendar-cell transition-all duration-300 ease-out h-full flex flex-col cursor-pointer group relative hover:z-20
-        ${!isCurrentMonth ? 'opacity-20 pointer-events-none grayscale' : 'hover:scale-[1.05] hover:shadow-2xl'}
-        ${totalRR !== null 
-          ? (isPositive ? '!bg-emerald-500/15 !shadow-[inset_0_0_15px_rgba(16,185,129,0.03)] hover:!shadow-emerald-500/30 hover:!bg-emerald-500/20' : '!bg-red-500/15 !shadow-[inset_0_0_15px_rgba(239,68,68,0.03)] hover:!shadow-red-500/30 hover:!bg-red-500/20')
-          : 'hover:!bg-white/[0.04] hover:!shadow-lg'
-        } 
-        border !border-white/[0.02] hover:!border-white/[0.1]
-      `}>
-        <div className="relative z-10 flex flex-col items-center justify-center h-full pt-px gap-1">
-          <span className={`text-xs font-bold ${isToday ? 'text-emerald-400' : 'text-zinc-500'}`}>
-            {value.date()}
-          </span>
-          {totalRR !== null && (
-            <div className="flex flex-col items-center gap-0.5">
-              <span className={`text-[10px] font-black leading-none ${isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
-              </span>
-              <span className="text-[8px] font-bold text-zinc-500">
-                {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
-              </span>
-            </div>
-          )}
-          {hasNotes && (
-             <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-emerald-400/70" title="Day has notes" />
-          )}
-          {hasJournal && (
-             <div className="absolute top-1.5 left-1.5 w-1.5 h-1.5 rounded-full bg-amber-400" title="Daily Journal written" />
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const headerRender = ({ value, onChange }: any) => {
-    const currentViewDate = value || panelDate || dayjs();
-    const start = 0;
-    const end = 12;
-    const monthOptions = [];
-
-    const current = currentViewDate.clone().date(1);
-    const localeData = currentViewDate.localeData();
-    const months = localeData.monthsShort() || [];
+  const gridDays = useMemo(() => {
+    const startOfMonth = panelDate.startOf('month');
+    const startDayOfWeek = startOfMonth.day(); // 0 (Sunday) to 6 (Saturday)
+    const startOfGrid = startOfMonth.subtract(startDayOfWeek, 'day');
     
-    // If localeData.monthsShort() didn't return an array, fallback to manual generation
-    const monthsList = Array.isArray(months) && months.length === 12 ? months : [];
-    if (monthsList.length === 0) {
-      for (let i = 0; i < 12; i++) {
-        monthsList.push(current.month(i).format('MMM'));
-      }
+    const days = [];
+    let dayPointer = startOfGrid;
+    for (let i = 0; i < 42; i++) {
+      days.push(dayPointer);
+      dayPointer = dayPointer.add(1, 'day');
     }
+    return days;
+  }, [panelDate]);
 
-    for (let i = start; i < end; i++) {
-      monthOptions.push(
-        <Select.Option key={i} value={i} className="month-item">
-          {monthsList[i]}
-        </Select.Option>,
-      );
+  const yearOptions = useMemo(() => {
+    const years = [];
+    const currentYearVal = dayjs().year();
+    const startYear = currentYearVal - 10;
+    const endYear = currentYearVal + 10;
+    for (let y = startYear; y <= endYear; y++) {
+      years.push(y);
     }
-
-    const year = currentViewDate.year();
-    const month = currentViewDate.month();
-    const options = [];
-    for (let i = year - 10; i < year + 10; i += 1) {
-      options.push(
-        <Select.Option key={i} value={i} className="year-item">
-          {i}
-        </Select.Option>,
-      );
-    }
-
-    return (
-      <div style={{ padding: '4px 8px' }}>
-        <Row gutter={4} justify="space-between" align="middle">
-          <Col>
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-black text-zinc-300">
-                {currentViewDate.format('MMMM, YYYY')}
-              </span>
-              <div className="flex items-center gap-1">
-                <Button 
-                  shape="circle" 
-                  size="small" 
-                  icon={<ChevronLeft size={16} />} 
-                  onClick={() => onChange(currentViewDate.clone().subtract(1, 'month'))}
-                  className="bg-white/5 border-white/10 hover:bg-white/10 flex items-center justify-center"
-                />
-                <Button 
-                  size="small" 
-                  onClick={() => onChange(dayjs())}
-                  className="bg-white/5 border-white/10 hover:bg-white/10 text-xs px-2"
-                >
-                  Today
-                </Button>
-                <Button 
-                  shape="circle" 
-                  size="small" 
-                  icon={<ChevronRight size={16} />} 
-                  onClick={() => onChange(currentViewDate.clone().add(1, 'month'))}
-                  className="bg-white/5 border-white/10 hover:bg-white/10 flex items-center justify-center"
-                />
-              </div>
-            </div>
-          </Col>
-          <Col>
-            <Row gutter={16} align="middle">
-              <Col>
-                <div className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500">
-                  <span>Tr: <span className="text-zinc-300">{monthlyStats.totalTrades}</span></span>
-                  <span>WR: <span className="text-zinc-300">{monthlyStats.winRate.toFixed(0)}%</span></span>
-                  <span>RR: <span className={`${monthlyStats.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                    {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
-                  </span></span>
-                </div>
-              </Col>
-              <Col>
-                <Select
-                  size="small"
-                  popupMatchSelectWidth={false}
-                  className="my-year-select"
-                  value={year}
-                  onChange={(newYear) => {
-                    const now = currentViewDate.clone().year(newYear);
-                    onChange(now);
-                  }}
-                >
-                  {options}
-                </Select>
-              </Col>
-              <Col>
-                <Select
-                  size="small"
-                  popupMatchSelectWidth={false}
-                  value={month}
-                  onChange={(newMonth) => {
-                    const now = currentViewDate.clone().month(newMonth);
-                    onChange(now);
-                  }}
-                >
-                  {monthOptions}
-                </Select>
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-      </div>
-    );
-  };
+    return years;
+  }, []);
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: '#10b981',
-          borderRadius: 12,
-          colorBgContainer: '#0F0F0F',
-          colorBorderSecondary: '#ffffff08'
-        },
-      }}
-    >
-      <div className="grid grid-cols-1 gap-4">
-        <div className="p-2 rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-          <div className="flex">
-            <div className="flex-1 antd-calendar-wrapper custom-calendar compact-calendar">
-              <Calendar 
-                value={panelDate}
-                fullscreen={true}
-                onSelect={onSelect}
-                onPanelChange={onPanelChange}
-                fullCellRender={fullCellRender}
-                headerRender={headerRender}
-                className="bg-transparent"
-              />
-            </div>
+    <div className="grid grid-cols-1 gap-4">
+      <div className="rounded-2xl bg-white dark:bg-[#0F0F0F] border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+        
+        {/* Custom Header Render */}
+        <div className="p-4 border-b border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.01]">
+          <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
             
-            {/* Weekly Summary Column */}
-            <div className="hidden lg:flex flex-col w-[14.2857%] border-l border-white/[0.03] -mt-[6px]">
-              {/* Header spacer (Calendar Header + Weekdays row) */}
-              <div className="h-[68px] flex items-center justify-center border-b border-white/[0.03] bg-white/[0.01]">
-                <div className="text-[9px] font-black uppercase text-zinc-700 leading-tight text-center">
-                  Weekly<br />Summary
-                </div>
-              </div>
-              
-              <div className="flex flex-col">
-                {weeklyData.map((week, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`weekly-row flex flex-col items-center justify-center relative group transition-colors ${
-                      week.tradesCount > 0 
-                        ? (week.isPositive ? 'bg-emerald-500/[0.02]' : 'bg-red-500/[0.02]') 
-                        : 'bg-transparent'
-                    }`}
-                  >
-                    {week.tradesCount > 0 ? (
-                      <>
-                        <div className="flex flex-col items-center text-center">
-                          <span className="text-xs font-bold text-zinc-400">
-                            {week.tradesCount} {week.tradesCount === 1 ? 'trade' : 'trades'}
-                          </span>
-                        </div>
-                        
-                        <div className="mt-2 flex flex-col items-center text-center">
-                          <span className={`text-xs font-black leading-none ${week.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
-                            {week.isPositive ? '+' : ''}{week.totalRR.toFixed(1)}R
-                          </span>
-                        </div>
-
-                        {/* Visual indicator bar */}
-                        <div className={`absolute right-0 top-2 bottom-2 w-0.5 rounded-l-full ${week.isPositive ? 'bg-emerald-500/30' : 'bg-red-500/30'}`} />
-                      </>
-                    ) : (
-                      <span className="text-[10px] font-bold text-zinc-700 italic">No activity</span>
-                    )}
-                  </div>
-                ))}
+            {/* View Month Title & Arrow Controls */}
+            <div className="flex items-center gap-4">
+              <span className="text-sm font-black text-zinc-700 dark:text-zinc-300">
+                {panelDate.format('MMMM, YYYY')}
+              </span>
+              <div className="flex items-center gap-1">
+                <button 
+                  onClick={() => setPanelDate(panelDate.subtract(1, 'month'))}
+                  className="p-1.5 rounded-lg bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                  title="Previous Month"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  onClick={() => setPanelDate(dayjs())}
+                  className="px-2.5 py-1 rounded-lg bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                >
+                  Today
+                </button>
+                <button 
+                  onClick={() => setPanelDate(panelDate.add(1, 'month'))}
+                  className="p-1.5 rounded-lg bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                  title="Next Month"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
+
+            {/* Middle/Right: stats and selectors */}
+            <div className="flex flex-wrap items-center gap-4">
+              {/* Monthly Stats */}
+              <div className="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-450 dark:text-zinc-500 border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-1.5 bg-white dark:bg-transparent">
+                <span>Tr: <span className="text-zinc-800 dark:text-zinc-300">{monthlyStats.totalTrades}</span></span>
+                <span>WR: <span className="text-zinc-800 dark:text-zinc-300">{monthlyStats.winRate.toFixed(0)}%</span></span>
+                <span>RR: <span className={`${monthlyStats.isPositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                  {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
+                </span></span>
+              </div>
+
+              {/* Year Selector */}
+              <select
+                value={panelDate.year()}
+                onChange={(e) => setPanelDate(panelDate.year(parseInt(e.target.value)))}
+                className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer hover:bg-zinc-100 dark:hover:bg-white/10"
+              >
+                {yearOptions.map(y => (
+                  <option key={y} value={y} className="bg-white dark:bg-[#121214] text-zinc-800 dark:text-zinc-200">
+                    {y}
+                  </option>
+                ))}
+              </select>
+
+              {/* Month Selector */}
+              <select
+                value={panelDate.month()}
+                onChange={(e) => setPanelDate(panelDate.month(parseInt(e.target.value)))}
+                className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer hover:bg-zinc-100 dark:hover:bg-white/10"
+              >
+                {MONTHS.map((m, idx) => (
+                  <option key={m} value={idx} className="bg-white dark:bg-[#121214] text-zinc-800 dark:text-zinc-200">
+                    {m}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
         </div>
-        <YearlyPerformance trades={trades} />
+
+        {/* Custom Calendar Grid & Weekly Summary */}
+        <div className="flex">
+          <div className="flex-1">
+            {/* Weekdays Row */}
+            <div className="grid grid-cols-7 border-b border-zinc-150/50 dark:border-white/[0.03] bg-zinc-50/50 dark:bg-white/[0.01] h-10">
+              {WEEKDAYS.map(day => (
+                <div key={day} className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-450 dark:text-zinc-500 tracking-wider">
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* Days Grid (6 rows of 7 days) */}
+            <div className="grid grid-cols-7 bg-zinc-100/30 dark:bg-transparent gap-px">
+              {gridDays.map((value, index) => {
+                const isCurrentMonth = value.month() === panelDate.month() && value.year() === panelDate.year();
+                const currentKey = value.format('YYYY-MM-DD');
+                const dayData = tradesByDate[currentKey];
+                const tradesOnDay = dayData?.trades || [];
+                const totalRR = dayData ? dayData.totalRR : null;
+                const isPositive = dayData ? dayData.isPositive : false;
+                const isToday = value.isSame(dayjs(), 'day');
+                const hasNotes = tradesOnDay.some(t => t.notes);
+                const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
+
+                return (
+                  <div
+                    key={currentKey}
+                    onClick={() => isCurrentMonth && onSelectDay(value)}
+                    className={`transition-all duration-300 ease-out h-[84px] flex flex-col justify-between p-2 relative group hover:z-20 border border-zinc-150/45 dark:border-white/[0.01] hover:border-zinc-300 dark:hover:border-white/[0.1]
+                      ${!isCurrentMonth ? 'opacity-20 pointer-events-none grayscale' : 'cursor-pointer hover:scale-[1.03] hover:shadow-lg'}
+                      ${totalRR !== null 
+                        ? (isPositive 
+                            ? 'bg-emerald-500/5 dark:bg-emerald-500/15 shadow-[inset_0_0_15px_rgba(16,185,129,0.03)] hover:shadow-emerald-500/20 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20' 
+                            : 'bg-red-500/5 dark:bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.03)] hover:shadow-red-500/20 hover:bg-red-500/10 dark:hover:bg-red-500/20'
+                          )
+                        : 'bg-white hover:bg-zinc-100/50 dark:bg-transparent dark:hover:bg-white/[0.04]'
+                      } 
+                    `}
+                  >
+                    <div className="flex justify-between items-start w-full">
+                      <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isToday ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black border border-emerald-500/20' : 'text-zinc-500 dark:text-zinc-500'}`}>
+                        {value.date()}
+                      </span>
+                      <div className="flex gap-1">
+                        {hasJournal && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Daily Journal written" />
+                        )}
+                        {hasNotes && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" title="Day has notes" />
+                        )}
+                      </div>
+                    </div>
+                    
+                    {totalRR !== null && (
+                      <div className="flex flex-col items-end w-full">
+                        <span className={`text-xs font-black leading-none ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                          {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
+                        </span>
+                        <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-600 mt-0.5">
+                          {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Weekly Summary Column */}
+          <div className="hidden lg:flex flex-col w-[14.2857%] border-l border-zinc-200 dark:border-white/[0.03] -mt-px">
+            {/* Header spacer */}
+            <div className="h-10 flex items-center justify-center border-b border-zinc-200 dark:border-white/[0.03] bg-zinc-50/50 dark:bg-white/[0.01]">
+              <div className="text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500 leading-tight text-center tracking-wider">
+                Weekly<br />Summary
+              </div>
+            </div>
+            
+            <div className="flex flex-col">
+              {weeklyData.map((week, idx) => (
+                <div 
+                  key={idx} 
+                  className={`h-[84px] flex flex-col items-center justify-center relative group transition-colors border-b border-zinc-150/40 dark:border-b-white/[0.02] ${
+                    week.tradesCount > 0 
+                      ? (week.isPositive ? 'bg-emerald-500/[0.01] dark:bg-emerald-500/[0.02]' : 'bg-red-500/[0.01] dark:bg-red-500/[0.02]') 
+                      : 'bg-transparent'
+                  }`}
+                >
+                  {week.tradesCount > 0 ? (
+                    <>
+                      <div className="flex flex-col items-center text-center">
+                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500">
+                          {week.tradesCount} {week.tradesCount === 1 ? 'trade' : 'trades'}
+                        </span>
+                      </div>
+                      
+                      <div className="mt-1 flex flex-col items-center text-center">
+                        <span className={`text-xs font-black leading-none ${week.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                          {week.isPositive ? '+' : ''}{week.totalRR.toFixed(1)}R
+                        </span>
+                      </div>
+
+                      {/* Visual indicator bar */}
+                      <div className={`absolute right-0 top-2 bottom-2 w-0.5 rounded-l-full ${week.isPositive ? 'bg-emerald-500/30' : 'bg-red-500/30'}`} />
+                    </>
+                  ) : (
+                    <span className="text-[10px] font-bold text-zinc-300 dark:text-zinc-700 italic">No activity</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+
       </div>
-    </ConfigProvider>
+      <YearlyPerformance trades={trades} />
+    </div>
   );
 }
