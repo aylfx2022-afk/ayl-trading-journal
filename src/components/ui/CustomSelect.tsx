@@ -107,7 +107,7 @@ export default function CustomSelect({
       >
         <span className="truncate flex items-center gap-1.5">
           {selectedOption?.emoji && <span>{selectedOption.emoji}</span>}
-          <span>{selectedOption ? selectedOption.label : placeholder}</span>
+          <span>{selectedOption ? selectedOption.label : (value || placeholder)}</span>
         </span>
         <ChevronDown 
           size={typeStyle === 'mental' || typeStyle === 'physical' ? 12 : 14} 

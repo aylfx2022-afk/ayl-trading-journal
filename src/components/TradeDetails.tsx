@@ -176,6 +176,71 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [entryDateTime, setEntryDateTime] = useState<Date | null>(getSafeDate(trade.openTime));
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleAIAnalyze = async (url: string) => {
+    if (!auth.currentUser) return;
+    setIsAnalyzing(true);
+    try {
+      const docRef = doc(db, 'userSettings', auth.currentUser.uid);
+      const docSnap = await getDoc(docRef);
+      if (!docSnap.exists()) {
+        alert("Please configure your AI API key in Settings first! / Settings မှာ API Key အရင်သွားထည့်ပေးပါ။");
+        return;
+      }
+      const settings = docSnap.data();
+      const provider = settings.aiProvider || 'gemini';
+      const apiKey = provider === 'openrouter' ? settings.openRouterApiKey : settings.geminiApiKey;
+
+      if (!apiKey || apiKey.trim() === '') {
+        alert(`Please configure your ${provider === 'gemini' ? 'Gemini' : 'OpenRouter'} API Key in Settings first! / Settings မှာ API Key အရင်သွားထည့်ပေးပါ။`);
+        return;
+      }
+
+      const res = await fetch('/api/analyze-chart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl: url, provider, apiKey })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to analyze chart');
+      }
+
+      const data = await res.json();
+      
+      if (data.entryPrice) {
+        setEntryPrice(data.entryPrice.toString());
+        if (data.slPrice) setSlPrice(data.slPrice.toString());
+        if (data.tpPrice) setTpPrice(data.tpPrice.toString());
+        if (data.type === 'buy' || data.type === 'sell') setType(data.type);
+        if (data.pair) setPair(data.pair);
+        if (data.entryTimeframe) setEntryTimeframe(data.entryTimeframe);
+        
+        const details = [
+          `Trade: ${data.type.toUpperCase()}`,
+          `Entry: ${data.entryPrice}`,
+          `SL: ${data.slPrice}`,
+          `TP: ${data.tpPrice}`,
+          data.pair ? `Pair: ${data.pair}` : null,
+          data.entryTimeframe ? `Timeframe: ${data.entryTimeframe}` : null,
+          `Confidence: ${(data.confidence * 100).toFixed(0)}%`,
+          `Notes: ${data.message || 'None'}`
+        ].filter(Boolean).join('\n');
+
+        alert(`AI Analysis Success! / AI ခွဲခြမ်းစိတ်ဖြာမှုအောင်မြင်သည်။\n\n${details}`);
+      } else {
+        throw new Error("No entry price was extracted from the chart.");
+      }
+
+    } catch (err: any) {
+      console.error(err);
+      alert(`AI Analysis Failed: ${err.message || err}\nကျေးဇူးပြု၍ API Key သို့မဟုတ် ပုံလင့်ခ် မှန်မမှန် ပြန်လည်စစ်ဆေးပါ။`);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   React.useEffect(() => {
     const entry = parseFloat(entryPrice);
@@ -536,6 +601,8 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               onRemove={handleRemoveChart}
               onAdd={handleAddChart}
               onViewFullscreen={(url) => setViewerIndex(validChartUrls.indexOf(url))}
+              onAnalyze={handleAIAnalyze}
+              isAnalyzing={isAnalyzing}
             />
           </div>
 

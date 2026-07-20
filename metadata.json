@@ -1,5 +1,6 @@
 {
   "name": "AYL Trading Log",
   "description": "Automated trading journal that parses MT4/5 HTML history using AI to log and analyze trades.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

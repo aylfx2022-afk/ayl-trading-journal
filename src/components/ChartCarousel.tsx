@@ -13,6 +13,8 @@ interface ChartCarouselProps {
   onRemove: (id: string) => void;
   onAdd: () => void;
   onViewFullscreen: (url: string) => void;
+  onAnalyze?: (url: string) => void;
+  isAnalyzing?: boolean;
 }
 
 const slideVariants: any = {
@@ -46,7 +48,9 @@ export default function ChartCarousel({
   onChangeUrl,
   onRemove,
   onAdd,
-  onViewFullscreen
+  onViewFullscreen,
+  onAnalyze,
+  isAnalyzing = false
 }: ChartCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -113,7 +117,7 @@ export default function ChartCarousel({
         </div>
 
         {/* Middle: Integrated URL Input field */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
           <input
             type="text"
             value={currentChart.url}
@@ -121,6 +125,22 @@ export default function ChartCarousel({
             placeholder="Paste TradingView/Image URL here..."
             className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 focus:border-emerald-500/50 focus:outline-none text-xs text-zinc-300 font-mono transition-all placeholder:text-zinc-600 h-[30px]"
           />
+          {onAnalyze && safeIndex === 0 && currentChart.url && currentChart.url.trim() !== '' && (
+            <button
+              type="button"
+              onClick={() => onAnalyze(currentChart.url)}
+              disabled={isAnalyzing}
+              className={`px-3 text-[10px] font-black rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer h-[30px] shrink-0 ${
+                isAnalyzing
+                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 animate-pulse'
+                  : 'bg-emerald-500 text-black font-extrabold shadow-lg hover:bg-emerald-400 active:scale-95'
+              }`}
+              title="AI Analyze Chart (Extract Entry, SL, TP)"
+            >
+              <span>{isAnalyzing ? '⚡' : '✨'}</span>
+              <span>{isAnalyzing ? 'Analyzing...' : 'AI ANALYZE'}</span>
+            </button>
+          )}
         </div>
 
         {/* Right: Actions and Navigation */}
