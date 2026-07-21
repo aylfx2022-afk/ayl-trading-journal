@@ -154,7 +154,7 @@ export default function ImageViewer({ images, initialIndex, onClose, metadata, o
                     ? 'bg-red-500/10 text-red-400 border border-red-500/20'
                     : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
               }`}>
-                {metadata[currentIndex].rr > 0 ? '+' : ''}{metadata[currentIndex].rr.toFixed(2)} R
+                {(metadata[currentIndex].rr || 0) > 0 ? '+' : ''}{(metadata[currentIndex].rr || 0).toFixed(2)} R
               </span>
             )}
           </div>

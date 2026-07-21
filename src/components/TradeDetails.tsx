@@ -225,7 +225,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
           `TP: ${data.tpPrice}`,
           data.pair ? `Pair: ${data.pair}` : null,
           data.entryTimeframe ? `Timeframe: ${data.entryTimeframe}` : null,
-          `Confidence: ${(data.confidence * 100).toFixed(0)}%`,
+          `Confidence: ${data.confidence !== undefined && data.confidence !== null ? (data.confidence * 100).toFixed(0) : 'N/A'}%`,
           `Notes: ${data.message || 'None'}`
         ].filter(Boolean).join('\n');
 

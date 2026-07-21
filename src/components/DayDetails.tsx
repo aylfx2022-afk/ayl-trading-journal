@@ -210,7 +210,7 @@ export default function DayDetails({
                         <span className="text-zinc-600 font-medium">-</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.entryPrice?.toFixed(5) || trade.openPrice.toFixed(5)}</td>
+                    <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.entryPrice?.toFixed(5) || trade.openPrice?.toFixed(5) || '-'}</td>
                     <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.exitPrice?.toFixed(5) || trade.closePrice?.toFixed(5) || '-'}</td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       {(() => {
