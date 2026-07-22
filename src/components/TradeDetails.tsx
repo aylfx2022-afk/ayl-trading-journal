@@ -182,25 +182,21 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
     if (!auth.currentUser) return;
     setIsAnalyzing(true);
     try {
-      const docRef = doc(db, 'userSettings', auth.currentUser.uid);
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) {
-        alert("Please configure your AI API key in Settings first! / Settings မှာ API Key အရင်သွားထည့်ပေးပါ။");
-        return;
-      }
-      const settings = docSnap.data();
-      const provider = settings.aiProvider || 'gemini';
-      const apiKey = provider === 'openrouter' ? settings.openRouterApiKey : settings.geminiApiKey;
-
-      if (!apiKey || apiKey.trim() === '') {
-        alert(`Please configure your ${provider === 'gemini' ? 'Gemini' : 'OpenRouter'} API Key in Settings first! / Settings မှာ API Key အရင်သွားထည့်ပေးပါ။`);
-        return;
+      let provider = 'gemini';
+      try {
+        const docRef = doc(db, 'userSettings', auth.currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          provider = docSnap.data().aiProvider || 'gemini';
+        }
+      } catch (e) {
+        // Fallback to gemini
       }
 
       const res = await fetch('/api/analyze-chart', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl: url, provider, apiKey })
+        body: JSON.stringify({ imageUrl: url, provider })
       });
 
       if (!res.ok) {

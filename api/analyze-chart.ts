@@ -20,14 +20,25 @@ export default async function handler(req: Request, res: Response) {
   }
 
   try {
-    const { imageUrl, provider, apiKey } = req.body;
+    const { imageUrl, provider = "gemini", apiKey: userApiKey } = req.body;
 
     if (!imageUrl) {
       return res.status(400).json({ error: "Image URL is required" });
     }
 
-    if (!apiKey) {
-      return res.status(400).json({ error: "API Key is required. Please set it in Settings." });
+    const effectiveProvider = provider || 'gemini';
+    let apiKey = userApiKey;
+
+    if (effectiveProvider === 'gemini') {
+      apiKey = process.env.GEMINI_API_KEY || userApiKey;
+      if (!apiKey) {
+        return res.status(400).json({ error: "Gemini API Key is not configured on the server. Please set GEMINI_API_KEY in Vercel Environment Variables." });
+      }
+    } else if (effectiveProvider === 'openrouter') {
+      apiKey = process.env.OPENROUTER_API_KEY || userApiKey;
+      if (!apiKey) {
+        return res.status(400).json({ error: "OpenRouter API Key is not configured on the server. Please set OPENROUTER_API_KEY in Vercel Environment Variables." });
+      }
     }
 
     // Fetch image and convert to base64

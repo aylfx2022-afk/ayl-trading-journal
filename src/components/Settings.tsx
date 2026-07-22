@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
-import { LogOut, Plus, X, Download, Upload, Calendar, Trash2, Cpu, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { LogOut, Plus, X, Download, Upload, Trash2, Cpu, CheckCircle2 } from 'lucide-react';
 import { signOut } from 'firebase/auth';
-import { doc, getDoc, setDoc, collection, addDoc, getDocs, where, query, writeBatch, Timestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, collection, getDocs, where, query, writeBatch, Timestamp } from 'firebase/firestore';
 import { Trade } from '../types';
 import { getSafeDate } from '../lib/dateUtils';
 
@@ -16,15 +16,6 @@ export default function Settings({ trades = [], journals = [], activeAccountId }
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
 
-  // AI Configuration State
-  const [aiProvider, setAiProvider] = useState<'gemini' | 'openrouter'>('gemini');
-  const [geminiApiKey, setGeminiApiKey] = useState('');
-  const [openRouterApiKey, setOpenRouterApiKey] = useState('');
-  const [showGeminiKey, setShowGeminiKey] = useState(false);
-  const [showOpenRouterKey, setShowOpenRouterKey] = useState(false);
-  const [isSavingAI, setIsSavingAI] = useState(false);
-  const [aiSaveSuccess, setAiSaveSuccess] = useState(false);
-  
   // Bulk Delete State
   const [startDate, setStartDate] = useState('2020-01-01');
   const [endDate, setEndDate] = useState('2020-01-31');
@@ -53,38 +44,11 @@ export default function Settings({ trades = [], journals = [], activeAccountId }
         if (docSnap.exists()) {
           const data = docSnap.data();
           setTags(data.customTags || []);
-          setAiProvider(data.aiProvider || 'gemini');
-          setGeminiApiKey(data.geminiApiKey || '');
-          setOpenRouterApiKey(data.openRouterApiKey || '');
         }
       }
     };
     fetchSettings();
   }, []);
-
-  const handleSaveAISettings = async () => {
-    if (!auth.currentUser) return;
-    setIsSavingAI(true);
-    setAiSaveSuccess(false);
-    try {
-      await setDoc(
-        doc(db, 'userSettings', auth.currentUser.uid),
-        {
-          aiProvider,
-          geminiApiKey,
-          openRouterApiKey
-        },
-        { merge: true }
-      );
-      setAiSaveSuccess(true);
-      setTimeout(() => setAiSaveSuccess(false), 3000);
-    } catch (err) {
-      console.error("Failed to save AI settings:", err);
-      alert("Failed to save AI settings.");
-    } finally {
-      setIsSavingAI(false);
-    }
-  };
 
   const saveTags = async (newTags: string[]) => {
     if (auth.currentUser) {
@@ -277,129 +241,21 @@ export default function Settings({ trades = [], journals = [], activeAccountId }
       <div className="bg-[#0F0F0F] border border-white/5 rounded-3xl p-8 space-y-6">
         <div className="flex items-center gap-3 text-emerald-500">
           <Cpu size={24} />
-          <h2 className="text-xl font-bold text-white">AI Chart Analysis (မြန်မာ/English)</h2>
+          <h2 className="text-xl font-bold text-white">AI Chart Analysis (Server-Side Integration)</h2>
         </div>
 
         <p className="text-sm text-zinc-400 leading-relaxed">
-          TradingView screenshot သို့မဟုတ် image URL မှ Long/Short tool ရဲ့ ဈေးနှုန်းများ (Entry, SL, TP) ကို AI အသုံးပြုပြီး Auto-analyze လုပ်ကာ ဖြည့်ပေးမည့် စနစ်ဖြစ်ပါသည်။ သင့်ကိုယ်ပိုင် Gemini သို့မဟုတ် OpenRouter API Key ကို အသုံးပြုနိုင်ပါသည်။
+          TradingView screenshot သို့မဟုတ် image URL မှ Long/Short tool ရဲ့ ဈေးနှုန်းများ (Entry, SL, TP) ကို AI အသုံးပြုပြီး Auto-analyze လုပ်ကာ ဖြည့်ပေးမည့် စနစ်ဖြစ်ပါသည်။
         </p>
 
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-xs text-zinc-500 font-bold tracking-wider uppercase">Choose AI Provider / AI အမျိုးအစား</label>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => setAiProvider('gemini')}
-                className={`py-3 px-4 rounded-xl border text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                  aiProvider === 'gemini'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                    : 'bg-[#141414] border-white/10 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-                }`}
-              >
-                <span>Google Gemini API</span>
-                <span className="text-[10px] font-medium opacity-80">(Recommended / အကြံပြုချက်)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setAiProvider('openrouter')}
-                className={`py-3 px-4 rounded-xl border text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all cursor-pointer ${
-                  aiProvider === 'openrouter'
-                    ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                    : 'bg-[#141414] border-white/10 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-                }`}
-              >
-                <span>OpenRouter API</span>
-                <span className="text-[10px] font-medium opacity-80">(Supports multiple models)</span>
-              </button>
-            </div>
+        <div className="bg-[#141414] border border-emerald-500/20 rounded-2xl p-5 space-y-3">
+          <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+            <CheckCircle2 size={18} />
+            <span>Server Environment Variable Enabled (Vercel Integration)</span>
           </div>
-
-          {aiProvider === 'gemini' ? (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-zinc-500 font-bold tracking-wider uppercase">Gemini API Key</label>
-                <a
-                  href="https://aistudio.google.com/app/apikey"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold text-emerald-500 hover:underline uppercase tracking-wider"
-                >
-                  Get Gemini Key ↗
-                </a>
-              </div>
-              <div className="relative">
-                <input
-                  type={showGeminiKey ? 'text' : 'password'}
-                  value={geminiApiKey}
-                  onChange={(e) => setGeminiApiKey(e.target.value)}
-                  placeholder="AIStudio မှ ရရှိသော API Key ကို ဖြည့်ပါ..."
-                  className="w-full bg-[#141414] border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/50 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowGeminiKey(!showGeminiKey)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-all"
-                >
-                  {showGeminiKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs text-zinc-500 font-bold tracking-wider uppercase">OpenRouter API Key</label>
-                <a
-                  href="https://openrouter.ai/keys"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[10px] font-bold text-emerald-500 hover:underline uppercase tracking-wider"
-                >
-                  Get OpenRouter Key ↗
-                </a>
-              </div>
-              <div className="relative">
-                <input
-                  type={showOpenRouterKey ? 'text' : 'password'}
-                  value={openRouterApiKey}
-                  onChange={(e) => setOpenRouterApiKey(e.target.value)}
-                  placeholder="sk-or-v1-... စသည့် OpenRouter API Key ကို ဖြည့်ပါ..."
-                  className="w-full bg-[#141414] border border-white/10 rounded-xl pl-4 pr-12 py-3 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/50 font-mono"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowOpenRouterKey(!showOpenRouterKey)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-all"
-                >
-                  {showOpenRouterKey ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between pt-2">
-          {aiSaveSuccess ? (
-            <div className="flex items-center gap-1.5 text-emerald-400 text-xs font-bold bg-emerald-500/5 border border-emerald-500/10 px-3 py-1.5 rounded-lg">
-              <CheckCircle2 size={14} />
-              AI Settings saved!
-            </div>
-          ) : (
-            <div />
-          )}
-
-          <button
-            type="button"
-            onClick={handleSaveAISettings}
-            disabled={isSavingAI}
-            className={`px-6 py-2.5 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-              isSavingAI
-                ? 'bg-zinc-800 text-zinc-600 cursor-not-allowed'
-                : 'bg-emerald-500 text-black hover:bg-emerald-400 active:scale-95'
-            }`}
-          >
-            {isSavingAI ? 'Saving...' : 'Save AI Config'}
-          </button>
+          <p className="text-xs text-zinc-400 leading-relaxed">
+            AI Chart Analysis သည် Vercel Environment Variables (<code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded font-mono">GEMINI_API_KEY</code>) ကို အသုံးပြု၍ Server-side မှ တိုက်ရိုက် အလုပ်လုပ်ပါသည်။ App Settings တွင် API Key ထည့်ရန် မလိုတော့ပါ။
+          </p>
         </div>
       </div>
 
