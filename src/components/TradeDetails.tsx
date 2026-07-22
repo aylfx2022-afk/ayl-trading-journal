@@ -238,6 +238,15 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   };
 
   React.useEffect(() => {
+    if (aiNotice) {
+      const timer = setTimeout(() => {
+        setAiNotice(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [aiNotice]);
+
+  React.useEffect(() => {
     const entry = parseFloat(entryPrice);
     const sl = parseFloat(slPrice);
     const exit = parseFloat(exitPrice);
@@ -590,92 +599,6 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
           {/* Right Column (70% width) - Premium Chart Carousel Slider */}
           <div className="lg:col-span-7 lg:h-full lg:flex lg:flex-col lg:overflow-hidden">
-            <AnimatePresence>
-              {aiNotice && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                  className={`p-3.5 rounded-2xl border mb-3 text-xs shadow-xl backdrop-blur-md ${
-                    aiNotice.type === 'success'
-                      ? 'bg-emerald-950/60 border-emerald-500/30 text-emerald-200'
-                      : 'bg-red-950/60 border-red-500/30 text-red-200'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-2.5">
-                      {aiNotice.type === 'success' ? (
-                        <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg shrink-0">
-                          <Sparkles size={16} />
-                        </div>
-                      ) : (
-                        <div className="p-1.5 bg-red-500/20 text-red-400 rounded-lg shrink-0">
-                          <AlertCircle size={16} />
-                        </div>
-                      )}
-                      <div className="space-y-1">
-                        <p className="font-bold text-xs text-white flex items-center gap-1.5">
-                          <span>{aiNotice.type === 'success' ? '✨ AI Chart Analysis Auto-Filled' : '⚠️ AI Analysis Failed'}</span>
-                          <span className="text-[10px] font-normal opacity-70">
-                            {aiNotice.type === 'success' ? '(အလိုအလျောက် ဖြည့်သွင်းပြီးပါပြီ)' : '(မအောင်မြင်ပါ)'}
-                          </span>
-                        </p>
-                        {aiNotice.type === 'success' && aiNotice.data && (
-                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                            {aiNotice.data.type && (
-                              <span className={`px-2 py-0.5 rounded-md font-black text-[10px] uppercase tracking-wider ${
-                                aiNotice.data.type === 'buy' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                              }`}>
-                                {aiNotice.data.type}
-                              </span>
-                            )}
-                            {aiNotice.data.pair && (
-                              <span className="px-2 py-0.5 bg-white/10 text-zinc-200 rounded-md font-bold text-[10px]">
-                                Pair: {aiNotice.data.pair}
-                              </span>
-                            )}
-                            {aiNotice.data.entryTimeframe && (
-                              <span className="px-2 py-0.5 bg-white/10 text-zinc-200 rounded-md font-bold text-[10px]">
-                                TF: {aiNotice.data.entryTimeframe}
-                              </span>
-                            )}
-                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md font-mono font-bold text-[10px]">
-                              Entry: {aiNotice.data.entryPrice}
-                            </span>
-                            {aiNotice.data.slPrice && (
-                              <span className="px-2 py-0.5 bg-red-500/20 text-red-300 rounded-md font-mono font-bold text-[10px]">
-                                SL: {aiNotice.data.slPrice}
-                              </span>
-                            )}
-                            {aiNotice.data.tpPrice && (
-                              <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md font-mono font-bold text-[10px]">
-                                TP: {aiNotice.data.tpPrice}
-                              </span>
-                            )}
-                            {aiNotice.data.confidence !== undefined && (
-                              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-md font-bold text-[10px]">
-                                Confidence: {(aiNotice.data.confidence * 100).toFixed(0)}%
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {aiNotice.type === 'error' && (
-                          <p className="text-red-300/90 text-[11px]">{aiNotice.details}</p>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setAiNotice(null)}
-                      className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <ChartCarousel
               charts={charts}
               onChangeUrl={handleChartUrlChange}
@@ -689,6 +612,84 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
         </div>
       </div>
+
+      <AnimatePresence>
+        {aiNotice && (
+          <motion.div
+            initial={{ opacity: 0, x: 100, scale: 0.95 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 120, transition: { duration: 0.25 } }}
+            className={`fixed bottom-6 right-6 z-50 w-84 max-w-[calc(100vw-2rem)] p-4 rounded-2xl border text-xs shadow-2xl backdrop-blur-xl pointer-events-auto ${
+              aiNotice.type === 'success'
+                ? 'bg-zinc-950/95 border-emerald-500/40 text-emerald-200 shadow-emerald-950/50'
+                : 'bg-zinc-950/95 border-red-500/40 text-red-200 shadow-red-950/50'
+            }`}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-2.5">
+                {aiNotice.type === 'success' ? (
+                  <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg shrink-0">
+                    <Sparkles size={16} />
+                  </div>
+                ) : (
+                  <div className="p-1.5 bg-red-500/20 text-red-400 rounded-lg shrink-0">
+                    <AlertCircle size={16} />
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <p className="font-bold text-xs text-white flex items-center gap-1.5">
+                    <span>{aiNotice.type === 'success' ? '✨ AI Analysis Auto-Filled' : '⚠️ AI Analysis Failed'}</span>
+                  </p>
+                  {aiNotice.type === 'success' && aiNotice.data && (
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      {aiNotice.data.type && (
+                        <span className={`px-2 py-0.5 rounded-md font-black text-[10px] uppercase tracking-wider ${
+                          aiNotice.data.type === 'buy' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                        }`}>
+                          {aiNotice.data.type}
+                        </span>
+                      )}
+                      {aiNotice.data.pair && (
+                        <span className="px-2 py-0.5 bg-white/10 text-zinc-200 rounded-md font-bold text-[10px]">
+                          Pair: {aiNotice.data.pair}
+                        </span>
+                      )}
+                      {aiNotice.data.entryTimeframe && (
+                        <span className="px-2 py-0.5 bg-white/10 text-zinc-200 rounded-md font-bold text-[10px]">
+                          TF: {aiNotice.data.entryTimeframe}
+                        </span>
+                      )}
+                      <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md font-mono font-bold text-[10px]">
+                        Entry: {aiNotice.data.entryPrice}
+                      </span>
+                      {aiNotice.data.slPrice && (
+                        <span className="px-2 py-0.5 bg-red-500/20 text-red-300 rounded-md font-mono font-bold text-[10px]">
+                          SL: {aiNotice.data.slPrice}
+                        </span>
+                      )}
+                      {aiNotice.data.tpPrice && (
+                        <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md font-mono font-bold text-[10px]">
+                          TP: {aiNotice.data.tpPrice}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {aiNotice.type === 'error' && (
+                    <p className="text-red-300/90 text-[11px] leading-relaxed">{aiNotice.details}</p>
+                  )}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiNotice(null)}
+                className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {viewerIndex !== null && (
