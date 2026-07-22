@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2, Check } from 'lucide-react';
+import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2, Check, Sparkles, AlertCircle } from 'lucide-react';
 import { getSafeDate } from '../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
@@ -177,10 +177,12 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [aiNotice, setAiNotice] = useState<{ type: 'success' | 'error'; title: string; details?: string; data?: any } | null>(null);
 
   const handleAIAnalyze = async (url: string) => {
     if (!auth.currentUser) return;
     setIsAnalyzing(true);
+    setAiNotice(null);
     try {
       let provider = 'gemini';
       try {
@@ -214,25 +216,22 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         if (data.pair) setPair(data.pair);
         if (data.entryTimeframe) setEntryTimeframe(data.entryTimeframe);
         
-        const details = [
-          `Trade: ${data.type.toUpperCase()}`,
-          `Entry: ${data.entryPrice}`,
-          `SL: ${data.slPrice}`,
-          `TP: ${data.tpPrice}`,
-          data.pair ? `Pair: ${data.pair}` : null,
-          data.entryTimeframe ? `Timeframe: ${data.entryTimeframe}` : null,
-          `Confidence: ${data.confidence !== undefined && data.confidence !== null ? (data.confidence * 100).toFixed(0) : 'N/A'}%`,
-          `Notes: ${data.message || 'None'}`
-        ].filter(Boolean).join('\n');
-
-        alert(`AI Analysis Success! / AI ခွဲခြမ်းစိတ်ဖြာမှုအောင်မြင်သည်။\n\n${details}`);
+        setAiNotice({
+          type: 'success',
+          title: 'AI Analysis Complete! Parameters auto-filled.',
+          data: data
+        });
       } else {
         throw new Error("No entry price was extracted from the chart.");
       }
 
     } catch (err: any) {
       console.error(err);
-      alert(`AI Analysis Failed: ${err.message || err}\nကျေးဇူးပြု၍ API Key သို့မဟုတ် ပုံလင့်ခ် မှန်မမှန် ပြန်လည်စစ်ဆေးပါ။`);
+      setAiNotice({
+        type: 'error',
+        title: 'AI Analysis Failed',
+        details: err.message || String(err)
+      });
     } finally {
       setIsAnalyzing(false);
     }
@@ -591,6 +590,92 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
           {/* Right Column (70% width) - Premium Chart Carousel Slider */}
           <div className="lg:col-span-7 lg:h-full lg:flex lg:flex-col lg:overflow-hidden">
+            <AnimatePresence>
+              {aiNotice && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                  className={`p-3.5 rounded-2xl border mb-3 text-xs shadow-xl backdrop-blur-md ${
+                    aiNotice.type === 'success'
+                      ? 'bg-emerald-950/60 border-emerald-500/30 text-emerald-200'
+                      : 'bg-red-950/60 border-red-500/30 text-red-200'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2.5">
+                      {aiNotice.type === 'success' ? (
+                        <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg shrink-0">
+                          <Sparkles size={16} />
+                        </div>
+                      ) : (
+                        <div className="p-1.5 bg-red-500/20 text-red-400 rounded-lg shrink-0">
+                          <AlertCircle size={16} />
+                        </div>
+                      )}
+                      <div className="space-y-1">
+                        <p className="font-bold text-xs text-white flex items-center gap-1.5">
+                          <span>{aiNotice.type === 'success' ? '✨ AI Chart Analysis Auto-Filled' : '⚠️ AI Analysis Failed'}</span>
+                          <span className="text-[10px] font-normal opacity-70">
+                            {aiNotice.type === 'success' ? '(အလိုအလျောက် ဖြည့်သွင်းပြီးပါပြီ)' : '(မအောင်မြင်ပါ)'}
+                          </span>
+                        </p>
+                        {aiNotice.type === 'success' && aiNotice.data && (
+                          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                            {aiNotice.data.type && (
+                              <span className={`px-2 py-0.5 rounded-md font-black text-[10px] uppercase tracking-wider ${
+                                aiNotice.data.type === 'buy' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                              }`}>
+                                {aiNotice.data.type}
+                              </span>
+                            )}
+                            {aiNotice.data.pair && (
+                              <span className="px-2 py-0.5 bg-white/10 text-zinc-200 rounded-md font-bold text-[10px]">
+                                Pair: {aiNotice.data.pair}
+                              </span>
+                            )}
+                            {aiNotice.data.entryTimeframe && (
+                              <span className="px-2 py-0.5 bg-white/10 text-zinc-200 rounded-md font-bold text-[10px]">
+                                TF: {aiNotice.data.entryTimeframe}
+                              </span>
+                            )}
+                            <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md font-mono font-bold text-[10px]">
+                              Entry: {aiNotice.data.entryPrice}
+                            </span>
+                            {aiNotice.data.slPrice && (
+                              <span className="px-2 py-0.5 bg-red-500/20 text-red-300 rounded-md font-mono font-bold text-[10px]">
+                                SL: {aiNotice.data.slPrice}
+                              </span>
+                            )}
+                            {aiNotice.data.tpPrice && (
+                              <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-md font-mono font-bold text-[10px]">
+                                TP: {aiNotice.data.tpPrice}
+                              </span>
+                            )}
+                            {aiNotice.data.confidence !== undefined && (
+                              <span className="px-2 py-0.5 bg-purple-500/20 text-purple-300 rounded-md font-bold text-[10px]">
+                                Confidence: {(aiNotice.data.confidence * 100).toFixed(0)}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        {aiNotice.type === 'error' && (
+                          <p className="text-red-300/90 text-[11px]">{aiNotice.details}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAiNotice(null)}
+                      className="text-zinc-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-all cursor-pointer"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <ChartCarousel
               charts={charts}
               onChangeUrl={handleChartUrlChange}
