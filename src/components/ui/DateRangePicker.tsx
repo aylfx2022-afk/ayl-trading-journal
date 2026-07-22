@@ -30,23 +30,41 @@ export default function DateRangePicker({
     return d;
   });
 
+  const [leftViewMode, setLeftViewMode] = useState<'days' | 'months' | 'years'>('days');
+  const [rightViewMode, setRightViewMode] = useState<'days' | 'months' | 'years'>('days');
+
+  const [leftYearRangeStart, setLeftYearRangeStart] = useState(() => Math.floor(leftViewDate.getFullYear() / 12) * 12);
+  const [rightYearRangeStart, setRightYearRangeStart] = useState(() => Math.floor(rightViewDate.getFullYear() / 12) * 12);
+
   // Sync view states if values change from props
   useEffect(() => {
     if (startDate) {
       setLeftViewDate(startDate);
+      setLeftYearRangeStart(Math.floor(startDate.getFullYear() / 12) * 12);
     }
   }, [startDate]);
 
   useEffect(() => {
     if (endDate) {
       setRightViewDate(endDate);
+      setRightYearRangeStart(Math.floor(endDate.getFullYear() / 12) * 12);
     } else {
       // Set right calendar to one month ahead of left
       const nextMonth = new Date(leftViewDate);
       nextMonth.setMonth(nextMonth.getMonth() + 1);
       setRightViewDate(nextMonth);
+      setRightYearRangeStart(Math.floor(nextMonth.getFullYear() / 12) * 12);
     }
   }, [endDate, leftViewDate]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLeftViewMode('days');
+      setRightViewMode('days');
+      setLeftYearRangeStart(Math.floor(leftViewDate.getFullYear() / 12) * 12);
+      setRightYearRangeStart(Math.floor(rightViewDate.getFullYear() / 12) * 12);
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -99,6 +117,11 @@ export default function DateRangePicker({
   const months = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  const monthsShort = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
   ];
 
   // Range helper to highlight intermediate dates
@@ -174,120 +197,388 @@ export default function DateRangePicker({
                 
                 {/* LEFT CALENDAR: START DATE */}
                 <div className="pb-4 md:pb-0">
-                  <div className="flex items-center justify-between mb-4">
-                    <button
-                      type="button"
-                      onClick={() => setLeftViewDate(new Date(leftViewDate.getFullYear(), leftViewDate.getMonth() - 1, 1))}
-                      className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <div className="font-bold text-xs select-none tracking-wider text-emerald-500 bg-emerald-500/5 px-2.5 py-1 rounded-full border border-emerald-500/10">
-                      START: {months[leftViewDate.getMonth()]} {leftViewDate.getFullYear()}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setLeftViewDate(new Date(leftViewDate.getFullYear(), leftViewDate.getMonth() + 1, 1))}
-                      className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                      <div key={day} className="text-[10px] uppercase font-black text-zinc-500 py-1 tracking-wider">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1">
-                    {getDaysArray(leftViewDate).map((cell, idx) => {
-                      const isStart = isSelectedStart(cell.date);
-                      const isEnd = isSelectedEnd(cell.date);
-                      const inRange = isInRange(cell.date);
-                      
-                      return (
+                  {/* Header based on leftViewMode */}
+                  {leftViewMode === 'days' && (
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setLeftViewDate(new Date(leftViewDate.getFullYear(), leftViewDate.getMonth() - 1, 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Previous Month"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="font-bold text-xs select-none tracking-wider text-emerald-500 bg-emerald-500/5 px-2 py-1 rounded-lg border border-emerald-500/10 flex items-center gap-1">
+                        <span className="text-[10px] text-zinc-500 uppercase mr-0.5">START:</span>
                         <button
-                          key={`start-${idx}`}
                           type="button"
-                          onClick={() => selectDate(cell.date, 'start')}
-                          className={`h-8 w-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center relative cursor-pointer
-                            ${!cell.isCurrentMonth ? 'text-zinc-700 hover:text-zinc-500' : 'text-zinc-200'}
-                            ${isStart 
-                              ? 'bg-emerald-500 text-black font-black hover:bg-emerald-400' 
-                              : inRange
-                                ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
-                                : 'hover:bg-white/5'
-                            }
-                          `}
+                          onClick={() => setLeftViewMode('months')}
+                          className="hover:bg-emerald-500/20 px-1.5 py-0.5 rounded transition-all cursor-pointer"
                         >
-                          {cell.date.getDate()}
-                          {isStart && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-black" />}
+                          {months[leftViewDate.getMonth()]}
                         </button>
-                      );
-                    })}
-                  </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLeftYearRangeStart(Math.floor(leftViewDate.getFullYear() / 12) * 12);
+                            setLeftViewMode('years');
+                          }}
+                          className="hover:bg-emerald-500/20 px-1.5 py-0.5 rounded transition-all cursor-pointer"
+                        >
+                          {leftViewDate.getFullYear()}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLeftViewDate(new Date(leftViewDate.getFullYear(), leftViewDate.getMonth() + 1, 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Next Month"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {leftViewMode === 'months' && (
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setLeftViewDate(new Date(leftViewDate.getFullYear() - 1, leftViewDate.getMonth(), 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Previous Year"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="font-bold text-xs select-none tracking-wider text-emerald-400 flex items-center gap-1">
+                        <span className="text-[10px] text-zinc-500">START MONTH:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setLeftYearRangeStart(Math.floor(leftViewDate.getFullYear() / 12) * 12);
+                            setLeftViewMode('years');
+                          }}
+                          className="px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 cursor-pointer"
+                        >
+                          {leftViewDate.getFullYear()}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLeftViewDate(new Date(leftViewDate.getFullYear() + 1, leftViewDate.getMonth(), 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Next Year"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {leftViewMode === 'years' && (
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setLeftYearRangeStart(leftYearRangeStart - 12)}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Previous 12 Years"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="font-extrabold text-xs select-none tracking-wider text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                        START: {leftYearRangeStart} – {leftYearRangeStart + 11}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLeftYearRangeStart(leftYearRangeStart + 12)}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Next 12 Years"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Left Calendar Content */}
+                  {leftViewMode === 'days' && (
+                    <>
+                      <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                          <div key={day} className="text-[10px] uppercase font-black text-zinc-500 py-1 tracking-wider">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1">
+                        {getDaysArray(leftViewDate).map((cell, idx) => {
+                          const isStart = isSelectedStart(cell.date);
+                          const inRange = isInRange(cell.date);
+                          
+                          return (
+                            <button
+                              key={`start-${idx}`}
+                              type="button"
+                              onClick={() => selectDate(cell.date, 'start')}
+                              className={`h-8 w-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center relative cursor-pointer
+                                ${!cell.isCurrentMonth ? 'text-zinc-700 hover:text-zinc-500' : 'text-zinc-200'}
+                                ${isStart 
+                                  ? 'bg-emerald-500 text-black font-black hover:bg-emerald-400' 
+                                  : inRange
+                                    ? 'bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25'
+                                    : 'hover:bg-white/5'
+                                }
+                              `}
+                            >
+                              {cell.date.getDate()}
+                              {isStart && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-black" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {leftViewMode === 'months' && (
+                    <div className="grid grid-cols-3 gap-2 py-2">
+                      {monthsShort.map((mName, mIdx) => {
+                        const isCurrentMonth = mIdx === leftViewDate.getMonth();
+                        return (
+                          <button
+                            key={`left-m-${mName}`}
+                            type="button"
+                            onClick={() => {
+                              setLeftViewDate(new Date(leftViewDate.getFullYear(), mIdx, 1));
+                              setLeftViewMode('days');
+                            }}
+                            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                              isCurrentMonth
+                                ? 'bg-emerald-500 text-black font-black shadow-lg shadow-emerald-500/20'
+                                : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                            }`}
+                          >
+                            {mName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {leftViewMode === 'years' && (
+                    <div className="grid grid-cols-3 gap-2 py-2">
+                      {Array.from({ length: 12 }, (_, i) => leftYearRangeStart + i).map((yNum) => {
+                        const isCurrentYear = yNum === leftViewDate.getFullYear();
+                        return (
+                          <button
+                            key={`left-y-${yNum}`}
+                            type="button"
+                            onClick={() => {
+                              setLeftViewDate(new Date(yNum, leftViewDate.getMonth(), 1));
+                              setLeftViewMode('months');
+                            }}
+                            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                              isCurrentYear
+                                ? 'bg-emerald-500 text-black font-black shadow-lg shadow-emerald-500/20'
+                                : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                            }`}
+                          >
+                            {yNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
                 {/* RIGHT CALENDAR: END DATE */}
                 <div className="pt-4 md:pt-0 md:pl-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <button
-                      type="button"
-                      onClick={() => setRightViewDate(new Date(rightViewDate.getFullYear(), rightViewDate.getMonth() - 1, 1))}
-                      className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
-                    >
-                      <ChevronLeft size={16} />
-                    </button>
-                    <div className="font-bold text-xs select-none tracking-wider text-rose-500 bg-rose-500/5 px-2.5 py-1 rounded-full border border-rose-500/10">
-                      END: {months[rightViewDate.getMonth()]} {rightViewDate.getFullYear()}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setRightViewDate(new Date(rightViewDate.getFullYear(), rightViewDate.getMonth() + 1, 1))}
-                      className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
-                    >
-                      <ChevronRight size={16} />
-                    </button>
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
-                      <div key={day} className="text-[10px] uppercase font-black text-zinc-500 py-1 tracking-wider">
-                        {day}
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-1">
-                    {getDaysArray(rightViewDate).map((cell, idx) => {
-                      const isStart = isSelectedStart(cell.date);
-                      const isEnd = isSelectedEnd(cell.date);
-                      const inRange = isInRange(cell.date);
-
-                      return (
+                  {/* Header based on rightViewMode */}
+                  {rightViewMode === 'days' && (
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setRightViewDate(new Date(rightViewDate.getFullYear(), rightViewDate.getMonth() - 1, 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Previous Month"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="font-bold text-xs select-none tracking-wider text-rose-500 bg-rose-500/5 px-2 py-1 rounded-lg border border-rose-500/10 flex items-center gap-1">
+                        <span className="text-[10px] text-zinc-500 uppercase mr-0.5">END:</span>
                         <button
-                          key={`end-${idx}`}
                           type="button"
-                          onClick={() => selectDate(cell.date, 'end')}
-                          className={`h-8 w-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center relative cursor-pointer
-                            ${!cell.isCurrentMonth ? 'text-zinc-700 hover:text-zinc-500' : 'text-zinc-200'}
-                            ${isEnd 
-                              ? 'bg-rose-500 text-white font-black hover:bg-rose-400' 
-                              : inRange
-                                ? 'bg-rose-500/15 text-rose-400 hover:bg-rose-500/25'
-                                : 'hover:bg-white/5'
-                            }
-                          `}
+                          onClick={() => setRightViewMode('months')}
+                          className="hover:bg-rose-500/20 px-1.5 py-0.5 rounded transition-all cursor-pointer"
                         >
-                          {cell.date.getDate()}
-                          {isEnd && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-white" />}
+                          {months[rightViewDate.getMonth()]}
                         </button>
-                      );
-                    })}
-                  </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRightYearRangeStart(Math.floor(rightViewDate.getFullYear() / 12) * 12);
+                            setRightViewMode('years');
+                          }}
+                          className="hover:bg-rose-500/20 px-1.5 py-0.5 rounded transition-all cursor-pointer"
+                        >
+                          {rightViewDate.getFullYear()}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRightViewDate(new Date(rightViewDate.getFullYear(), rightViewDate.getMonth() + 1, 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Next Month"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {rightViewMode === 'months' && (
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setRightViewDate(new Date(rightViewDate.getFullYear() - 1, rightViewDate.getMonth(), 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Previous Year"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="font-bold text-xs select-none tracking-wider text-rose-400 flex items-center gap-1">
+                        <span className="text-[10px] text-zinc-500">END MONTH:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRightYearRangeStart(Math.floor(rightViewDate.getFullYear() / 12) * 12);
+                            setRightViewMode('years');
+                          }}
+                          className="px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 cursor-pointer"
+                        >
+                          {rightViewDate.getFullYear()}
+                        </button>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRightViewDate(new Date(rightViewDate.getFullYear() + 1, rightViewDate.getMonth(), 1))}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Next Year"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {rightViewMode === 'years' && (
+                    <div className="flex items-center justify-between mb-4">
+                      <button
+                        type="button"
+                        onClick={() => setRightYearRangeStart(rightYearRangeStart - 12)}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Previous 12 Years"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="font-extrabold text-xs select-none tracking-wider text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20">
+                        END: {rightYearRangeStart} – {rightYearRangeStart + 11}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setRightYearRangeStart(rightYearRangeStart + 12)}
+                        className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                        title="Next 12 Years"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Right Calendar Content */}
+                  {rightViewMode === 'days' && (
+                    <>
+                      <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((day) => (
+                          <div key={day} className="text-[10px] uppercase font-black text-zinc-500 py-1 tracking-wider">
+                            {day}
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-7 gap-1">
+                        {getDaysArray(rightViewDate).map((cell, idx) => {
+                          const isEnd = isSelectedEnd(cell.date);
+                          const inRange = isInRange(cell.date);
+
+                          return (
+                            <button
+                              key={`end-${idx}`}
+                              type="button"
+                              onClick={() => selectDate(cell.date, 'end')}
+                              className={`h-8 w-8 rounded-lg text-xs font-bold transition-all flex items-center justify-center relative cursor-pointer
+                                ${!cell.isCurrentMonth ? 'text-zinc-700 hover:text-zinc-500' : 'text-zinc-200'}
+                                ${isEnd 
+                                  ? 'bg-rose-500 text-white font-black hover:bg-rose-400' 
+                                  : inRange
+                                    ? 'bg-rose-500/15 text-rose-400 hover:bg-rose-500/25'
+                                    : 'hover:bg-white/5'
+                                }
+                              `}
+                            >
+                              {cell.date.getDate()}
+                              {isEnd && <span className="absolute bottom-1 w-1 h-1 rounded-full bg-white" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+
+                  {rightViewMode === 'months' && (
+                    <div className="grid grid-cols-3 gap-2 py-2">
+                      {monthsShort.map((mName, mIdx) => {
+                        const isCurrentMonth = mIdx === rightViewDate.getMonth();
+                        return (
+                          <button
+                            key={`right-m-${mName}`}
+                            type="button"
+                            onClick={() => {
+                              setRightViewDate(new Date(rightViewDate.getFullYear(), mIdx, 1));
+                              setRightViewMode('days');
+                            }}
+                            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                              isCurrentMonth
+                                ? 'bg-rose-500 text-white font-black shadow-lg shadow-rose-500/20'
+                                : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                            }`}
+                          >
+                            {mName}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {rightViewMode === 'years' && (
+                    <div className="grid grid-cols-3 gap-2 py-2">
+                      {Array.from({ length: 12 }, (_, i) => rightYearRangeStart + i).map((yNum) => {
+                        const isCurrentYear = yNum === rightViewDate.getFullYear();
+                        return (
+                          <button
+                            key={`right-y-${yNum}`}
+                            type="button"
+                            onClick={() => {
+                              setRightViewDate(new Date(yNum, rightViewDate.getMonth(), 1));
+                              setRightViewMode('months');
+                            }}
+                            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                              isCurrentYear
+                                ? 'bg-rose-500 text-white font-black shadow-lg shadow-rose-500/20'
+                                : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                            }`}
+                          >
+                            {yNum}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
               </div>

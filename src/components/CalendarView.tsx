@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { Trade } from '../types';
@@ -20,6 +20,22 @@ const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function CalendarView({ trades, onSelectTrade, onSelectDay, panelDate, setPanelDate, journals }: CalendarViewProps) {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [pickerMode, setPickerMode] = useState<'months' | 'years'>('months');
+  const [yearRangeStart, setYearRangeStart] = useState(() => Math.floor(panelDate.year() / 12) * 12);
+
+  const pickerContainerRef = useRef<HTMLDivElement>(null);
+
+  // Close picker on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (pickerContainerRef.current && !pickerContainerRef.current.contains(event.target as Node)) {
+        setIsPickerOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Optimize: Group trades by date and pre-calculate totals to avoid repeated iteration in cell renders
   const tradesByDate = useMemo(() => {
@@ -118,17 +134,6 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
     return days;
   }, [panelDate]);
 
-  const yearOptions = useMemo(() => {
-    const years = [];
-    const currentYearVal = dayjs().year();
-    const startYear = currentYearVal - 10;
-    const endYear = currentYearVal + 10;
-    for (let y = startYear; y <= endYear; y++) {
-      years.push(y);
-    }
-    return years;
-  }, []);
-
   return (
     <div className="grid grid-cols-1 gap-4">
       <div className="rounded-2xl bg-white dark:bg-[#0F0F0F] border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
@@ -137,36 +142,229 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
         <div className="p-4 border-b border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.01]">
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
             
-            {/* View Month Title & Arrow Controls */}
-            <div className="flex items-center gap-4">
-              <span className="text-sm font-black text-zinc-700 dark:text-zinc-300">
-                {panelDate.format('MMMM, YYYY')}
-              </span>
-              <div className="flex items-center gap-1">
-                <button 
-                  onClick={() => setPanelDate(panelDate.subtract(1, 'month'))}
-                  className="p-1.5 rounded-lg bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
-                  title="Previous Month"
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button 
-                  onClick={() => setPanelDate(dayjs())}
-                  className="px-2.5 py-1 rounded-lg bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-xs font-semibold text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
-                >
-                  Today
-                </button>
-                <button 
-                  onClick={() => setPanelDate(panelDate.add(1, 'month'))}
-                  className="p-1.5 rounded-lg bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
-                  title="Next Month"
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
+            {/* View Month Title & Controls with Floating Picker Popover */}
+            <div className="relative flex flex-wrap items-center gap-2" ref={pickerContainerRef}>
+              <button 
+                type="button"
+                onClick={() => setPanelDate(panelDate.subtract(1, 'month'))}
+                className="p-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                title="Previous Month"
+              >
+                <ChevronLeft size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (isPickerOpen && pickerMode === 'months') {
+                    setIsPickerOpen(false);
+                  } else {
+                    setPickerMode('months');
+                    setIsPickerOpen(true);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-sm font-black text-zinc-800 dark:text-zinc-100 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer border border-zinc-200 dark:border-white/5 flex items-center gap-1.5"
+              >
+                <span>{panelDate.format('MMMM')}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setYearRangeStart(Math.floor(panelDate.year() / 12) * 12);
+                  if (isPickerOpen && pickerMode === 'years') {
+                    setIsPickerOpen(false);
+                  } else {
+                    setPickerMode('years');
+                    setIsPickerOpen(true);
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-sm font-black text-zinc-800 dark:text-zinc-100 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+              >
+                <span>{panelDate.format('YYYY')}</span>
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => {
+                  setPanelDate(dayjs());
+                  setIsPickerOpen(false);
+                }}
+                className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all cursor-pointer border border-zinc-200 dark:border-white/5 ml-1"
+              >
+                Today
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => setPanelDate(panelDate.add(1, 'month'))}
+                className="p-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                title="Next Month"
+              >
+                <ChevronRight size={16} />
+              </button>
+
+              {/* Floating DatePicker Popover */}
+              {isPickerOpen && (
+                <div className="absolute top-full left-0 mt-2 z-50 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[310px] p-4 text-zinc-200 animate-in fade-in zoom-in-95 duration-150">
+                  {pickerMode === 'months' && (
+                    <div>
+                      {/* Popover Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setPanelDate(panelDate.subtract(1, 'year'))}
+                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          title="Previous Year"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <div className="font-bold text-xs select-none tracking-wide text-zinc-200 flex items-center gap-1.5">
+                          <span className="text-zinc-400">Select Month for</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setYearRangeStart(Math.floor(panelDate.year() / 12) * 12);
+                              setPickerMode('years');
+                            }}
+                            className="px-2 py-0.5 rounded-lg text-emerald-400 font-black border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                          >
+                            {panelDate.year()}
+                          </button>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setPanelDate(panelDate.add(1, 'year'))}
+                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          title="Next Year"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+
+                      {/* 3x4 Month Grid */}
+                      <div className="grid grid-cols-3 gap-2 py-1">
+                        {MONTHS.map((mName, mIdx) => {
+                          const isSelected = mIdx === panelDate.month();
+                          return (
+                            <button
+                              key={mName}
+                              type="button"
+                              onClick={() => {
+                                setPanelDate(panelDate.month(mIdx));
+                                setIsPickerOpen(false);
+                              }}
+                              className={`py-3 px-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                                isSelected
+                                  ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
+                                  : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                              }`}
+                            >
+                              {mName}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPanelDate(dayjs());
+                            setIsPickerOpen(false);
+                          }}
+                          className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center cursor-pointer"
+                        >
+                          TODAY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsPickerOpen(false)}
+                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center cursor-pointer"
+                        >
+                          CLOSE
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {pickerMode === 'years' && (
+                    <div>
+                      {/* Popover Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setYearRangeStart(yearRangeStart - 12)}
+                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          title="Previous 12 Years"
+                        >
+                          <ChevronLeft size={16} />
+                        </button>
+                        <div className="font-black text-xs select-none tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+                          {yearRangeStart} – {yearRangeStart + 11}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setYearRangeStart(yearRangeStart + 12)}
+                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          title="Next 12 Years"
+                        >
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+
+                      {/* 3x4 Year Grid */}
+                      <div className="grid grid-cols-3 gap-2 py-1">
+                        {Array.from({ length: 12 }, (_, i) => yearRangeStart + i).map((yNum) => {
+                          const isSelected = yNum === panelDate.year();
+                          return (
+                            <button
+                              key={yNum}
+                              type="button"
+                              onClick={() => {
+                                setPanelDate(panelDate.year(yNum));
+                                setPickerMode('months');
+                              }}
+                              className={`py-3 px-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
+                                isSelected
+                                  ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
+                                  : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                              }`}
+                            >
+                              {yNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* Footer Actions */}
+                      <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPanelDate(dayjs());
+                            setIsPickerOpen(false);
+                          }}
+                          className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center cursor-pointer"
+                        >
+                          TODAY
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setIsPickerOpen(false)}
+                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center cursor-pointer"
+                        >
+                          CLOSE
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Middle/Right: stats and selectors */}
+            {/* Middle/Right: stats */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Monthly Stats */}
               <div className="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-450 dark:text-zinc-500 border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-1.5 bg-white dark:bg-transparent">
@@ -176,32 +374,6 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                   {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
                 </span></span>
               </div>
-
-              {/* Year Selector */}
-              <select
-                value={panelDate.year()}
-                onChange={(e) => setPanelDate(panelDate.year(parseInt(e.target.value)))}
-                className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer hover:bg-zinc-100 dark:hover:bg-white/10"
-              >
-                {yearOptions.map(y => (
-                  <option key={y} value={y} className="bg-white dark:bg-[#121214] text-zinc-800 dark:text-zinc-200">
-                    {y}
-                  </option>
-                ))}
-              </select>
-
-              {/* Month Selector */}
-              <select
-                value={panelDate.month()}
-                onChange={(e) => setPanelDate(panelDate.month(parseInt(e.target.value)))}
-                className="bg-white dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-xl px-2.5 py-1.5 text-xs font-semibold focus:outline-none text-zinc-700 dark:text-zinc-300 transition-all cursor-pointer hover:bg-zinc-100 dark:hover:bg-white/10"
-              >
-                {MONTHS.map((m, idx) => (
-                  <option key={m} value={idx} className="bg-white dark:bg-[#121214] text-zinc-800 dark:text-zinc-200">
-                    {m}
-                  </option>
-                ))}
-              </select>
             </div>
 
           </div>
@@ -209,10 +381,10 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
 
         {/* Custom Calendar Grid & Weekly Summary */}
         <div className="flex">
-          <div className="flex-1">
-            {/* Weekdays Row */}
-            <div className="grid grid-cols-7 border-b border-zinc-150/50 dark:border-white/[0.03] bg-zinc-50/50 dark:bg-white/[0.01] h-10">
-              {WEEKDAYS.map(day => (
+            <div className="flex-1">
+              {/* Weekdays Row */}
+              <div className="grid grid-cols-7 border-b border-zinc-150/50 dark:border-white/[0.03] bg-zinc-50/50 dark:bg-white/[0.01] h-10">
+                {WEEKDAYS.map(day => (
                 <div key={day} className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-450 dark:text-zinc-500 tracking-wider">
                   {day}
                 </div>

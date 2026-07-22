@@ -5,6 +5,7 @@ import { signOut } from 'firebase/auth';
 import { doc, getDoc, setDoc, collection, getDocs, where, query, writeBatch, Timestamp } from 'firebase/firestore';
 import { Trade } from '../types';
 import { getSafeDate } from '../lib/dateUtils';
+import DatePicker from './ui/DatePicker';
 
 interface SettingsProps {
   trades?: Trade[];
@@ -273,22 +274,36 @@ export default function Settings({ trades = [], journals = [], activeAccountId }
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <label className="text-xs text-zinc-500 font-bold">START DATE</label>
-            <input 
-              type="date" 
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-[#141414] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50"
+            <DatePicker
+              label="START DATE"
+              value={startDate ? new Date(startDate) : null}
+              onChange={(date) => {
+                if (date) {
+                  const yyyy = date.getFullYear();
+                  const mm = String(date.getMonth() + 1).padStart(2, '0');
+                  const dd = String(date.getDate()).padStart(2, '0');
+                  setStartDate(`${yyyy}-${mm}-${dd}`);
+                } else {
+                  setStartDate('');
+                }
+              }}
             />
           </div>
           
           <div className="space-y-1">
-            <label className="text-xs text-zinc-500 font-bold">END DATE</label>
-            <input 
-              type="date" 
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-[#141414] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-red-500/50"
+            <DatePicker
+              label="END DATE"
+              value={endDate ? new Date(endDate) : null}
+              onChange={(date) => {
+                if (date) {
+                  const yyyy = date.getFullYear();
+                  const mm = String(date.getMonth() + 1).padStart(2, '0');
+                  const dd = String(date.getDate()).padStart(2, '0');
+                  setEndDate(`${yyyy}-${mm}-${dd}`);
+                } else {
+                  setEndDate('');
+                }
+              }}
             />
           </div>
         </div>
