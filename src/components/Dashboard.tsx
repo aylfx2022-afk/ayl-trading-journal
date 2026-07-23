@@ -15,6 +15,39 @@ interface DashboardProps {
 
 const COLORS = ['#10b981', '#ef4444'];
 
+function cleanEmotionLabel(key: string, label: string): string {
+  const labelMap: Record<string, string> = {
+    calm: 'Calm (တည်ငြိမ်မှုရှိ)',
+    excited: 'Excited (စိတ်လှုပ်ရှားနေ)',
+    confident: 'Confident (ယုံကြည်မှုရှိ)',
+    hesitant: 'Hesitant (တွန့်ဆုတ်နေ)',
+    fomo: 'FOMO (နောက်ကျကျန်စိုးရိမ်)',
+    impatient: 'Impatient (စိတ်မရှည်ဖြစ်နေ)',
+    bored: 'Bored (ပျင်းရိနေ)',
+    peaceful: 'Peaceful (စိတ်အေးချမ်း)',
+    anxious: 'Anxious (စိုးရိမ်ပူပန်)',
+    relaxed: 'Relaxed (စိတ်ပေါ့ပါး)',
+    obsessive: 'Obsessive (စခရင်အမြဲကြည့်နေ)',
+    fearing_loss: 'Fear loss (ရှုံးမှာကြောက်နေ)',
+    greed_surge: 'Greed (ပိုလိုချင်စိတ်စွတ်)',
+    satisfied_disciplined: 'Disciplined (စည်းကမ်းလိုက်နာခဲ့၍ကျေနပ်)',
+    satisfied_lucky: 'Lucky win (ကံကောင်း၍ကျေနပ်)',
+    relieved: 'Relieved (သက်ပြင်းချနိုင်ခဲ့)',
+    frustrated: 'Frustrated (စိတ်ပျက်ဒေါသထွက်)',
+    regretful_sl: 'Regret SL (ရှုံး၍နောင်တရ)',
+    regretful_early_exit: 'Early exit (စောထွက်မိ၍နောင်တရ)',
+    neutral_accepting: 'Neutral (ရလဒ်ကိုလက်ခံ)'
+  };
+  if (labelMap[key]) return labelMap[key];
+  if (label.includes('/')) {
+    const parts = label.split('/');
+    const eng = parts[0].replace(/[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F600}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]/gu, '').trim();
+    const mm = parts[1] ? parts[1].trim() : '';
+    return mm ? `${eng} (${mm})` : eng;
+  }
+  return label;
+}
+
 export default function Dashboard({ trades }: DashboardProps) {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -173,9 +206,31 @@ export default function Dashboard({ trades }: DashboardProps) {
       }
     });
 
-    const preTradeData = Object.values(preTradeMap);
-    const duringTradeData = Object.values(duringTradeMap);
-    const postTradeData = Object.values(postTradeMap);
+    const PSYCHOLOGY_COLORS = ['#3b82f6', '#f97316', '#10b981', '#eab308', '#ec4899', '#16a34a', '#6366f1'];
+
+    const preTradeData = Object.entries(preTradeMap)
+      .map(([key, item]) => ({
+        cleanName: cleanEmotionLabel(key, item.label),
+        count: item.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .map((item, idx) => ({ ...item, color: PSYCHOLOGY_COLORS[idx % PSYCHOLOGY_COLORS.length] }));
+
+    const duringTradeData = Object.entries(duringTradeMap)
+      .map(([key, item]) => ({
+        cleanName: cleanEmotionLabel(key, item.label),
+        count: item.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .map((item, idx) => ({ ...item, color: PSYCHOLOGY_COLORS[idx % PSYCHOLOGY_COLORS.length] }));
+
+    const postTradeData = Object.entries(postTradeMap)
+      .map(([key, item]) => ({
+        cleanName: cleanEmotionLabel(key, item.label),
+        count: item.count
+      }))
+      .sort((a, b) => b.count - a.count)
+      .map((item, idx) => ({ ...item, color: PSYCHOLOGY_COLORS[idx % PSYCHOLOGY_COLORS.length] }));
 
     // Day of week calculation (Monday to Friday)
     const dayOfWeekMap: Record<string, { wins: number; losses: number; rawLosses: number }> = {
@@ -428,6 +483,7 @@ export default function Dashboard({ trades }: DashboardProps) {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={stats.dayOfWeekData}
+                  barSize={14}
                   margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
@@ -474,8 +530,8 @@ export default function Dashboard({ trades }: DashboardProps) {
                     }}
                   />
                   <ReferenceLine y={0} stroke="#ffffff20" />
-                  <Bar dataKey="losses" fill="#ef4444" stackId="stack" radius={0} />
-                  <Bar dataKey="wins" fill="#10b981" stackId="stack" radius={0} />
+                  <Bar dataKey="losses" fill="#ef4444" stackId="stack" barSize={14} radius={[0, 0, 4, 4]} />
+                  <Bar dataKey="wins" fill="#10b981" stackId="stack" barSize={14} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -497,144 +553,13 @@ export default function Dashboard({ trades }: DashboardProps) {
       {/* Trader Psychology Analysis */}
       <div className="space-y-6">
         <div className="border-t border-white/5 pt-6">
-          <h3 className="text-lg font-semibold text-emerald-500">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာဆန်းစစ်ချက်များ)</h3>
-          <p className="text-xs text-zinc-500 mt-1">
-            ပရီ-ထရိတ် (မဝင်ခင်) ၊ မစ်-ထရိတ် (ဝင်ထားစဉ်) နှင့် ပို့စ်-ထရိတ် (ထွက်ပြီးနောက်) ခံစားချက်များအပေါ်အခြေခံ၍ ရရှိလာသည့် စိတ်ခံစားမှုပုံစံများ
-          </p>
+          <h3 className="text-lg font-semibold text-emerald-500">Trader Psychology</h3>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Pre-Trade Emotions Chart */}
-          <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-            <div className="mb-4">
-              <h4 className="text-sm font-semibold text-zinc-300">Feeling BEFORE Entry</h4>
-              <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade မဝင်ခင် ခံစားရသော စိတ်အခြေအနေ</p>
-            </div>
-            <div className="flex-1 py-1">
-              {stats.preTradeData.some(d => d.count > 0) ? (
-                <div className="space-y-4">
-                  {stats.preTradeData.map((item, index) => {
-                    const maxCount = Math.max(...stats.preTradeData.map(d => d.count), 1);
-                    const widthPercent = (item.count / maxCount) * 100;
-                    return (
-                      <div key={index} className="space-y-1.5">
-                        <div className="text-[11px] font-bold text-zinc-300 flex justify-between items-center px-1">
-                          <span>{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-3.5">
-                            <div 
-                              className="h-full rounded-full transition-all duration-500 shadow-sm"
-                              style={{ 
-                                width: `${widthPercent}%`, 
-                                backgroundColor: item.color,
-                                opacity: item.count > 0 ? 1 : 0 
-                              }}
-                            />
-                          </div>
-                          <span className="text-xs font-black min-w-[20px] text-right font-mono" style={{ color: item.count > 0 ? item.color : '#3f3f46' }}>
-                            {item.count}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[280px] flex items-center justify-center text-center p-4">
-                  <p className="text-xs text-zinc-600 font-sans">Trade မဝင်ခင် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* During-Trade Emotions Chart */}
-          <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-            <div className="mb-4">
-              <h4 className="text-sm font-semibold text-zinc-300">Feeling DURING Active Trade</h4>
-              <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade ဝင်ထားစဉ် ဖြစ်ပေါ်သော စိတ်အခြေအနေ</p>
-            </div>
-            <div className="flex-1 py-1">
-              {stats.duringTradeData.some(d => d.count > 0) ? (
-                <div className="space-y-4">
-                  {stats.duringTradeData.map((item, index) => {
-                    const maxCount = Math.max(...stats.duringTradeData.map(d => d.count), 1);
-                    const widthPercent = (item.count / maxCount) * 100;
-                    return (
-                      <div key={index} className="space-y-1.5">
-                        <div className="text-[11px] font-bold text-zinc-300 flex justify-between items-center px-1">
-                          <span>{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-3.5">
-                            <div 
-                              className="h-full rounded-full transition-all duration-500 shadow-sm"
-                              style={{ 
-                                width: `${widthPercent}%`, 
-                                backgroundColor: item.color,
-                                opacity: item.count > 0 ? 1 : 0 
-                              }}
-                            />
-                          </div>
-                          <span className="text-xs font-black min-w-[20px] text-right font-mono" style={{ color: item.count > 0 ? item.color : '#3f3f46' }}>
-                            {item.count}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[280px] flex items-center justify-center text-center p-4">
-                  <p className="text-xs text-zinc-600 font-sans">Trade ဝင်ထားစဉ် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Post-Trade Emotions Chart */}
-          <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-            <div className="mb-4">
-              <h4 className="text-sm font-semibold text-zinc-300">Feeling AFTER Exit</h4>
-              <p className="text-[11px] text-zinc-500 font-medium font-sans">Trade ထွက်ပြီးနောက် ကြုံရသော စိတ်အခြေအနေ</p>
-            </div>
-            <div className="flex-1 py-1">
-              {stats.postTradeData.some(d => d.count > 0) ? (
-                <div className="space-y-4">
-                  {stats.postTradeData.map((item, index) => {
-                    const maxCount = Math.max(...stats.postTradeData.map(d => d.count), 1);
-                    const widthPercent = (item.count / maxCount) * 100;
-                    return (
-                      <div key={index} className="space-y-1.5">
-                        <div className="text-[11px] font-bold text-zinc-300 flex justify-between items-center px-1">
-                          <span>{item.label}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="flex-1 h-3.5">
-                            <div 
-                              className="h-full rounded-full transition-all duration-500 shadow-sm"
-                              style={{ 
-                                width: `${widthPercent}%`, 
-                                backgroundColor: item.color,
-                                opacity: item.count > 0 ? 1 : 0 
-                              }}
-                            />
-                          </div>
-                          <span className="text-xs font-black min-w-[20px] text-right font-mono" style={{ color: item.count > 0 ? item.color : '#3f3f46' }}>
-                            {item.count}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="h-[280px] flex items-center justify-center text-center p-4">
-                  <p className="text-xs text-zinc-600 font-sans">Trade ထွက်ပြီးနောက် စိတ်အခြေအနေ ဒေတာမရှိသေးပါ</p>
-                </div>
-              )}
-            </div>
-          </div>
+        <div className="flex flex-col gap-6">
+          <PsychologyHorizontalChart title="Before entry" data={stats.preTradeData} />
+          <PsychologyHorizontalChart title="During trade" data={stats.duringTradeData} />
+          <PsychologyHorizontalChart title="After exit" data={stats.postTradeData} />
         </div>
       </div>
 
@@ -683,6 +608,64 @@ function DateFilter({ startDate, endDate, setStartDate, setEndDate }: {
         placeholderStart="Start Date"
         placeholderEnd="End Date"
       />
+    </div>
+  );
+}
+
+function PsychologyHorizontalChart({ title, data }: { title: string; data: { cleanName: string; count: number; color: string }[] }) {
+  const maxCount = Math.max(...data.map(d => d.count), 0);
+  const xDomainMax = Math.max(maxCount + 1, 5);
+
+  return (
+    <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+      <h4 className="text-base font-bold text-zinc-100 mb-4">{title}</h4>
+      <div className="w-full h-[280px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            layout="vertical"
+            data={data}
+            margin={{ top: 5, right: 25, left: 20, bottom: 5 }}
+          >
+            <CartesianGrid horizontal={false} stroke="#ffffff10" />
+            <XAxis 
+              type="number" 
+              domain={[0, xDomainMax]}
+              tick={{ fill: '#71717a', fontSize: 11 }}
+              axisLine={{ stroke: '#ffffff15' }}
+              tickLine={{ stroke: '#ffffff15' }}
+              allowDecimals={false}
+            />
+            <YAxis 
+              type="category" 
+              dataKey="cleanName" 
+              tick={{ fill: '#9ca3af', fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              width={230}
+            />
+            <Tooltip
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const item = payload[0].payload;
+                  return (
+                    <div className="bg-[#18181b] border border-white/10 p-2.5 rounded-xl shadow-xl text-xs">
+                      <span className="font-bold text-white">{item.cleanName}: </span>
+                      <span className="font-mono text-emerald-400 font-black">{item.count}</span>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+              cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+            />
+            <Bar dataKey="count" barSize={16} radius={[0, 4, 4, 0]}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
