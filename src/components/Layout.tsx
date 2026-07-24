@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon, PanelLeft, PanelLeftClose } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
@@ -40,12 +40,18 @@ export default function Layout({
   onSwitchTradingAccount,
   onDeleteTradingAccount
 }: LayoutProps) {
-  const [isCollapsed, setIsCollapsed] = React.useState(() => {
+  // Notion-style sidebar state: userPinned determines if sidebar is permanently docked open.
+  const [userPinned, setUserPinned] = React.useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('sidebar-collapsed') === 'true';
+      const stored = localStorage.getItem('sidebar-pinned');
+      if (stored !== null) return stored === 'true';
     }
-    return false;
+    return true; // Default pinned open
   });
+
+  // Hover state when sidebar is unpinned
+  const [isHovered, setIsHovered] = React.useState(false);
+
   const [showAccountSwitcher, setShowAccountSwitcher] = React.useState(false);
   const [showProfileModal, setShowProfileModal] = React.useState(false);
   const [newProfileName, setNewProfileName] = React.useState('');
@@ -55,6 +61,12 @@ export default function Layout({
   const [profileToDelete, setProfileToDelete] = React.useState<{ id: string; name: string } | null>(null);
 
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+
+  // Special pages rule: add-trade & trade-details automatically collapse sidebar.
+  // Returning to other pages restores userPinned preference.
+  const isSpecialPage = activeTab === 'trade-details' || activeTab === 'add-trade';
+  const effectivePinned = !isSpecialPage && userPinned;
+  const isVisible = effectivePinned || isHovered;
 
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -67,14 +79,6 @@ export default function Layout({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  React.useEffect(() => {
-    if (activeTab === 'trade-details' || activeTab === 'add-trade') {
-      setIsCollapsed(true);
-    } else {
-      setIsCollapsed(false);
-    }
-  }, [activeTab]);
 
   const activeAccount = tradingAccounts.find(a => a.id === activeAccountId);
 
@@ -101,36 +105,61 @@ export default function Layout({
     }
   };
 
-  const toggleCollapse = () => {
-    setIsCollapsed(prev => {
+  const togglePin = () => {
+    setUserPinned(prev => {
       const newState = !prev;
-      localStorage.setItem('sidebar-collapsed', String(newState));
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sidebar-pinned', String(newState));
+      }
       return newState;
     });
   };
 
+  const handleTabClick = (tab: string) => {
+    setActiveTab(tab);
+    setIsHovered(false);
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-emerald-500/30">
+      {/* Invisible Hover Trigger Zone on screen left edge when unpinned */}
+      {!effectivePinned && (
+        <div 
+          onMouseEnter={() => setIsHovered(true)}
+          className="fixed left-0 top-0 bottom-0 w-3 z-40 pointer-events-auto"
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`fixed left-0 top-0 h-full border-r border-white/5 bg-[#0F0F0F] z-20 transition-all duration-300 ease-in-out flex flex-col ${isCollapsed ? 'w-20' : 'w-64'}`}>
-        {/* Toggle Button */}
+      <aside 
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed left-0 top-0 h-full w-64 border-r border-white/5 bg-[#0F0F0F] z-50 transition-transform duration-300 ease-in-out flex flex-col ${
+          isVisible ? 'translate-x-0 shadow-2xl shadow-black/80' : '-translate-x-full shadow-none pointer-events-none'
+        }`}
+      >
+        {/* Toggle Pin Button inside sidebar */}
         <button
-          onClick={toggleCollapse}
-          className="absolute -right-3 top-[26px] bg-[#0F0F0F] hover:bg-zinc-800 border border-white/10 text-zinc-400 hover:text-zinc-100 p-1 rounded-full cursor-pointer z-30 transition-all active:scale-95 shadow-md flex items-center justify-center"
-          title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+          onClick={togglePin}
+          className="absolute right-3 top-4 bg-[#141416] hover:bg-zinc-800 border border-white/10 text-zinc-400 hover:text-zinc-100 p-1.5 rounded-lg cursor-pointer z-30 transition-all active:scale-95 shadow-md flex items-center justify-center group"
+          title={userPinned ? 'Unpin Sidebar (Collapse)' : 'Pin Sidebar (Keep Open)'}
         >
-          {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          {userPinned ? (
+            <PanelLeftClose size={16} className="text-zinc-400 group-hover:text-emerald-400" />
+          ) : (
+            <PanelLeft size={16} className="text-emerald-400" />
+          )}
         </button>
 
         {/* Scrollable Containment area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 pb-6 scrollbar-none">
-          <div className={`p-4 mt-2 transition-all duration-300 ${isCollapsed ? 'px-2' : ''}`}>
+          <div className="p-4 mt-2">
             <button
               onClick={() => setShowAccountSwitcher(true)}
-              className={`w-full text-left rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all duration-300 cursor-pointer group relative ${isCollapsed ? 'p-2' : 'p-4'}`}
+              className="w-full text-left rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 p-4 transition-all duration-300 cursor-pointer group relative pr-10"
               title="အကောင့်ပြောင်းရန် / Switch Account"
             >
-              <div className={`flex items-center gap-3 transition-all duration-300 ${isCollapsed ? 'justify-center gap-0' : ''}`}>
+              <div className="flex items-center gap-3">
                 <div className="relative shrink-0">
                   <img 
                     src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`} 
@@ -139,62 +168,90 @@ export default function Layout({
                   />
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-[#0F0F0F]" />
                 </div>
-                {!isCollapsed && (
-                  <div className="overflow-hidden transition-all duration-300 flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate group-hover:text-emerald-400 transition-colors">{user?.displayName || 'Trader'}</p>
-                    <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
-                  </div>
-                )}
-                {!isCollapsed && (
-                  <Repeat size={14} className="text-zinc-500 group-hover:text-emerald-400 shrink-0 transition-all opacity-0 group-hover:opacity-100 group-hover:rotate-185 duration-500" />
-                )}
+                <div className="overflow-hidden flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate group-hover:text-emerald-400 transition-colors">{user?.displayName || 'Trader'}</p>
+                  <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
+                </div>
+                <Repeat size={14} className="text-zinc-500 group-hover:text-emerald-400 shrink-0 transition-all opacity-0 group-hover:opacity-100 group-hover:rotate-185 duration-500" />
               </div>
             </button>
           </div>
 
           {/* Trading Profile Selector */}
           {user && (
-            isCollapsed ? (
-              <div className="flex flex-col items-center gap-1 mb-4 relative group/profiles px-2">
+            <div className="px-4 mb-4 relative font-sans" ref={dropdownRef}>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest flex items-center gap-1.5">
+                  <Briefcase size={11} className="text-emerald-500" />
+                  Profiles
+                </span>
                 <button
                   onClick={() => setShowProfileModal(true)}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 border border-white/5 text-zinc-400 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer"
+                  className="w-5 h-5 flex items-center justify-center text-zinc-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all cursor-pointer"
                   title="Add New Profile"
                 >
-                  <Plus size={16} />
+                  <Plus size={12} />
                 </button>
-                <div className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider text-center max-w-[64px] truncate mt-1">
-                  {activeAccount?.name || 'Default'}
+              </div>
+
+              {/* Dropdown Trigger */}
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 shadow-lg transition-all duration-200 cursor-pointer text-zinc-200 focus:outline-none"
+              >
+                <div className="flex items-center gap-2 truncate">
+                  <span className={`w-1.5 h-1.5 rounded-full ${activeAccount?.type === 'backtest' ? 'bg-blue-450' : 'bg-emerald-450'}`} />
+                  <span className="truncate max-w-[110px]">{activeAccount?.name || 'Select Profile'}</span>
                 </div>
-                
-                {/* Quick cycle / Select popup in collapsed sidebar */}
-                <div className="absolute left-full top-0 ml-2 bg-[#0E0E10] border border-white/10 rounded-2xl p-2 hidden group-hover/profiles:flex flex-col gap-1 shadow-2xl z-50 min-w-[170px]">
-                  <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest px-2 py-1.5 mb-1 border-b border-white/5">
-                    Profiles
-                  </p>
-                  <div className="space-y-1 max-h-[200px] overflow-y-auto">
+                <div className="flex items-center gap-1 shrink-0 ml-1">
+                  <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                    activeAccount?.type === 'backtest' 
+                      ? 'bg-blue-500/10 text-blue-450' 
+                      : 'bg-emerald-500/10 text-emerald-440'
+                  }`}>
+                    {activeAccount?.type === 'backtest' ? 'BT' : 'LIVE'}
+                  </span>
+                  <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-emerald-400' : ''}`} />
+                </div>
+              </button>
+
+              {/* Dropdown Menu */}
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96, y: 3 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.96, y: 3 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-4 right-4 mt-1 bg-[#121214] border border-white/10 rounded-xl p-1.5 shadow-2xl z-45 max-h-[180px] overflow-y-auto space-y-0.5 backdrop-blur-md"
+                  >
                     {tradingAccounts.map(acc => (
                       <div
                         key={acc.id}
-                        className={`w-full flex items-center justify-between rounded-lg transition-all ${
+                        className={`w-full flex items-center justify-between rounded-xl transition-all ${
                           activeAccountId === acc.id
-                            ? 'bg-emerald-500 text-black'
-                            : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                            ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/10'
+                            : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
                         }`}
                       >
                         <button
-                          onClick={() => onSwitchTradingAccount?.(acc.id!)}
-                          className="flex-1 text-left px-2.5 py-1.5 text-[11px] font-bold truncate cursor-pointer focus:outline-none"
+                          onClick={() => {
+                            onSwitchTradingAccount?.(acc.id!);
+                            setIsDropdownOpen(false);
+                          }}
+                          className="flex-1 text-left px-3 py-2 text-xs font-semibold truncate cursor-pointer focus:outline-none"
                         >
-                          <span className="truncate block max-w-[100px]">{acc.name}</span>
+                          <span className="truncate block max-w-[115px]">{acc.name}</span>
                         </button>
-                        <div className="flex items-center gap-1 pr-1.5 shrink-0">
-                          <span className={`text-[8px] font-black uppercase tracking-wider px-1 rounded ${
+                        <div className="flex items-center gap-1.5 pr-2.5 shrink-0">
+                          <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
                             activeAccountId === acc.id
-                              ? 'bg-black/15 text-black'
-                              : 'bg-zinc-800 text-zinc-400'
+                              ? 'bg-black/10 text-black' 
+                              : acc.type === 'backtest' 
+                                ? 'bg-blue-500/10 text-blue-450' 
+                                : 'bg-emerald-500/10 text-emerald-440'
                           }`}>
-                            {acc.type === 'backtest' ? 'BT' : 'LV'}
+                            {acc.type === 'backtest' ? 'BT' : 'LIVE'}
                           </span>
                           {!acc.isDefault && (
                             <button
@@ -202,262 +259,134 @@ export default function Layout({
                                 e.stopPropagation();
                                 setProfileToDelete({ id: acc.id!, name: acc.name });
                               }}
-                              className={`p-1 rounded transition-colors ${
+                              className={`p-1 rounded-md transition-colors ${
                                 activeAccountId === acc.id
-                                  ? 'text-black/60 hover:text-red-700'
+                                  ? 'text-black/60 hover:text-red-750 hover:bg-black/5'
                                   : 'text-zinc-500 hover:text-red-400 hover:bg-white/10'
                               }`}
                               title="Delete Profile"
                             >
-                              <Trash2 size={10} />
+                              <Trash2 size={12} />
                             </button>
                           )}
                         </div>
                       </div>
                     ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="px-4 mb-4 relative font-sans" ref={dropdownRef}>
-                <div className="flex items-center justify-between mb-2 px-1">
-                  <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest flex items-center gap-1.5">
-                    <Briefcase size={11} className="text-emerald-500" />
-                    Profiles
-                  </span>
-                  <button
-                    onClick={() => setShowProfileModal(true)}
-                    className="w-5 h-5 flex items-center justify-center text-zinc-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all cursor-pointer"
-                    title="Add New Profile"
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-
-                {/* Dropdown Trigger */}
-                <button
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 shadow-lg transition-all duration-200 cursor-pointer text-zinc-200 focus:outline-none"
-                >
-                  <div className="flex items-center gap-2 truncate">
-                    <span className={`w-1.5 h-1.5 rounded-full ${activeAccount?.type === 'backtest' ? 'bg-blue-450' : 'bg-emerald-450'}`} />
-                    <span className="truncate max-w-[110px]">{activeAccount?.name || 'Select Profile'}</span>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0 ml-1">
-                    <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
-                      activeAccount?.type === 'backtest' 
-                        ? 'bg-blue-500/10 text-blue-450' 
-                        : 'bg-emerald-500/10 text-emerald-440'
-                    }`}>
-                      {activeAccount?.type === 'backtest' ? 'BT' : 'LIVE'}
-                    </span>
-                    <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-emerald-400' : ''}`} />
-                  </div>
-                </button>
-
-                {/* Dropdown Menu */}
-                <AnimatePresence>
-                  {isDropdownOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.96, y: 3 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.96, y: 3 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute left-4 right-4 mt-1 bg-[#121214] border border-white/10 rounded-xl p-1.5 shadow-2xl z-45 max-h-[180px] overflow-y-auto space-y-0.5 backdrop-blur-md"
-                    >
-                      {tradingAccounts.map(acc => (
-                        <div
-                          key={acc.id}
-                          className={`w-full flex items-center justify-between rounded-xl transition-all ${
-                            activeAccountId === acc.id
-                              ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/10'
-                              : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
-                          }`}
-                        >
-                          <button
-                            onClick={() => {
-                              onSwitchTradingAccount?.(acc.id!);
-                              setIsDropdownOpen(false);
-                            }}
-                            className="flex-1 text-left px-3 py-2 text-xs font-semibold truncate cursor-pointer focus:outline-none"
-                          >
-                            <span className="truncate block max-w-[115px]">{acc.name}</span>
-                          </button>
-                          <div className="flex items-center gap-1.5 pr-2.5 shrink-0">
-                            <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
-                              activeAccountId === acc.id
-                                ? 'bg-black/10 text-black' 
-                                : acc.type === 'backtest' 
-                                  ? 'bg-blue-500/10 text-blue-450' 
-                                  : 'bg-emerald-500/10 text-emerald-440'
-                            }`}>
-                              {acc.type === 'backtest' ? 'BT' : 'LIVE'}
-                            </span>
-                            {!acc.isDefault && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setProfileToDelete({ id: acc.id!, name: acc.name });
-                                }}
-                                className={`p-1 rounded-md transition-colors ${
-                                  activeAccountId === acc.id
-                                    ? 'text-black/60 hover:text-red-750 hover:bg-black/5'
-                                    : 'text-zinc-500 hover:text-red-400 hover:bg-white/10'
-                                }`}
-                                title="Delete Profile"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            )
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           )}
 
-          <nav className={`mt-4 space-y-2 transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-4'}`}>
+          <nav className="mt-4 space-y-2 px-4">
             <button
-              onClick={() => setActiveTab('add-trade')}
-              className={`flex items-center bg-emerald-500 hover:bg-emerald-400 text-black font-bold transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl mb-4' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl mb-6'
-              }`}
-              title={isCollapsed ? 'New Trade' : undefined}
+              onClick={() => handleTabClick('add-trade')}
+              className="flex items-center w-full gap-3 px-4 py-3 rounded-xl mb-6 bg-emerald-500 hover:bg-emerald-400 text-black font-bold transition-all duration-200 cursor-pointer"
             >
-              <Plus size={20} className={isCollapsed ? 'stroke-[3]' : ''} />
-              {!isCollapsed && <span className="font-medium">New Trade</span>}
+              <Plus size={20} />
+              <span className="font-medium">New Trade</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('dashboard')}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl'
-              } ${
+              onClick={() => handleTabClick('dashboard')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'dashboard' 
                   ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
                   : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
               }`}
-              title={isCollapsed ? 'Dashboard' : undefined}
             >
               <LayoutDashboard size={20} />
-              {!isCollapsed && <span className="font-medium">Dashboard</span>}
+              <span className="font-medium">Dashboard</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('opening-positions')}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl'
-              } ${
+              onClick={() => handleTabClick('opening-positions')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'opening-positions' 
                   ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
                   : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
               }`}
-              title={isCollapsed ? 'Opening Positions' : undefined}
             >
               <Briefcase size={20} />
-              {!isCollapsed && <span className="font-medium">Opening Positions</span>}
+              <span className="font-medium">Opening Positions</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('history')}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl'
-              } ${
+              onClick={() => handleTabClick('history')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'history' 
                   ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
                   : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
               }`}
-              title={isCollapsed ? 'Trade History' : undefined}
             >
               <History size={20} />
-              {!isCollapsed && <span className="font-medium">Trade History</span>}
+              <span className="font-medium">Trade History</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('calendar')}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl'
-              } ${
+              onClick={() => handleTabClick('calendar')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'calendar' 
                   ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
                   : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
               }`}
-              title={isCollapsed ? 'Calendar' : undefined}
             >
               <CalendarDays size={20} />
-              {!isCollapsed && <span className="font-medium">Calendar</span>}
+              <span className="font-medium">Calendar</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('gallery')}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl'
-              } ${
+              onClick={() => handleTabClick('gallery')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'gallery' 
                   ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
                   : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
               }`}
-              title={isCollapsed ? 'Chart Gallery' : undefined}
             >
               <ImageIcon size={20} />
-              {!isCollapsed && <span className="font-medium">Chart Gallery</span>}
+              <span className="font-medium">Chart Gallery</span>
             </button>
 
             <button
-              onClick={() => setActiveTab('settings')}
-              className={`flex items-center transition-all duration-200 ${
-                isCollapsed 
-                  ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                  : 'w-full gap-3 px-4 py-3 rounded-xl'
-              } ${
+              onClick={() => handleTabClick('settings')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'settings' 
                   ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
                   : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
               }`}
-              title={isCollapsed ? 'Settings' : undefined}
             >
               <SettingsIcon size={20} />
-              {!isCollapsed && <span className="font-medium">Settings</span>}
+              <span className="font-medium">Settings</span>
             </button>
           </nav>
         </div>
 
         {/* Fixed Bottom Container for Logout */}
-        <div className={`mt-auto shrink-0 pb-6 pt-[15px] border-t border-white/5 bg-[#0F0F0F] transition-all duration-300 ${isCollapsed ? 'px-0' : 'px-4'}`}>
+        <div className="mt-auto shrink-0 pb-6 pt-[15px] border-t border-white/5 bg-[#0F0F0F] px-4">
           <button
             onClick={() => signOut(auth)}
-            className={`flex items-center text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 pt-[12px] pb-[1px] ${
-              isCollapsed 
-                ? 'w-12 h-12 justify-center mx-auto rounded-xl' 
-                : 'w-full gap-3 px-4 rounded-xl'
-            }`}
-            title={isCollapsed ? 'Sign Out' : undefined}
+            className="flex items-center w-full gap-3 px-4 pt-[12px] pb-[12px] rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 cursor-pointer"
           >
             <LogOut size={20} />
-            {!isCollapsed && <span className="font-medium">Sign Out</span>}
+            <span className="font-medium">Sign Out</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className={`min-h-screen transition-all duration-300 ease-in-out ${isCollapsed ? 'pl-20' : 'pl-64'}`}>
-        <header className="h-14 border-b border-white/5 grid grid-cols-3 items-center px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-50">
-          <div className="flex items-center justify-start gap-4">
+      <main className={`min-h-screen transition-all duration-300 ease-in-out ${effectivePinned ? 'pl-64' : 'pl-0'}`}>
+        <header className="h-14 border-b border-white/5 grid grid-cols-3 items-center px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-30">
+          <div className="flex items-center justify-start gap-3">
+            {!effectivePinned && (
+              <button
+                onClick={togglePin}
+                onMouseEnter={() => setIsHovered(true)}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-100 border border-white/10 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs font-semibold group"
+                title="Sidebar ဖွင့်ရန် (Pin Sidebar)"
+              >
+                <PanelLeft size={18} className="group-hover:text-emerald-400 transition-colors" />
+              </button>
+            )}
             {headerActions || <div />}
           </div>
           
@@ -547,14 +476,14 @@ export default function Layout({
                   <button
                     disabled={isCreatingProfile}
                     type="submit"
-                    className="flex-1 py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 disabled:opacity-50 transition-all"
+                    className="flex-1 py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 disabled:opacity-50 transition-all cursor-pointer"
                   >
                     {isCreatingProfile ? 'Creating...' : 'Create Profile'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowProfileModal(false)}
-                    className="flex-1 py-3 bg-white/5 text-zinc-300 font-bold rounded-xl hover:bg-white/10 transition-all"
+                    className="flex-1 py-3 bg-white/5 text-zinc-300 font-bold rounded-xl hover:bg-white/10 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -756,3 +685,4 @@ export default function Layout({
     </div>
   );
 }
+
