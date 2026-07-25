@@ -147,27 +147,26 @@ html, body {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0A0A0A;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  border: 2px solid #0A0A0A;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
   transition: all 0.3s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(16, 185, 129, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
-  background: #0A0A0A;
+  background: transparent;
 }
 
 /* Remove Recharts Focus Outline */
