@@ -138,19 +138,6 @@ export default function Layout({
           isVisible ? 'translate-x-0 shadow-2xl shadow-black/80' : '-translate-x-full shadow-none pointer-events-none'
         }`}
       >
-        {/* Toggle Pin Button inside sidebar */}
-        <button
-          onClick={togglePin}
-          className="absolute right-3 top-4 bg-[#141416] hover:bg-zinc-800 border border-white/10 text-zinc-400 hover:text-zinc-100 p-1.5 rounded-lg cursor-pointer z-30 transition-all active:scale-95 shadow-md flex items-center justify-center group"
-          title={userPinned ? 'Unpin Sidebar (Collapse)' : 'Pin Sidebar (Keep Open)'}
-        >
-          {userPinned ? (
-            <PanelLeftClose size={16} className="text-zinc-400 group-hover:text-emerald-400" />
-          ) : (
-            <PanelLeft size={16} className="text-emerald-400" />
-          )}
-        </button>
-
         {/* Scrollable Containment area */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-4 pb-6 scrollbar-none">
           <div className="p-4 mt-2">
@@ -361,14 +348,26 @@ export default function Layout({
           </nav>
         </div>
 
-        {/* Fixed Bottom Container for Logout */}
-        <div className="mt-auto shrink-0 pb-6 pt-[15px] border-t border-white/5 bg-[#0F0F0F] px-4">
+        {/* Fixed Bottom Container for Sidebar Controls & Logout */}
+        <div className="mt-auto shrink-0 pb-6 pt-[15px] border-t border-white/5 bg-[#0F0F0F] px-4 flex items-center gap-2">
           <button
             onClick={() => signOut(auth)}
-            className="flex items-center w-full gap-3 px-4 pt-[12px] pb-[12px] rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 cursor-pointer"
+            className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 cursor-pointer"
           >
             <LogOut size={20} />
-            <span className="font-medium">Sign Out</span>
+            <span className="font-medium text-sm">Sign Out</span>
+          </button>
+
+          <button
+            onClick={togglePin}
+            className="p-2.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer shrink-0 group flex items-center justify-center"
+            title={userPinned ? 'Unpin Sidebar (Collapse)' : 'Pin Sidebar (Keep Open)'}
+          >
+            {userPinned ? (
+              <PanelLeftClose size={20} className="text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+            ) : (
+              <PanelLeft size={20} className="text-emerald-400 transition-colors" />
+            )}
           </button>
         </div>
       </aside>
@@ -377,16 +376,6 @@ export default function Layout({
       <main className={`min-h-screen transition-all duration-300 ease-in-out ${effectivePinned ? 'pl-64' : 'pl-0'}`}>
         <header className="h-14 border-b border-white/5 grid grid-cols-3 items-center px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center justify-start gap-3">
-            {!effectivePinned && (
-              <button
-                onClick={togglePin}
-                onMouseEnter={() => setIsHovered(true)}
-                className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-zinc-100 border border-white/10 transition-all cursor-pointer flex items-center justify-center gap-1.5 text-xs font-semibold group"
-                title="Sidebar ဖွင့်ရန် (Pin Sidebar)"
-              >
-                <PanelLeft size={18} className="group-hover:text-emerald-400 transition-colors" />
-              </button>
-            )}
             {headerActions || <div />}
           </div>
           
