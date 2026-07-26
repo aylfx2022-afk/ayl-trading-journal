@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trade } from '../types';
-import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2, Check, Sparkles, AlertCircle } from 'lucide-react';
+import { Save, Image as ImageIcon, ExternalLink, ArrowLeft, X, Maximize2, Check, Sparkles, AlertCircle, Copy, ClipboardPaste } from 'lucide-react';
 import { getSafeDate } from '../lib/dateUtils';
 import { motion, AnimatePresence } from 'motion/react';
 import { doc, updateDoc, Timestamp, getDoc } from 'firebase/firestore';
@@ -174,6 +174,33 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [exitPrice, setExitPrice] = useState(trade.exitPrice?.toString() || '');
   const [rr, setRr] = useState(trade.rr?.toString() || '');
   const [entryDateTime, setEntryDateTime] = useState<Date | null>(getSafeDate(trade.openTime));
+  const [copiedField, setCopiedField] = useState<'sl' | 'tp' | null>(null);
+  const [pastedExit, setPastedExit] = useState(false);
+
+  const handleCopyPrice = (value: any, field: 'sl' | 'tp') => {
+    if (value === undefined || value === null || value === '') return;
+    navigator.clipboard.writeText(value.toString()).then(() => {
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 1500);
+    }).catch(err => {
+      console.error('Failed to copy price: ', err);
+    });
+  };
+
+  const handlePasteExit = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text) {
+        const cleaned = text.trim();
+        setExitPrice(cleaned);
+        setPastedExit(true);
+        setTimeout(() => setPastedExit(false), 1500);
+      }
+    } catch (err) {
+      console.error('Failed to paste exit price: ', err);
+    }
+  };
+
   const [savingStatus, setSavingStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -387,8 +414,38 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
               {/* Exit Price */}
               <div className="space-y-1.5">
-                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Exit</p>
-                <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Exit</p>
+                  <button
+                    type="button"
+                    onClick={handlePasteExit}
+                    className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer"
+                    title="Paste Exit Price"
+                  >
+                    {pastedExit ? (
+                      <>
+                        <Check size={11} className="text-emerald-400" />
+                        <span className="text-emerald-400">Pasted!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ClipboardPaste size={11} />
+                        <span>Paste</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="relative flex items-center">
+                  <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                  <button
+                    type="button"
+                    onClick={handlePasteExit}
+                    className="absolute right-2 p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer"
+                    title="Paste Exit Price from Clipboard"
+                  >
+                    {pastedExit ? <Check size={14} className="text-emerald-400" /> : <ClipboardPaste size={14} />}
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -396,14 +453,80 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             <div className="grid grid-cols-2 gap-4">
               {/* Stop Loss SL Price */}
               <div className="space-y-1.5">
-                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">SL</p>
-                <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-red-500/50" />
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">SL</p>
+                  {slPrice !== '' && slPrice !== null && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopyPrice(slPrice, 'sl')}
+                      className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                      title="Copy SL Price"
+                    >
+                      {copiedField === 'sl' ? (
+                        <>
+                          <Check size={11} className="text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={11} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="relative flex items-center">
+                  <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-red-500/50" />
+                  <button
+                    type="button"
+                    onClick={() => handleCopyPrice(slPrice, 'sl')}
+                    disabled={!slPrice}
+                    className="absolute right-2 p-1 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Copy SL Price"
+                  >
+                    {copiedField === 'sl' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  </button>
+                </div>
               </div>
 
               {/* Take Profit TP Price */}
               <div className="space-y-1.5">
-                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">TP</p>
-                <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">TP</p>
+                  {tpPrice !== '' && tpPrice !== null && (
+                    <button
+                      type="button"
+                      onClick={() => handleCopyPrice(tpPrice, 'tp')}
+                      className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                      title="Copy TP Price"
+                    >
+                      {copiedField === 'tp' ? (
+                        <>
+                          <Check size={11} className="text-emerald-400" />
+                          <span className="text-emerald-400">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={11} />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+                </div>
+                <div className="relative flex items-center">
+                  <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                  <button
+                    type="button"
+                    onClick={() => handleCopyPrice(tpPrice, 'tp')}
+                    disabled={!tpPrice}
+                    className="absolute right-2 p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    title="Copy TP Price"
+                  >
+                    {copiedField === 'tp' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                  </button>
+                </div>
               </div>
             </div>
 

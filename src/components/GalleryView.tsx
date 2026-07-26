@@ -13,7 +13,12 @@ import {
   CalendarDays,
   Flame,
   Plus,
-  X
+  X,
+  ChevronDown,
+  ArrowUpDown,
+  Clock,
+  Search,
+  LayoutGrid
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { getSafeDate } from '../lib/dateUtils';
@@ -232,78 +237,108 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
   return (
     <div className="space-y-6">
       {/* Search and Filters Header */}
-      <div className="bg-[#0F0F11]/60 border border-white/5 p-4 rounded-3xl flex flex-col md:flex-row gap-4 justify-between items-center backdrop-blur-md">
-        <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
-          <ImageIcon size={18} className="text-emerald-400" />
-          Chart Gallery
-        </h2>
+      <div className="bg-[#0F0F11]/60 border border-white/5 p-4 rounded-3xl flex flex-col xl:flex-row gap-4 justify-between items-stretch xl:items-center backdrop-blur-md">
+        <div className="flex items-center justify-between gap-3 shrink-0">
+          <h2 className="text-xl font-bold text-zinc-100 flex items-center gap-2">
+            <ImageIcon size={18} className="text-emerald-400" />
+            Chart Gallery
+            <span className="text-xs font-medium text-zinc-500 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5">
+              {processedTrades.length}
+            </span>
+          </h2>
+        </div>
 
         {/* Filter and Sort Controllers */}
-        <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto justify-end">
-          {/* Preview Size Selector */}
-          <div className="flex bg-white/[0.02] border border-white/5 rounded-2xl p-1 gap-1">
+        <div className="flex flex-wrap items-center gap-2.5 w-full xl:w-auto justify-start xl:justify-end">
+          {/* Search Input */}
+          <div className="relative flex items-center flex-1 min-w-[160px] sm:max-w-[200px]">
+            <Search size={14} className="absolute left-3 text-zinc-500 pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search charts..."
+              className="w-full bg-[#141416] border border-white/10 hover:border-emerald-500/30 rounded-2xl pl-9 pr-7 py-2 text-xs font-medium focus:outline-none focus:border-emerald-500 text-zinc-200 placeholder:text-zinc-600 transition-all"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2.5 text-zinc-500 hover:text-zinc-300 cursor-pointer"
+              >
+                <X size={12} />
+              </button>
+            )}
+          </div>
+
+          {/* Outcome & Order Filter Dropdown */}
+          <div className="relative flex items-center min-w-[150px]">
+            <Filter size={14} className="absolute left-3 text-emerald-400 pointer-events-none z-10" />
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value as FilterType)}
+              className="w-full bg-[#141416] border border-white/10 hover:border-emerald-500/40 rounded-2xl pl-9 pr-8 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-500 text-zinc-200 transition-all cursor-pointer appearance-none shadow-sm"
+            >
+              <option value="all">All Status / Types</option>
+              <option value="wins">Wins 🟢</option>
+              <option value="losses">Losses 🔴</option>
+              <option value="open">Open Trades 🔵</option>
+              <option value="buy">Buy Orders 📈</option>
+              <option value="sell">Sell Orders 📉</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 text-zinc-500 pointer-events-none" />
+          </div>
+
+          {/* Timeframe Selection Dropdown */}
+          <div className="relative flex items-center min-w-[130px]">
+            <Clock size={14} className="absolute left-3 text-zinc-400 pointer-events-none z-10" />
+            <select
+              value={timeframeFilter}
+              onChange={(e) => setTimeframeFilter(e.target.value)}
+              className="w-full bg-[#141416] border border-white/10 hover:border-emerald-500/40 rounded-2xl pl-9 pr-8 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-500 text-zinc-200 transition-all cursor-pointer appearance-none shadow-sm"
+            >
+              <option value="all">All Timeframes</option>
+              {uniqueTimeframes.map(tf => (
+                <option key={tf} value={tf}>{tf}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-3 text-zinc-500 pointer-events-none" />
+          </div>
+
+          {/* Sort Selection Dropdown */}
+          <div className="relative flex items-center min-w-[140px]">
+            <ArrowUpDown size={14} className="absolute left-3 text-zinc-400 pointer-events-none z-10" />
+            <select
+              value={sortType}
+              onChange={(e) => setSortType(e.target.value as SortType)}
+              className="w-full bg-[#141416] border border-white/10 hover:border-emerald-500/40 rounded-2xl pl-9 pr-8 py-2 text-xs font-semibold focus:outline-none focus:border-emerald-500 text-zinc-200 transition-all cursor-pointer appearance-none shadow-sm"
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+              <option value="largest-win">Largest Wins</option>
+              <option value="largest-loss">Largest Losses</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-3 text-zinc-500 pointer-events-none" />
+          </div>
+
+          {/* Preview Size Toggle */}
+          <div className="flex bg-white/[0.02] border border-white/10 rounded-2xl p-1 gap-0.5">
             {(['small', 'medium', 'large'] as const).map((size) => (
               <button
                 key={size}
                 onClick={() => setPreviewSize(size)}
-                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                className={`px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
                   previewSize === size
                     ? 'bg-emerald-500 text-black shadow-md'
                     : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5'
                 }`}
+                title={`Card size: ${size}`}
               >
-                {size === 'small' && 'Small'}
-                {size === 'medium' && 'Medium'}
-                {size === 'large' && 'Large'}
+                {size === 'small' && 'S'}
+                {size === 'medium' && 'M'}
+                {size === 'large' && 'L'}
               </button>
             ))}
           </div>
-
-          {/* Quick Filters */}
-          <div className="flex bg-white/[0.02] border border-white/5 rounded-2xl p-1 gap-1">
-            {(['all', 'wins', 'losses', 'open', 'buy', 'sell'] as const).map((type) => (
-              <button
-                key={type}
-                onClick={() => setFilterType(type)}
-                className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                  filterType === type
-                    ? 'bg-emerald-500 text-black shadow-md'
-                    : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5'
-                }`}
-              >
-                {type === 'all' && 'All'}
-                {type === 'wins' && 'Wins 🟢'}
-                {type === 'losses' && 'Losses 🔴'}
-                {type === 'open' && 'Open 🔵'}
-                {type === 'buy' && 'Buy 📈'}
-                {type === 'sell' && 'Sell 📉'}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort Selection */}
-          <select
-            value={sortType}
-            onChange={(e) => setSortType(e.target.value as SortType)}
-            className="bg-[#141416] border border-white/5 rounded-2xl px-4 py-2 text-xs font-semibold focus:outline-none text-zinc-300 transition-all cursor-pointer hover:border-white/10"
-          >
-            <option value="newest">Newest First</option>
-            <option value="oldest">Oldest First</option>
-            <option value="largest-win">Largest Wins</option>
-            <option value="largest-loss">Largest Losses</option>
-          </select>
-
-          {/* Timeframe Selection */}
-          <select
-            value={timeframeFilter}
-            onChange={(e) => setTimeframeFilter(e.target.value)}
-            className="bg-[#141416] border border-white/5 rounded-2xl px-4 py-2 text-xs font-semibold focus:outline-none text-zinc-300 transition-all cursor-pointer hover:border-white/10"
-          >
-            <option value="all">All Timeframes</option>
-            {uniqueTimeframes.map(tf => (
-              <option key={tf} value={tf}>{tf}</option>
-            ))}
-          </select>
 
           {/* Clear Filters Button */}
           {(searchTerm !== '' || filterType !== 'all' || timeframeFilter !== 'all') && (
@@ -313,11 +348,11 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
                 setFilterType('all');
                 setTimeframeFilter('all');
               }}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/10 hover:border-red-500/20 transition-all text-xs font-semibold cursor-pointer h-[34px]"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-red-500/15 hover:bg-red-500/25 text-red-400 border border-red-500/10 hover:border-red-500/20 transition-all text-xs font-semibold cursor-pointer h-[34px]"
               title="Clear all filters"
             >
               <X size={13} />
-              Clear Filters
+              Reset
             </button>
           )}
         </div>
