@@ -7,7 +7,7 @@ import {
 import DateRangePicker from './ui/DateRangePicker';
 import { Trade } from '../types';
 import { TrendingUp, TrendingDown, Target, Zap } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
 
 interface DashboardProps {
   trades: Trade[];
@@ -51,6 +51,78 @@ function cleanEmotionLabel(key: string, label: string): string {
 export default function Dashboard({ trades }: DashboardProps) {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
+  const [growthTimeframe, setGrowthTimeframe] = useState<'daily' | 'weekly' | 'monthly' | 'yearly'>('daily');
+
+  const growthData = useMemo(() => {
+    let filteredTrades = trades;
+    if (startDate) {
+      filteredTrades = filteredTrades.filter(t => {
+        const d = getSafeDate(t.openTime);
+        return d && d >= startDate;
+      });
+    }
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      filteredTrades = filteredTrades.filter(t => {
+        const d = getSafeDate(t.openTime);
+        return d && d <= end;
+      });
+    }
+
+    const closedTrades = filteredTrades.filter(t => t.exitPrice !== null && t.exitPrice !== undefined && t.rr !== undefined && t.rr !== null);
+
+    const agg: Record<string, { periodRR: number; dateObj: Date; label: string; count: number }> = {};
+
+    closedTrades.forEach(t => {
+      const d = getSafeDate(t.openTime);
+      if (!d) return;
+
+      let key = '';
+      let label = '';
+      let dateObj = d;
+
+      if (growthTimeframe === 'daily') {
+        key = format(d, 'yyyy-MM-dd');
+        label = format(d, 'MMM dd');
+        dateObj = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      } else if (growthTimeframe === 'weekly') {
+        const sOfWeek = startOfWeek(d, { weekStartsOn: 1 });
+        key = format(sOfWeek, 'yyyy-MM-dd');
+        label = `W${format(sOfWeek, 'w')} (${format(sOfWeek, 'MMM dd')})`;
+        dateObj = sOfWeek;
+      } else if (growthTimeframe === 'monthly') {
+        const sOfMonth = startOfMonth(d);
+        key = format(sOfMonth, 'yyyy-MM');
+        label = format(sOfMonth, 'MMM yyyy');
+        dateObj = sOfMonth;
+      } else if (growthTimeframe === 'yearly') {
+        const sOfYear = startOfYear(d);
+        key = format(sOfYear, 'yyyy');
+        label = format(sOfYear, 'yyyy');
+        dateObj = sOfYear;
+      }
+
+      if (!agg[key]) {
+        agg[key] = { periodRR: 0, dateObj, label, count: 0 };
+      }
+      agg[key].periodRR += (t.rr || 0);
+      agg[key].count += 1;
+    });
+
+    const sortedGroups = Object.values(agg).sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+
+    let cumulativeRR = 0;
+    return sortedGroups.map(item => {
+      cumulativeRR += item.periodRR;
+      return {
+        period: item.label,
+        rr: Number(cumulativeRR.toFixed(2)),
+        periodRR: Number(item.periodRR.toFixed(2)),
+        count: item.count
+      };
+    });
+  }, [trades, startDate, endDate, growthTimeframe]);
 
 
   const streaks = useMemo(() => {
@@ -334,32 +406,100 @@ export default function Dashboard({ trades }: DashboardProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-8">
-        {/* Equity Curve */}
+        {/* Equity Curve / RR Growth */}
         <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5">
-          <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg font-semibold">RR Growth</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+              <h3 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
+                <TrendingUp size={18} className="text-emerald-400" />
+                RR Growth
+              </h3>
+            </div>
+
+            {/* Timeframe Selector */}
+            <div className="flex bg-white/[0.03] border border-white/10 rounded-2xl p-1 gap-1 self-start sm:self-auto">
+              {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((tf) => (
+                <button
+                  key={tf}
+                  onClick={() => setGrowthTimeframe(tf)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
+                    growthTimeframe === tf
+                      ? 'bg-emerald-500 text-black shadow-md font-bold'
+                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                  }`}
+                >
+                  {tf === 'daily' && 'Daily'}
+                  {tf === 'weekly' && 'Weekly'}
+                  {tf === 'monthly' && 'Monthly'}
+                  {tf === 'yearly' && 'Yearly'}
+                </button>
+              ))}
+            </div>
           </div>
+
           <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.equityData}>
-                <defs>
-                  <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis dataKey="date" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} tick={false} />
-                <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }} 
-                  itemStyle={{ color: '#10b981' }}
-                  cursor={false}
-                  formatter={(value: any) => [Number(value).toFixed(2), "RR"]}
-                />
-                <Area type="monotone" dataKey="rr" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" activeDot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
+            {growthData.length === 0 ? (
+              <div className="h-full w-full flex items-center justify-center text-zinc-500 text-xs border border-dashed border-white/5 rounded-2xl">
+                No trade data available for this timeframe
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={growthData} margin={{ top: 10, right: 10, left: -15, bottom: 20 }}>
+                  <defs>
+                    <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                  <XAxis 
+                    dataKey="period" 
+                    stroke="#52525b" 
+                    fontSize={10} 
+                    tickLine={false} 
+                    axisLine={false} 
+                    angle={-90}
+                    textAnchor="end"
+                    height={55}
+                    dy={5}
+                  />
+                  <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip 
+                    cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeDasharray: '3 3' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        const cumRR = Number(data.rr);
+                        const pRR = Number(data.periodRR);
+                        return (
+                          <div className="bg-[#18181b] border border-white/10 rounded-xl p-3 shadow-xl space-y-1 text-xs">
+                            <p className="font-bold text-zinc-200 font-sans mb-1">{data.period}</p>
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-zinc-400">Cumulative RR:</span>
+                              <span className={`font-mono font-bold ${cumRR >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {cumRR >= 0 ? `+${cumRR.toFixed(2)}` : cumRR.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6">
+                              <span className="text-zinc-400">Period RR:</span>
+                              <span className={`font-mono font-semibold ${pRR >= 0 ? 'text-emerald-400/80' : 'text-red-400/80'}`}>
+                                {pRR >= 0 ? `+${pRR.toFixed(2)}` : pRR.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between items-center gap-6 pt-1 border-t border-white/5 text-[11px]">
+                              <span className="text-zinc-500">Trades:</span>
+                              <span className="text-zinc-300 font-mono font-medium">{data.count}</span>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area type="monotone" dataKey="rr" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" activeDot={{ r: 4, fill: '#10b981' }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
