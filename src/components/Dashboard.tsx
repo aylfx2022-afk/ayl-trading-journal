@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { getSafeDate } from '../lib/dateUtils';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Legend, LabelList, ReferenceLine
+  Cell, BarChart, Bar, Legend, LabelList, ReferenceLine
 } from 'recharts';
 import DateRangePicker from './ui/DateRangePicker';
 import { Trade } from '../types';
@@ -386,6 +386,11 @@ export default function Dashboard({ trades }: DashboardProps) {
         <StatCard 
           title="Closed Trades" 
           value={stats.closedTrades.toString()} 
+          subValue={
+            <span className="text-xs font-semibold text-zinc-400">
+              (<span className="text-emerald-400">{stats.wins}</span> / <span className="text-red-400">{stats.losses}</span>)
+            </span>
+          }
           icon={<Target className="text-blue-500" />}
         />
         <StatCard 
@@ -570,121 +575,78 @@ export default function Dashboard({ trades }: DashboardProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        {/* Win/Loss Ratio */}
-        <div className="lg:col-span-1 p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-          <h3 className="text-sm font-semibold mb-6 font-sans text-zinc-400">Win/Loss Ratio</h3>
-          <div className="flex-1 flex flex-col items-center justify-center">
-            <div className="h-[180px] w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Wins', value: stats.wins },
-                      { name: 'Losses', value: stats.losses }
-                    ]}
-                    innerRadius={40}
-                    outerRadius={58}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {COLORS.map((color, index) => (
-                      <Cell key={`cell-${index}`} fill={color} stroke="none" />
-                    ))}
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px' }}
-                    cursor={false}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="w-full mt-4 space-y-2.5">
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-500 font-sans">Wins</span>
-                <span className="text-emerald-500 font-bold font-sans">{stats.wins}</span>
-              </div>
-              <div className="flex justify-between text-xs">
-                <span className="text-zinc-500 font-sans">Losses</span>
-                <span className="text-red-500 font-bold font-sans">{stats.losses}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Day of Week Performance */}
-        <div className="lg:col-span-4 p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
-          <h3 className="text-lg font-semibold mb-2 font-sans">Day of Week Performance</h3>
-          <p className="text-xs text-zinc-500 mb-6 font-sans">
-            Monday to Friday trade win/loss distribution based on RR value
-          </p>
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={stats.dayOfWeekData}
-                  barSize={14}
-                  margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                  <XAxis 
-                    dataKey="day" 
-                    type="category" 
-                    stroke="#52525b" 
-                    fontSize={11} 
-                    tickLine={false} 
-                    axisLine={false}
-                  />
-                  <YAxis 
-                    type="number" 
-                    stroke="#52525b" 
-                    fontSize={10} 
-                    tickLine={false} 
-                    axisLine={false}
-                    tickFormatter={(value) => Math.abs(value).toString()} // Show absolute count
-                  />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        const data = payload[0].payload;
-                        return (
-                          <div className="bg-[#18181b] border border-white/10 rounded-xl p-3 shadow-xl space-y-1">
-                            <p className="text-xs font-bold text-zinc-200 mb-1 font-sans">{data.day}</p>
-                            <p className="text-xs text-emerald-500 font-medium flex justify-between gap-6">
-                              <span className="font-sans">{"Wins (RR > 0):"}</span>
-                              <span className="font-mono font-bold">{data.wins}</span>
-                            </p>
-                            <p className="text-xs text-red-500 font-medium flex justify-between gap-6">
-                              <span className="font-sans">{"Losses (RR ≤ 0):"}</span>
-                              <span className="font-mono font-bold">{data.rawLosses}</span>
-                            </p>
-                            <div className="border-t border-white/5 my-1.5 pt-1.5 flex justify-between text-xs font-bold text-zinc-300 gap-6 font-sans">
-                              <span>Total Trades:</span>
-                              <span className="font-mono text-emerald-400">{data.wins + data.rawLosses}</span>
-                            </div>
+      {/* Day of Week Performance */}
+      <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+        <h3 className="text-lg font-semibold mb-2 font-sans">Day of Week Performance</h3>
+        <p className="text-xs text-zinc-500 mb-6 font-sans">
+          Monday to Friday trade win/loss distribution based on RR value
+        </p>
+        <div className="flex-1 flex flex-col justify-center">
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={stats.dayOfWeekData}
+                barSize={14}
+                margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <XAxis 
+                  dataKey="day" 
+                  type="category" 
+                  stroke="#52525b" 
+                  fontSize={11} 
+                  tickLine={false} 
+                  axisLine={false}
+                />
+                <YAxis 
+                  type="number" 
+                  stroke="#52525b" 
+                  fontSize={10} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tickFormatter={(value) => Math.abs(value).toString()} // Show absolute count
+                />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(255, 255, 255, 0.02)' }}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-[#18181b] border border-white/10 rounded-xl p-3 shadow-xl space-y-1">
+                          <p className="text-xs font-bold text-zinc-200 mb-1 font-sans">{data.day}</p>
+                          <p className="text-xs text-emerald-500 font-medium flex justify-between gap-6">
+                            <span className="font-sans">{"Wins (RR > 0):"}</span>
+                            <span className="font-mono font-bold">{data.wins}</span>
+                          </p>
+                          <p className="text-xs text-red-500 font-medium flex justify-between gap-6">
+                            <span className="font-sans">{"Losses (RR ≤ 0):"}</span>
+                            <span className="font-mono font-bold">{data.rawLosses}</span>
+                          </p>
+                          <div className="border-t border-white/5 my-1.5 pt-1.5 flex justify-between text-xs font-bold text-zinc-300 gap-6 font-sans">
+                            <span>Total Trades:</span>
+                            <span className="font-mono text-emerald-400">{data.wins + data.rawLosses}</span>
                           </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <ReferenceLine y={0} stroke="#ffffff20" />
-                  <Bar dataKey="losses" fill="#ef4444" stackId="stack" barSize={14} radius={[0, 0, 4, 4]} />
-                  <Bar dataKey="wins" fill="#10b981" stackId="stack" barSize={14} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <ReferenceLine y={0} stroke="#ffffff20" />
+                <Bar dataKey="losses" fill="#ef4444" stackId="stack" barSize={14} radius={[0, 0, 4, 4]} />
+                <Bar dataKey="wins" fill="#10b981" stackId="stack" barSize={14} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          {/* Legend */}
+          <div className="flex items-center justify-center gap-6 mt-4 text-xs text-zinc-500 font-sans">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <span>{"Losses (RR ≤ 0)"}</span>
             </div>
-            {/* Legend */}
-            <div className="flex items-center justify-center gap-6 mt-4 text-xs text-zinc-500 font-sans">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500" />
-                <span>{"Losses (RR ≤ 0)"}</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                <span>{"Wins (RR > 0)"}</span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <span>{"Wins (RR > 0)"}</span>
             </div>
           </div>
         </div>
@@ -708,7 +670,7 @@ export default function Dashboard({ trades }: DashboardProps) {
   );
 }
 
-function StatCard({ title, value, icon, trend }: { title: string, value: string, icon: React.ReactNode, trend?: 'positive' | 'negative' }) {
+function StatCard({ title, value, subValue, icon, trend }: { title: string, value: string, subValue?: React.ReactNode, icon: React.ReactNode, trend?: 'positive' | 'negative' }) {
   return (
     <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 hover:border-white/10 transition-colors">
       <div className="flex items-center justify-between mb-4">
@@ -717,8 +679,13 @@ function StatCard({ title, value, icon, trend }: { title: string, value: string,
           {icon}
         </div>
       </div>
-      <div className="flex items-end gap-2">
+      <div className="flex items-baseline gap-2 flex-wrap">
         <span className="text-2xl font-bold tracking-tight">{value}</span>
+        {subValue && (
+          <div className="mb-0.5">
+            {subValue}
+          </div>
+        )}
         {trend && (
           <span className={`text-[10px] font-bold mb-1 px-1.5 py-0.5 rounded ${trend === 'positive' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
             {trend === 'positive' ? '↑' : '↓'}
