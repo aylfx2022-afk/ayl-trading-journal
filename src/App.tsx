@@ -21,7 +21,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { auth, db } from './firebase';
-import { Trade, TradingAccount } from './types';
+import { Trade, TradingAccount, Review } from './types';
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import TradeList from './components/TradeList';
@@ -31,6 +31,7 @@ import TradeDetails from './components/TradeDetails';
 import DayDetails from './components/DayDetails';
 import AddTrade from './components/AddTrade';
 import GalleryView from './components/GalleryView';
+import ReviewView from './components/ReviewView';
 import { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { TrendingUp, Trash2, AlertCircle, ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -58,6 +59,7 @@ export default function App() {
   const [selectedDay, setSelectedDay] = useState<Dayjs>(dayjs());
   const [trades, setTrades] = useState<Trade[]>([]);
   const [journals, setJournals] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [tradingAccounts, setTradingAccounts] = useState<TradingAccount[]>([]);
   const [activeAccountId, setActiveAccountId] = useState<string | null>(() => {
     if (typeof window !== 'undefined') {
@@ -314,6 +316,31 @@ export default function App() {
         ...doc.data()
       }));
       setJournals(journalData);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Reviews listener
+  useEffect(() => {
+    if (!user) {
+      setReviews([]);
+      return;
+    }
+
+    const q = query(
+      collection(db, 'reviews'),
+      where('userId', '==', user.uid)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const reviewData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Review[];
+      setReviews(reviewData);
+    }, (error) => {
+      console.error("Reviews snapshot error:", error);
     });
 
     return () => unsubscribe();
@@ -637,6 +664,13 @@ export default function App() {
     return defaultAccount && activeAccountId === defaultAccount.id;
   });
 
+  const filteredReviews = reviews.filter(r => {
+    if (r.accountId) {
+      return r.accountId === activeAccountId;
+    }
+    return defaultAccount && activeAccountId === defaultAccount.id;
+  });
+
   return (
     <Layout 
       activeTab={activeTab} 
@@ -704,6 +738,15 @@ export default function App() {
             />
           )}
           {activeTab === 'settings' && <Settings trades={trades} journals={filteredJournals} activeAccountId={activeAccountId} />}
+          {activeTab === 'review' && (
+            <ReviewView
+              reviews={filteredReviews}
+              trades={trades}
+              activeAccountId={activeAccountId}
+              activeAccountName={tradingAccounts.find(a => a.id === activeAccountId)?.name}
+              activeAccountIsDefault={!!defaultAccount && activeAccountId === defaultAccount.id}
+            />
+          )}
           {activeTab === 'gallery' && (
             <GalleryView 
               trades={trades} 

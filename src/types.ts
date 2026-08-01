@@ -58,6 +58,29 @@ export interface TradingAccount {
   isDefault?: boolean;
 }
 
+export interface ReviewStats {
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  netRR: number;
+}
+
+export interface Review {
+  id?: string;
+  type: 'weekly' | 'monthly';
+  periodKey: string;
+  periodTitle: string;
+  startDateYMD: string;
+  endDateYMD: string;
+  content: string;
+  userId: string;
+  accountId?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  stats?: ReviewStats;
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

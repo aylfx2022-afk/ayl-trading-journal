@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon, PanelLeft, PanelLeftClose } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon, PanelLeft, PanelLeftClose, NotebookPen } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
@@ -320,6 +320,18 @@ export default function Layout({
             >
               <CalendarDays size={20} />
               <span className="font-medium">Calendar</span>
+            </button>
+
+            <button
+              onClick={() => handleTabClick('review')}
+              className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
+                activeTab === 'review' 
+                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
+                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+              }`}
+            >
+              <NotebookPen size={20} />
+              <span className="font-medium">Review</span>
             </button>
 
             <button

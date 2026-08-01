@@ -55,6 +55,24 @@
         "isDefault": { "type": "boolean" }
       },
       "required": ["name", "userId", "type", "createdAt"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Weekly or monthly trading performance review",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["weekly", "monthly"] },
+        "periodKey": { "type": "string" },
+        "periodTitle": { "type": "string" },
+        "startDateYMD": { "type": "string" },
+        "endDateYMD": { "type": "string" },
+        "content": { "type": "string" },
+        "userId": { "type": "string" },
+        "accountId": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["type", "periodKey", "periodTitle", "content", "userId", "updatedAt"]
     }
   },
   "firestore": {
@@ -73,6 +91,10 @@
     "/tradingAccounts/{accountId}": {
       "schema": "TradingAccount",
       "description": "User trading profiles"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Weekly and monthly review logs"
     }
   }
 }

@@ -106,10 +106,23 @@ service cloud.firestore {
              data.userId == request.auth.uid;
     }
 
+    function isValidReview(data) {
+      return data.type in ['weekly', 'monthly'] &&
+             data.periodKey is string &&
+             data.content is string &&
+             (data.userId == request.auth.uid || isAdmin());
+    }
+
     match /tradingAccounts/{accountId} {
       allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
       allow create: if isAuthenticated() && isValidTradingAccount(request.resource.data);
       allow update, delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin()) && isValidTradingAccount(request.resource.data);
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid || isAdmin());
+      allow create, update: if isAuthenticated() && isValidReview(request.resource.data);
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
     }
 
   }
