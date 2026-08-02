@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon, PanelLeft, PanelLeftClose, NotebookPen } from 'lucide-react';
+import { LayoutDashboard, History, LogOut, TrendingUp, Settings as SettingsIcon, CalendarDays, Plus, Briefcase, Trash2, ChevronLeft, ChevronRight, UserPlus, X, Repeat, ChevronDown, Image as ImageIcon, PanelLeft, PanelLeftClose, NotebookPen, Sun, Moon } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
@@ -40,6 +40,30 @@ export default function Layout({
   onSwitchTradingAccount,
   onDeleteTradingAccount
 }: LayoutProps) {
+  // Theme state: 'dark' | 'light'
+  const [theme, setTheme] = React.useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('app_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    }
+    return 'dark';
+  });
+
+  React.useEffect(() => {
+    if (theme === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+    localStorage.setItem('app_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark');
+  };
+
   // Notion-style sidebar state: userPinned determines if sidebar is permanently docked open.
   const [userPinned, setUserPinned] = React.useState<boolean>(() => {
     if (typeof window !== 'undefined') {
@@ -368,6 +392,18 @@ export default function Layout({
           >
             <LogOut size={20} />
             <span className="font-medium text-sm">Sign Out</span>
+          </button>
+
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer shrink-0 group flex items-center justify-center"
+            title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+          >
+            {theme === 'dark' ? (
+              <Sun size={20} className="text-amber-400 group-hover:scale-110 transition-transform" />
+            ) : (
+              <Moon size={20} className="text-indigo-400 group-hover:scale-110 transition-transform" />
+            )}
           </button>
 
           <button

@@ -214,7 +214,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
 
               {/* Floating DatePicker Popover */}
               {isPickerOpen && (
-                <div className="absolute top-full left-0 mt-2 z-50 bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[310px] p-4 text-zinc-200 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[310px] p-4 text-zinc-800 dark:text-zinc-200 animate-in fade-in zoom-in-95 duration-150">
                   {pickerMode === 'months' && (
                     <div>
                       {/* Popover Header */}
@@ -222,20 +222,20 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setPanelDate(panelDate.subtract(1, 'year'))}
-                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Previous Year"
                         >
                           <ChevronLeft size={16} />
                         </button>
-                        <div className="font-bold text-xs select-none tracking-wide text-zinc-200 flex items-center gap-1.5">
-                          <span className="text-zinc-400">Select Month for</span>
+                        <div className="font-bold text-xs select-none tracking-wide text-zinc-700 dark:text-zinc-200 flex items-center gap-1.5">
+                          <span className="text-zinc-500 dark:text-zinc-400">Select Month for</span>
                           <button
                             type="button"
                             onClick={() => {
                               setYearRangeStart(Math.floor(panelDate.year() / 12) * 12);
                               setPickerMode('years');
                             }}
-                            className="px-2 py-0.5 rounded-lg text-emerald-400 font-black border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all cursor-pointer"
+                            className="px-2 py-0.5 rounded-lg text-emerald-600 dark:text-emerald-400 font-black border border-emerald-500/20 bg-emerald-500/10 hover:bg-emerald-500/20 transition-all cursor-pointer"
                           >
                             {panelDate.year()}
                           </button>
@@ -243,7 +243,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setPanelDate(panelDate.add(1, 'year'))}
-                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Next Year"
                         >
                           <ChevronRight size={16} />
@@ -265,7 +265,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                               className={`py-3 px-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
                                 isSelected
                                   ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                  : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                                  : 'bg-zinc-100 dark:bg-white/5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white border border-transparent'
                               }`}
                             >
                               {mName}
@@ -275,21 +275,21 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
+                      <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-white/5 flex gap-2">
                         <button
                           type="button"
                           onClick={() => {
                             setPanelDate(dayjs());
                             setIsPickerOpen(false);
                           }}
-                          className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center cursor-pointer"
+                          className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center cursor-pointer"
                         >
                           TODAY
                         </button>
                         <button
                           type="button"
                           onClick={() => setIsPickerOpen(false)}
-                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center cursor-pointer"
+                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 transition-all text-center cursor-pointer"
                         >
                           CLOSE
                         </button>
@@ -304,18 +304,18 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setYearRangeStart(yearRangeStart - 12)}
-                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Previous 12 Years"
                         >
                           <ChevronLeft size={16} />
                         </button>
-                        <div className="font-black text-xs select-none tracking-wider text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
+                        <div className="font-black text-xs select-none tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-lg border border-emerald-500/20">
                           {yearRangeStart} – {yearRangeStart + 11}
                         </div>
                         <button
                           type="button"
                           onClick={() => setYearRangeStart(yearRangeStart + 12)}
-                          className="p-1.5 rounded-lg border border-white/5 hover:border-white/10 hover:bg-white/5 text-zinc-400 hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Next 12 Years"
                         >
                           <ChevronRight size={16} />
@@ -337,7 +337,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                               className={`py-3 px-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
                                 isSelected
                                   ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                  : 'bg-white/5 text-zinc-300 hover:bg-white/10 hover:text-white border border-transparent'
+                                  : 'bg-zinc-100 dark:bg-white/5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white border border-transparent'
                               }`}
                             >
                               {yNum}
@@ -347,21 +347,21 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
+                      <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-white/5 flex gap-2">
                         <button
                           type="button"
                           onClick={() => {
                             setPanelDate(dayjs());
                             setIsPickerOpen(false);
                           }}
-                          className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center cursor-pointer"
+                          className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all text-center cursor-pointer"
                         >
                           TODAY
                         </button>
                         <button
                           type="button"
                           onClick={() => setIsPickerOpen(false)}
-                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-300 bg-white/5 border border-white/10 hover:bg-white/10 transition-all text-center cursor-pointer"
+                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 transition-all text-center cursor-pointer"
                         >
                           CLOSE
                         </button>
@@ -435,7 +435,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         `}
                       >
                         <div className="flex justify-between items-start w-full">
-                          <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isToday ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black border border-emerald-500/20' : 'text-zinc-500 dark:text-zinc-500'}`}>
+                          <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isToday ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black border border-emerald-500/20' : 'text-zinc-700 dark:text-zinc-500'}`}>
                             {value.date()}
                           </span>
                           <div className="flex gap-1">
@@ -449,12 +449,12 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         </div>
                         
                         {totalRR !== null && (
-                          <div className="flex flex-col items-end w-full">
-                            <span className={`text-xs font-black leading-none ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
-                              {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
-                            </span>
-                            <span className="text-[9px] font-bold text-zinc-400 dark:text-zinc-600 mt-0.5">
+                          <div className="flex-1 flex flex-col items-center justify-center text-center -mt-1">
+                            <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400">
                               {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
+                            </span>
+                            <span className={`text-xs font-black leading-none mt-1 ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                              {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
                             </span>
                           </div>
                         )}
@@ -466,19 +466,19 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                   {weekSummary && (
                     <div className={`hidden lg:flex flex-col items-center justify-center p-2 relative group transition-colors h-[84px] ${
                       weekSummary.tradesCount > 0 
-                        ? (weekSummary.isPositive ? 'bg-emerald-500/[0.01] dark:bg-emerald-500/[0.02]' : 'bg-red-500/[0.01] dark:bg-red-500/[0.02]') 
+                        ? (weekSummary.isPositive ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.02]' : 'bg-red-500/[0.04] dark:bg-red-500/[0.02]') 
                         : 'bg-transparent'
                     }`}>
                       {weekSummary.tradesCount > 0 ? (
                         <>
                           <div className="flex flex-col items-center text-center">
-                            <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500">
+                            <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400">
                               {weekSummary.tradesCount} {weekSummary.tradesCount === 1 ? 'trade' : 'trades'}
                             </span>
                           </div>
                           
                           <div className="mt-1 flex flex-col items-center text-center">
-                            <span className={`text-xs font-black leading-none ${weekSummary.isPositive ? 'text-emerald-500' : 'text-red-400'}`}>
+                            <span className={`text-xs font-black leading-none ${weekSummary.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
                               {weekSummary.isPositive ? '+' : ''}{weekSummary.totalRR.toFixed(1)}R
                             </span>
                           </div>
@@ -486,7 +486,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                           <div className={`absolute right-0 top-2 bottom-2 w-0.5 rounded-l-full ${weekSummary.isPositive ? 'bg-emerald-500/30' : 'bg-red-500/30'}`} />
                         </>
                       ) : (
-                        <span className="text-[10px] font-bold text-zinc-300 dark:text-zinc-700 italic">No activity</span>
+                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-700 italic">No activity</span>
                       )}
                     </div>
                   )}

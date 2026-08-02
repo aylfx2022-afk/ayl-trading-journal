@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@variant dark (&:where(.dark, .dark *));
 @import "react-calendar/dist/Calendar.css";
 
 /* Custom Calendar Styles - Matching provided image */
@@ -207,4 +208,157 @@ svg:focus {
 
 .markdown-preview li {
   margin-bottom: 0.25rem;
+}
+
+/* ==========================================================================
+   LIGHT THEME OVERRIDES
+   ========================================================================== */
+html.light {
+  color-scheme: light;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+html.light body {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* Base dark container backgrounds in light mode */
+html.light .bg-\[\#0A0A0A\],
+html.light .bg-\[\#0a0a0a\],
+html.light .bg-\[\#0A0A0A\]\/80 {
+  background-color: #f8fafc !important;
+}
+
+html.light .bg-\[\#0F0F0F\],
+html.light .bg-\[\#0f0f0f\],
+html.light .bg-\[\#121214\],
+html.light .bg-\[\#18181b\],
+html.light .bg-\[\#18181B\],
+html.light .bg-\[\#1a1a1a\],
+html.light .bg-\[\#121212\] {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+}
+
+/* Semi-transparent dark surfaces in light mode */
+html.light .bg-white\/5,
+html.light .bg-white\/\[0\.01\],
+html.light .bg-white\/\[0\.02\],
+html.light .bg-white\/\[0\.03\],
+html.light .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .hover\:bg-white\/5:hover,
+html.light .hover\:bg-white\/10:hover,
+html.light .hover\:bg-white\/15:hover {
+  background-color: #e2e8f0 !important;
+}
+
+/* Text color overrides */
+html.light .text-zinc-100,
+html.light .text-zinc-200,
+html.light .text-zinc-300,
+html.light .text-white {
+  color: #0f172a !important;
+}
+
+html.light .text-zinc-400 {
+  color: #475569 !important;
+}
+
+html.light .text-zinc-500 {
+  color: #64748b !important;
+}
+
+html.light .text-zinc-600 {
+  color: #94a3b8 !important;
+}
+
+/* Border color overrides */
+html.light .border-white\/5,
+html.light .border-white\/10,
+html.light .border-white\/15,
+html.light .border-white\/20,
+html.light .border-white\/30 {
+  border-color: #e2e8f0 !important;
+}
+
+/* Input & Select fields in light mode */
+html.light input,
+html.light select,
+html.light textarea {
+  color: #0f172a !important;
+  background-color: #f8fafc !important;
+}
+
+html.light input::placeholder,
+html.light textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* Header & Sidebar overrides */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.light aside {
+  background-color: #ffffff !important;
+  border-right-color: #e2e8f0 !important;
+}
+
+/* React Calendar light overrides */
+html.light .react-calendar {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.light .react-calendar__navigation {
+  border-bottom-color: #e2e8f0 !important;
+}
+
+html.light .react-calendar__navigation button {
+  color: #0f172a !important;
+}
+
+html.light .react-calendar__navigation button:enabled:hover,
+html.light .react-calendar__navigation button:enabled:focus {
+  background-color: #f1f5f9 !important;
+}
+
+html.light .react-calendar__month-view__weekdays {
+  color: #64748b !important;
+}
+
+html.light .react-calendar__tile {
+  color: #0f172a !important;
+}
+
+html.light .react-calendar__tile:enabled:hover,
+html.light .react-calendar__tile:enabled:focus {
+  background-color: #f1f5f9 !important;
+}
+
+/* Antd calendar cell overrides in light mode */
+html.light .antd-calendar-wrapper .custom-calendar-cell,
+html.light .antd-calendar-wrapper .ant-picker-cell-inner,
+html.light .weekly-row {
+  border-color: #e2e8f0 !important;
+  background-color: #ffffff !important;
+}
+
+/* Modals & Backdrop in light mode */
+html.light .bg-black\/80,
+html.light .bg-black\/85,
+html.light .bg-black\/90 {
+  background-color: rgba(15, 23, 42, 0.6) !important;
 }
