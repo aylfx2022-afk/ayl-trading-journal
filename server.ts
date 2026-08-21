@@ -172,11 +172,16 @@ Return a structured JSON object with entryPrice, slPrice, tpPrice, type, confide
 
       if (provider === "gemini") {
         const ai = new GoogleGenAI({
-          apiKey: apiKey
+          apiKey: apiKey,
+          httpOptions: {
+            headers: {
+              'User-Agent': 'aistudio-build',
+            }
+          }
         });
 
         const response = await ai.models.generateContent({
-          model: "gemini-3.6-flash",
+          model: "gemini-3.7-flash",
           contents: [
             {
               inlineData: {
