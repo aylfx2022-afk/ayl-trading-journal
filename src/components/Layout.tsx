@@ -145,7 +145,7 @@ export default function Layout({
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 font-sans selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-[#12161c] text-[#e8ebf2] font-sans selection:bg-[#4d8fe0]/30">
       {/* Invisible Hover Trigger Zone on screen left edge when unpinned */}
       {!effectivePinned && (
         <div 
@@ -158,7 +158,7 @@ export default function Layout({
       <aside 
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className={`fixed left-0 top-0 h-full w-64 border-r border-white/5 bg-[#0F0F0F] z-50 transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed left-0 top-0 h-full w-64 border-r border-white/5 bg-[#181d26] z-50 transition-transform duration-300 ease-in-out flex flex-col ${
           isVisible ? 'translate-x-0 shadow-2xl shadow-black/80' : '-translate-x-full shadow-none pointer-events-none'
         }`}
       >
@@ -177,13 +177,13 @@ export default function Layout({
                     alt="Avatar" 
                     className="w-8 h-8 rounded-full border border-white/10 block"
                   />
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-[#0F0F0F]" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[#4d8fe0] rounded-full border border-[#181d26]" />
                 </div>
                 <div className="overflow-hidden flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate group-hover:text-emerald-400 transition-colors">{user?.displayName || 'Trader'}</p>
-                  <p className="text-[10px] text-zinc-500 truncate">{user?.email}</p>
+                  <p className="text-sm font-medium truncate group-hover:text-[#7ba8e8] transition-colors">{user?.displayName || 'Trader'}</p>
+                  <p className="text-[10px] text-[#8b93a1] truncate">{user?.email}</p>
                 </div>
-                <Repeat size={14} className="text-zinc-500 group-hover:text-emerald-400 shrink-0 transition-all opacity-0 group-hover:opacity-100 group-hover:rotate-185 duration-500" />
+                <Repeat size={14} className="text-[#8b93a1] group-hover:text-[#7ba8e8] shrink-0 transition-all opacity-0 group-hover:opacity-100 group-hover:rotate-180 duration-500" />
               </div>
             </button>
           </div>
@@ -192,13 +192,13 @@ export default function Layout({
           {user && (
             <div className="px-4 mb-4 relative font-sans" ref={dropdownRef}>
               <div className="flex items-center justify-between mb-2 px-1">
-                <span className="text-[9px] font-black uppercase text-zinc-500 tracking-widest flex items-center gap-1.5">
-                  <Briefcase size={11} className="text-emerald-500" />
+                <span className="text-[9px] font-black uppercase text-[#8b93a1] tracking-widest flex items-center gap-1.5">
+                  <Briefcase size={11} className="text-[#4d8fe0]" />
                   Profiles
                 </span>
                 <button
                   onClick={() => setShowProfileModal(true)}
-                  className="w-5 h-5 flex items-center justify-center text-zinc-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all cursor-pointer"
+                  className="w-5 h-5 flex items-center justify-center text-[#8b93a1] hover:text-[#7ba8e8] hover:bg-white/5 rounded-md transition-all cursor-pointer"
                   title="Add New Profile"
                 >
                   <Plus size={12} />
@@ -211,18 +211,18 @@ export default function Layout({
                 className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.07] border border-white/5 hover:border-white/10 shadow-lg transition-all duration-200 cursor-pointer text-zinc-200 focus:outline-none"
               >
                 <div className="flex items-center gap-2 truncate">
-                  <span className={`w-1.5 h-1.5 rounded-full ${activeAccount?.type === 'backtest' ? 'bg-blue-450' : 'bg-emerald-450'}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full ${activeAccount?.type === 'backtest' ? 'bg-sky-400' : 'bg-[#4d8fe0]'}`} />
                   <span className="truncate max-w-[110px]">{activeAccount?.name || 'Select Profile'}</span>
                 </div>
                 <div className="flex items-center gap-1 shrink-0 ml-1">
                   <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
                     activeAccount?.type === 'backtest' 
-                      ? 'bg-blue-500/10 text-blue-450' 
-                      : 'bg-emerald-500/10 text-emerald-440'
+                      ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' 
+                      : 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/20'
                   }`}>
                     {activeAccount?.type === 'backtest' ? 'BT' : 'LIVE'}
                   </span>
-                  <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-emerald-400' : ''}`} />
+                  <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180 text-[#7ba8e8]' : ''}`} />
                 </div>
               </button>
 
@@ -234,14 +234,14 @@ export default function Layout({
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.96, y: 3 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-4 right-4 mt-1 bg-[#121214] border border-white/10 rounded-xl p-1.5 shadow-2xl z-45 max-h-[180px] overflow-y-auto space-y-0.5 backdrop-blur-md"
+                    className="absolute left-4 right-4 mt-1 bg-[#181d26] border border-white/10 rounded-xl p-1.5 shadow-2xl z-45 max-h-[180px] overflow-y-auto space-y-0.5 backdrop-blur-md"
                   >
                     {tradingAccounts.map(acc => (
                       <div
                         key={acc.id}
                         className={`w-full flex items-center justify-between rounded-xl transition-all ${
                           activeAccountId === acc.id
-                            ? 'bg-emerald-500 text-black font-bold shadow-md shadow-emerald-500/10'
+                            ? 'bg-[#4d8fe0] text-white font-bold shadow-md shadow-[#4d8fe0]/20'
                             : 'text-zinc-400 hover:text-zinc-100 hover:bg-white/5'
                         }`}
                       >
@@ -257,10 +257,10 @@ export default function Layout({
                         <div className="flex items-center gap-1.5 pr-2.5 shrink-0">
                           <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full ${
                             activeAccountId === acc.id
-                              ? 'bg-black/10 text-black' 
+                              ? 'bg-black/20 text-white' 
                               : acc.type === 'backtest' 
-                                ? 'bg-blue-500/10 text-blue-450' 
-                                : 'bg-emerald-500/10 text-emerald-440'
+                                ? 'bg-sky-500/10 text-sky-400' 
+                                : 'bg-[#1e2733] text-[#7ba8e8]'
                           }`}>
                             {acc.type === 'backtest' ? 'BT' : 'LIVE'}
                           </span>
@@ -272,7 +272,7 @@ export default function Layout({
                               }}
                               className={`p-1 rounded-md transition-colors ${
                                 activeAccountId === acc.id
-                                  ? 'text-black/60 hover:text-red-750 hover:bg-black/5'
+                                  ? 'text-white/70 hover:text-red-200 hover:bg-black/10'
                                   : 'text-zinc-500 hover:text-red-400 hover:bg-white/10'
                               }`}
                               title="Delete Profile"
@@ -292,7 +292,7 @@ export default function Layout({
           <nav className="mt-4 space-y-2 px-4">
             <button
               onClick={() => handleTabClick('add-trade')}
-              className="flex items-center w-full gap-3 px-4 py-3 rounded-xl mb-6 bg-emerald-500 hover:bg-emerald-400 text-black font-bold transition-all duration-200 cursor-pointer"
+              className="flex items-center w-full gap-3 px-4 py-3 rounded-xl mb-6 bg-[#4d8fe0] hover:bg-[#3a6fc4] text-white font-bold transition-all duration-200 cursor-pointer shadow-lg shadow-[#4d8fe0]/20 active:scale-[0.98]"
             >
               <Plus size={20} />
               <span className="font-medium">New Trade</span>
@@ -302,11 +302,11 @@ export default function Layout({
               onClick={() => handleTabClick('dashboard')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'dashboard' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <LayoutDashboard size={20} />
+              <LayoutDashboard size={20} className={activeTab === 'dashboard' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Dashboard</span>
             </button>
 
@@ -314,11 +314,11 @@ export default function Layout({
               onClick={() => handleTabClick('opening-positions')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'opening-positions' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <Briefcase size={20} />
+              <Briefcase size={20} className={activeTab === 'opening-positions' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Opening Positions</span>
             </button>
 
@@ -326,11 +326,11 @@ export default function Layout({
               onClick={() => handleTabClick('history')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'history' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <History size={20} />
+              <History size={20} className={activeTab === 'history' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Trade History</span>
             </button>
 
@@ -338,11 +338,11 @@ export default function Layout({
               onClick={() => handleTabClick('calendar')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'calendar' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <CalendarDays size={20} />
+              <CalendarDays size={20} className={activeTab === 'calendar' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Calendar</span>
             </button>
 
@@ -350,11 +350,11 @@ export default function Layout({
               onClick={() => handleTabClick('review')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'review' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <NotebookPen size={20} />
+              <NotebookPen size={20} className={activeTab === 'review' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Review</span>
             </button>
 
@@ -362,11 +362,11 @@ export default function Layout({
               onClick={() => handleTabClick('gallery')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'gallery' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <ImageIcon size={20} />
+              <ImageIcon size={20} className={activeTab === 'gallery' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Chart Gallery</span>
             </button>
 
@@ -374,21 +374,21 @@ export default function Layout({
               onClick={() => handleTabClick('settings')}
               className={`flex items-center w-full gap-3 px-4 py-3 rounded-xl transition-all duration-200 cursor-pointer ${
                 activeTab === 'settings' 
-                  ? 'bg-emerald-500/10 text-emerald-440 border border-emerald-500/20' 
-                  : 'text-zinc-500 hover:text-zinc-200 hover:bg-white/5 border border-transparent'
+                  ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/30 font-semibold' 
+                  : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent'
               }`}
             >
-              <SettingsIcon size={20} />
+              <SettingsIcon size={20} className={activeTab === 'settings' ? 'text-[#4d8fe0]' : ''} />
               <span className="font-medium">Settings</span>
             </button>
           </nav>
         </div>
 
         {/* Fixed Bottom Container for Sidebar Controls & Logout */}
-        <div className="mt-auto shrink-0 pb-6 pt-[15px] border-t border-white/5 bg-[#0F0F0F] px-4 flex items-center gap-2">
+        <div className="mt-auto shrink-0 pb-6 pt-[15px] border-t border-white/5 bg-[#181d26] px-4 flex items-center gap-2">
           <button
             onClick={() => signOut(auth)}
-            className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl text-zinc-500 hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 cursor-pointer"
+            className="flex-1 flex items-center gap-3 px-4 py-2.5 rounded-xl text-[#8b93a1] hover:text-red-400 hover:bg-red-400/5 transition-all duration-200 cursor-pointer"
           >
             <LogOut size={20} />
             <span className="font-medium text-sm">Sign Out</span>
@@ -396,7 +396,7 @@ export default function Layout({
 
           <button
             onClick={toggleTheme}
-            className="p-2.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer shrink-0 group flex items-center justify-center"
+            className="p-2.5 rounded-xl text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer shrink-0 group flex items-center justify-center"
             title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
           >
             {theme === 'dark' ? (
@@ -408,13 +408,13 @@ export default function Layout({
 
           <button
             onClick={togglePin}
-            className="p-2.5 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer shrink-0 group flex items-center justify-center"
+            className="p-2.5 rounded-xl text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 border border-transparent hover:border-white/5 transition-all duration-200 cursor-pointer shrink-0 group flex items-center justify-center"
             title={userPinned ? 'Unpin Sidebar (Collapse)' : 'Pin Sidebar (Keep Open)'}
           >
             {userPinned ? (
-              <PanelLeftClose size={20} className="text-zinc-400 group-hover:text-emerald-400 transition-colors" />
+              <PanelLeftClose size={20} className="text-[#8b93a1] group-hover:text-[#7ba8e8] transition-colors" />
             ) : (
-              <PanelLeft size={20} className="text-emerald-400 transition-colors" />
+              <PanelLeft size={20} className="text-[#4d8fe0] transition-colors" />
             )}
           </button>
         </div>
@@ -422,7 +422,7 @@ export default function Layout({
 
       {/* Main Content */}
       <main className={`min-h-screen transition-all duration-300 ease-in-out ${effectivePinned ? 'pl-64' : 'pl-0'}`}>
-        <header className="h-14 border-b border-white/5 grid grid-cols-3 items-center px-6 bg-[#0A0A0A]/80 backdrop-blur-md sticky top-0 z-30">
+        <header className="h-14 border-b border-white/5 grid grid-cols-3 items-center px-6 bg-[#12161c]/80 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center justify-start gap-3">
             {headerActions || <div />}
           </div>
@@ -431,7 +431,7 @@ export default function Layout({
             <h1 className="text-xl font-semibold capitalize text-center select-none whitespace-nowrap flex items-center gap-3">
               {activeTab === 'calendar' ? 'Trading Calendar' : activeTab === 'gallery' ? 'Chart Gallery' : activeTab.replace('-', ' ')}
               {activeAccount && (
-                <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-black uppercase tracking-widest bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/20 px-2.5 py-0.5 rounded-full">
                   {activeAccount.name}
                 </span>
               )}
@@ -462,14 +462,14 @@ export default function Layout({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-sm bg-[#121214] border border-white/10 rounded-3xl p-8 shadow-2xl z-[111]"
+              className="relative w-full max-w-sm bg-[#181d26] border border-white/10 rounded-3xl p-8 shadow-2xl z-[111]"
             >
-              <h3 className="text-xl font-bold mb-2">New Trading Profile</h3>
-              <p className="text-zinc-500 text-sm mb-6">Create a separate profile for backtesting or live accounts.</p>
+              <h3 className="text-xl font-bold mb-2 text-[#e8ebf2]">New Trading Profile</h3>
+              <p className="text-[#8b93a1] text-sm mb-6">Create a separate profile for backtesting or live accounts.</p>
               
               <form onSubmit={handleCreateProfile} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Profile Name</label>
+                  <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Profile Name</label>
                   <input
                     autoFocus
                     type="text"
@@ -477,20 +477,20 @@ export default function Layout({
                     value={newProfileName}
                     onChange={e => setNewProfileName(e.target.value)}
                     placeholder="e.g. Backtesting 2024"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-emerald-500/50"
+                    className="w-full bg-[#12161c] border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-[#4d8fe0]/50 text-[#e8ebf2] placeholder-[#8b93a1]/60"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Account Type</label>
+                  <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Account Type</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => setNewProfileType('live')}
                       className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                         newProfileType === 'live' 
-                          ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' 
-                          : 'bg-white/5 border-transparent text-zinc-500'
+                          ? 'bg-[#1e2733] border-[#4d8fe0]/40 text-[#7ba8e8]' 
+                          : 'bg-white/5 border-transparent text-[#8b93a1]'
                       }`}
                     >
                       Live / Real
@@ -500,8 +500,8 @@ export default function Layout({
                       onClick={() => setNewProfileType('backtest')}
                       className={`py-2 rounded-xl text-xs font-bold transition-all border ${
                         newProfileType === 'backtest' 
-                          ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' 
-                          : 'bg-white/5 border-transparent text-zinc-500'
+                          ? 'bg-sky-500/10 border-sky-500/20 text-sky-400' 
+                          : 'bg-white/5 border-transparent text-[#8b93a1]'
                       }`}
                     >
                       Backtesting
@@ -513,14 +513,14 @@ export default function Layout({
                   <button
                     disabled={isCreatingProfile}
                     type="submit"
-                    className="flex-1 py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 disabled:opacity-50 transition-all cursor-pointer"
+                    className="flex-1 py-3 bg-[#4d8fe0] text-white font-bold rounded-xl hover:bg-[#3a6fc4] disabled:opacity-50 transition-all cursor-pointer shadow-lg shadow-[#4d8fe0]/20"
                   >
                     {isCreatingProfile ? 'Creating...' : 'Create Profile'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowProfileModal(false)}
-                    className="flex-1 py-3 bg-white/5 text-zinc-300 font-bold rounded-xl hover:bg-white/10 transition-all cursor-pointer"
+                    className="flex-1 py-3 bg-white/5 text-[#8b93a1] hover:text-[#e8ebf2] font-bold rounded-xl hover:bg-white/10 transition-all cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -549,21 +549,21 @@ export default function Layout({
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-sm bg-[#0E0E10] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-[101]"
+              className="relative w-full max-w-sm bg-[#181d26] border border-white/10 rounded-3xl overflow-hidden shadow-2xl z-[101]"
             >
               <div className="p-5 border-b border-white/5 flex items-center justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-zinc-100 flex items-center gap-2">
-                    <Repeat size={16} className="text-emerald-500 animate-pulse" />
+                  <h3 className="text-base font-bold text-[#e8ebf2] flex items-center gap-2">
+                    <Repeat size={16} className="text-[#4d8fe0] animate-pulse" />
                     အကောင့်ပြောင်းရန် / Switch Account
                   </h3>
-                  <p className="text-[10px] text-zinc-500 mt-0.5">
+                  <p className="text-[10px] text-[#8b93a1] mt-0.5">
                     ဝင်ထားပြီးသား အခြားအကောင့်တစ်ခုသို့ တိုက်ရိုက်ပြောင်းရန် ရွေးချယ်ပါ
                   </p>
                 </div>
                 <button
                   onClick={() => setShowAccountSwitcher(false)}
-                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-zinc-400 hover:text-zinc-100 hover:bg-white/10 transition-all cursor-pointer"
+                  className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/10 transition-all cursor-pointer"
                 >
                   <X size={14} />
                 </button>
@@ -571,23 +571,23 @@ export default function Layout({
 
               <div className="p-4 space-y-3 max-h-[350px] overflow-y-auto">
                 {/* Active Current Account */}
-                <div className="p-3 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl flex items-center justify-between">
+                <div className="p-3 bg-[#1e2733] border border-[#4d8fe0]/30 rounded-2xl flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
                     <img
                       src={user?.photoURL || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email}`}
                       alt="Active Avatar"
-                      className="w-10 h-10 rounded-full border border-emerald-500/20 animate-none"
+                      className="w-10 h-10 rounded-full border border-[#4d8fe0]/30 animate-none"
                     />
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-emerald-400 tracking-wide truncate">
+                      <p className="text-xs font-bold text-[#7ba8e8] tracking-wide truncate">
                         {user?.displayName || 'Trader'}
                       </p>
-                      <p className="text-[10px] text-zinc-400 truncate">
+                      <p className="text-[10px] text-[#8b93a1] truncate">
                         {user?.email}
                       </p>
                     </div>
                   </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full select-none">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#7ba8e8] bg-[#1e2733] border border-[#4d8fe0]/30 px-2.5 py-0.5 rounded-full select-none">
                     Active (လက်ရှိ)
                   </span>
                 </div>
@@ -595,7 +595,7 @@ export default function Layout({
                 {/* Other Saved Accounts */}
                 {savedAccounts.filter(acc => acc.email !== user?.email).length > 0 ? (
                   <div className="space-y-2">
-                    <p className="text-[9px] font-black uppercase text-zinc-500 tracking-widest px-1 pt-1">
+                    <p className="text-[9px] font-black uppercase text-[#8b93a1] tracking-widest px-1 pt-1">
                       အခြားသိမ်းဆည်းထားသောအကောင့်များ (Saved)
                     </p>
                     <div className="space-y-1.5">
@@ -619,10 +619,10 @@ export default function Layout({
                                 className="w-8 h-8 rounded-full border border-white/10"
                               />
                               <div className="min-w-0">
-                                <p className="text-xs font-bold text-zinc-200 group-hover:text-emerald-400 transition-colors truncate">
+                                <p className="text-xs font-bold text-[#e8ebf2] group-hover:text-[#7ba8e8] transition-colors truncate">
                                   {acc.displayName}
                                 </p>
-                                <p className="text-[10px] text-zinc-500 truncate">
+                                <p className="text-[10px] text-[#8b93a1] truncate">
                                   {acc.email}
                                 </p>
                               </div>
@@ -632,7 +632,7 @@ export default function Layout({
                                 e.stopPropagation();
                                 onRemoveSavedAccount?.(acc.email);
                               }}
-                              className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                              className="p-1.5 text-[#8b93a1] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
                               title="ဖယ်ရှားရန် / Remove profile"
                             >
                               <Trash2 size={12} />
@@ -643,7 +643,7 @@ export default function Layout({
                   </div>
                 ) : (
                   <div className="py-4 text-center border border-dashed border-white/5 bg-white/[0.01] rounded-2xl">
-                    <p className="text-[10px] text-zinc-600 italic select-none">
+                    <p className="text-[10px] text-[#8b93a1] italic select-none">
                       အခြားသိမ်းထားသောအကောင့်မရှိသေးပါ
                     </p>
                   </div>
@@ -683,14 +683,14 @@ export default function Layout({
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-sm bg-[#121214] border border-white/10 rounded-3xl p-8 shadow-2xl z-[116]"
+              className="relative w-full max-w-sm bg-[#181d26] border border-white/10 rounded-3xl p-8 shadow-2xl z-[116]"
             >
               <div className="flex items-center gap-3 text-red-500 mb-4">
                 <Trash2 size={24} />
                 <h3 className="text-lg font-bold">Delete Trading Profile</h3>
               </div>
-              <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
-                Are you sure you want to delete <span className="text-zinc-200 font-bold">"{profileToDelete.name}"</span>? 
+              <p className="text-[#8b93a1] text-sm mb-6 leading-relaxed">
+                Are you sure you want to delete <span className="text-[#e8ebf2] font-bold">"{profileToDelete.name}"</span>? 
                 All trades in this profile will be permanently deleted. This action cannot be undone.
               </p>
               
@@ -710,7 +710,7 @@ export default function Layout({
                 <button
                   type="button"
                   onClick={() => setProfileToDelete(null)}
-                  className="flex-1 py-3 bg-white/5 text-zinc-300 font-bold rounded-xl hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
+                  className="flex-1 py-3 bg-white/5 text-[#8b93a1] hover:text-[#e8ebf2] font-bold rounded-xl hover:bg-white/10 transition-all active:scale-95 cursor-pointer"
                 >
                   Cancel
                 </button>

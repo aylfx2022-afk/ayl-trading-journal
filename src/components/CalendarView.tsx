@@ -144,10 +144,10 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
 
   return (
     <div className="grid grid-cols-1 gap-4">
-      <div className="rounded-2xl bg-white dark:bg-[#0F0F0F] border border-zinc-200 dark:border-white/5 overflow-hidden shadow-sm">
+      <div className="rounded-2xl bg-white dark:bg-[#12161c] border border-zinc-200 dark:border-white/10 overflow-hidden shadow-sm">
         
         {/* Custom Header Render */}
-        <div className="p-4 border-b border-zinc-200 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.01]">
+        <div className="p-4 border-b border-zinc-200 dark:border-white/10 bg-zinc-50/70 dark:bg-[#161c24]">
           <div className="flex flex-col md:flex-row gap-4 justify-between items-center">
             
             {/* View Month Title & Controls with Floating Picker Popover */}
@@ -155,7 +155,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
               <button 
                 type="button"
                 onClick={() => setPanelDate(panelDate.subtract(1, 'month'))}
-                className="p-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                className="p-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-[#1a212b] dark:border-white/10 dark:hover:bg-[#222b38] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/10"
                 title="Previous Month"
               >
                 <ChevronLeft size={16} />
@@ -171,7 +171,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     setIsPickerOpen(true);
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-sm font-black text-zinc-800 dark:text-zinc-100 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer border border-zinc-200 dark:border-white/5 flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-[#1a212b] dark:border-white/10 dark:hover:bg-[#222b38] text-sm font-black text-zinc-800 dark:text-zinc-100 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer border border-zinc-200 dark:border-white/10 flex items-center gap-1.5"
               >
                 <span>{panelDate.format('MMMM')}</span>
               </button>
@@ -187,7 +187,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     setIsPickerOpen(true);
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-sm font-black text-zinc-800 dark:text-zinc-100 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                className="px-3 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-[#1a212b] dark:border-white/10 dark:hover:bg-[#222b38] text-sm font-black text-zinc-800 dark:text-zinc-100 hover:text-emerald-500 dark:hover:text-emerald-400 transition-all cursor-pointer border border-zinc-200 dark:border-white/10"
               >
                 <span>{panelDate.format('YYYY')}</span>
               </button>
@@ -198,7 +198,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                   setPanelDate(dayjs());
                   setIsPickerOpen(false);
                 }}
-                className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all cursor-pointer border border-zinc-200 dark:border-white/5 ml-1"
+                className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-[#1a212b] dark:border-white/10 dark:hover:bg-[#222b38] text-xs font-bold text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-all cursor-pointer border border-zinc-200 dark:border-white/10 ml-1"
               >
                 Today
               </button>
@@ -206,7 +206,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
               <button 
                 type="button"
                 onClick={() => setPanelDate(panelDate.add(1, 'month'))}
-                className="p-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/5"
+                className="p-1.5 rounded-xl bg-white hover:bg-zinc-100 dark:bg-[#1a212b] dark:border-white/10 dark:hover:bg-[#222b38] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-100 flex items-center justify-center transition-all cursor-pointer border border-zinc-200 dark:border-white/10"
                 title="Next Month"
               >
                 <ChevronRight size={16} />
@@ -214,7 +214,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
 
               {/* Floating DatePicker Popover */}
               {isPickerOpen && (
-                <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#18181b] border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[310px] p-4 text-zinc-800 dark:text-zinc-200 animate-in fade-in zoom-in-95 duration-150">
+                <div className="absolute top-full left-0 mt-2 z-50 bg-white dark:bg-[#161c24] border border-zinc-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[310px] p-4 text-zinc-800 dark:text-zinc-200 animate-in fade-in zoom-in-95 duration-150">
                   {pickerMode === 'months' && (
                     <div>
                       {/* Popover Header */}
@@ -222,7 +222,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setPanelDate(panelDate.subtract(1, 'year'))}
-                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-[#222b38] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Previous Year"
                         >
                           <ChevronLeft size={16} />
@@ -243,7 +243,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setPanelDate(panelDate.add(1, 'year'))}
-                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-[#222b38] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Next Year"
                         >
                           <ChevronRight size={16} />
@@ -265,7 +265,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                               className={`py-3 px-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
                                 isSelected
                                   ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                  : 'bg-zinc-100 dark:bg-white/5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white border border-transparent'
+                                  : 'bg-zinc-100 dark:bg-[#1a212b] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-[#222b38] hover:text-zinc-900 dark:hover:text-white border border-transparent'
                               }`}
                             >
                               {mName}
@@ -275,7 +275,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-white/5 flex gap-2">
+                      <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-white/10 flex gap-2">
                         <button
                           type="button"
                           onClick={() => {
@@ -289,7 +289,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setIsPickerOpen(false)}
-                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 transition-all text-center cursor-pointer"
+                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-[#1a212b] border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-[#222b38] transition-all text-center cursor-pointer"
                         >
                           CLOSE
                         </button>
@@ -304,7 +304,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setYearRangeStart(yearRangeStart - 12)}
-                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-[#222b38] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Previous 12 Years"
                         >
                           <ChevronLeft size={16} />
@@ -315,7 +315,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setYearRangeStart(yearRangeStart + 12)}
-                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-white/5 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
+                          className="p-1.5 rounded-lg border border-zinc-200 dark:border-white/10 hover:bg-zinc-100 dark:hover:bg-[#222b38] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 transition-all cursor-pointer"
                           title="Next 12 Years"
                         >
                           <ChevronRight size={16} />
@@ -337,7 +337,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                               className={`py-3 px-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer text-center ${
                                 isSelected
                                   ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
-                                  : 'bg-zinc-100 dark:bg-white/5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white border border-transparent'
+                                  : 'bg-zinc-100 dark:bg-[#1a212b] text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-[#222b38] hover:text-zinc-900 dark:hover:text-white border border-transparent'
                               }`}
                             >
                               {yNum}
@@ -347,7 +347,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                       </div>
 
                       {/* Footer Actions */}
-                      <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-white/5 flex gap-2">
+                      <div className="mt-4 pt-3 border-t border-zinc-200 dark:border-white/10 flex gap-2">
                         <button
                           type="button"
                           onClick={() => {
@@ -361,7 +361,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         <button
                           type="button"
                           onClick={() => setIsPickerOpen(false)}
-                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-white/10 transition-all text-center cursor-pointer"
+                          className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-zinc-600 dark:text-zinc-300 bg-zinc-100 dark:bg-[#1a212b] border border-zinc-200 dark:border-white/10 hover:bg-zinc-200 dark:hover:bg-[#222b38] transition-all text-center cursor-pointer"
                         >
                           CLOSE
                         </button>
@@ -375,10 +375,10 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
             {/* Middle/Right: stats */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Monthly Stats */}
-              <div className="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-450 dark:text-zinc-500 border border-zinc-200 dark:border-white/5 rounded-xl px-3 py-1.5 bg-white dark:bg-transparent">
-                <span>Tr: <span className="text-zinc-800 dark:text-zinc-300">{monthlyStats.totalTrades}</span></span>
-                <span>WR: <span className="text-zinc-800 dark:text-zinc-300">{monthlyStats.winRate.toFixed(0)}%</span></span>
-                <span>RR: <span className={`${monthlyStats.isPositive ? 'text-emerald-500 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+              <div className="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 rounded-xl px-3 py-1.5 bg-white dark:bg-[#1a212b]">
+                <span>Tr: <span className="text-zinc-800 dark:text-zinc-200 font-bold">{monthlyStats.totalTrades}</span></span>
+                <span>WR: <span className="text-zinc-800 dark:text-zinc-200 font-bold">{monthlyStats.winRate.toFixed(0)}%</span></span>
+                <span>RR: <span className={`font-bold ${monthlyStats.isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'}`}>
                   {monthlyStats.isPositive ? '+' : ''}{monthlyStats.totalRR.toFixed(1)}R
                 </span></span>
               </div>
@@ -388,25 +388,28 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
         </div>
 
         {/* Custom Calendar Grid & Weekly Summary */}
-        <div className="flex flex-col">
+        <div className="p-3 flex flex-col gap-[6px]">
           {/* Weekdays Header Row */}
-          <div className="grid grid-cols-7 lg:grid-cols-8 border-b border-zinc-150/60 dark:border-white/5 bg-zinc-50/50 dark:bg-white/[0.01] h-10 divide-x divide-zinc-150/60 dark:divide-white/5">
+          <div className="grid grid-cols-7 lg:grid-cols-8 gap-[6px]">
             {WEEKDAYS.map(day => (
-              <div key={day} className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-450 dark:text-zinc-500 tracking-wider">
+              <div 
+                key={day} 
+                className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-500 dark:text-zinc-400 tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24] border border-zinc-200/70 dark:border-white/5"
+              >
                 {day}
               </div>
             ))}
-            <div className="hidden lg:flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-500 leading-tight text-center tracking-wider">
+            <div className="hidden lg:flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-400 leading-tight text-center tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24] border border-zinc-200/70 dark:border-white/5">
               Weekly<br />Summary
             </div>
           </div>
 
           {/* 6 Week Rows */}
-          <div className="flex flex-col divide-y divide-zinc-150/60 dark:divide-white/5">
+          <div className="flex flex-col gap-[6px]">
             {weeksChunked.map((weekDays, weekIdx) => {
               const weekSummary = weeklyData[weekIdx];
               return (
-                <div key={weekIdx} className="grid grid-cols-7 lg:grid-cols-8 divide-x divide-zinc-150/60 dark:divide-white/5">
+                <div key={weekIdx} className="grid grid-cols-7 lg:grid-cols-8 gap-[6px]">
                   {/* 7 Days in Week */}
                   {weekDays.map((value) => {
                     const isCurrentMonth = value.month() === panelDate.month() && value.year() === panelDate.year();
@@ -419,41 +422,45 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     const hasNotes = tradesOnDay.some(t => t.notes);
                     const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
 
+                    // Corporate Dashboard style with subtle slim left accent indicator line and rounded-[10px]
+                    const borderAccentClass = totalRR !== null 
+                      ? (isPositive 
+                          ? 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-emerald-500/90 dark:border-l-[#34d399] bg-emerald-500/[0.03] dark:bg-emerald-500/[0.04]' 
+                          : 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-rose-400/90 dark:border-l-[#f87171] bg-rose-500/[0.03] dark:bg-rose-500/[0.04]'
+                        )
+                      : 'border border-zinc-200/70 dark:border-white/5 bg-white dark:bg-[#161c24]';
+
                     return (
                       <div
                         key={currentKey}
                         onClick={() => isCurrentMonth && onSelectDay(value)}
-                        className={`transition-all duration-300 ease-out h-[84px] flex flex-col justify-between p-2 relative group hover:z-20
-                          ${!isCurrentMonth ? 'opacity-20 pointer-events-none grayscale' : 'cursor-pointer hover:scale-[1.03] hover:shadow-lg'}
-                          ${totalRR !== null 
-                            ? (isPositive 
-                                ? 'bg-emerald-500/5 dark:bg-emerald-500/15 shadow-[inset_0_0_15px_rgba(16,185,129,0.03)] hover:shadow-emerald-500/20 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20' 
-                                : 'bg-red-500/5 dark:bg-red-500/15 shadow-[inset_0_0_15px_rgba(239,68,68,0.03)] hover:shadow-red-500/20 hover:bg-red-500/10 dark:hover:bg-red-500/20'
-                              )
-                            : 'bg-white hover:bg-zinc-100/50 dark:bg-transparent dark:hover:bg-white/[0.04]'
-                          } 
+                        className={`transition-all duration-200 ease-out h-[84px] rounded-[10px] flex flex-col justify-between p-2 relative group hover:z-20
+                          ${!isCurrentMonth ? 'opacity-25 pointer-events-none grayscale' : 'cursor-pointer hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-[#1c2430] hover:shadow-sm'}
+                          ${borderAccentClass}
                         `}
                       >
+                        {/* Top: Date Number & Indicators */}
                         <div className="flex justify-between items-start w-full">
-                          <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded ${isToday ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-black border border-emerald-500/20' : 'text-zinc-700 dark:text-zinc-500'}`}>
+                          <span className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-[6px] ${isToday ? 'bg-emerald-500/15 text-emerald-600 dark:text-[#34d399] font-black border border-emerald-500/20' : 'text-zinc-500 dark:text-zinc-400'}`}>
                             {value.date()}
                           </span>
                           <div className="flex gap-1">
                             {hasJournal && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Daily Journal written" />
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm" title="Daily Journal written" />
                             )}
                             {hasNotes && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/70" title="Day has notes" />
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 shadow-sm" title="Day has notes" />
                             )}
                           </div>
                         </div>
                         
+                        {/* Center: Text Hierarchy - Trade Count (secondary) & R-Value (primary) */}
                         {totalRR !== null && (
                           <div className="flex-1 flex flex-col items-center justify-center text-center -mt-1">
-                            <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                               {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
                             </span>
-                            <span className={`text-xs font-black leading-none mt-1 ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                            <span className={`text-xs font-black tracking-tight leading-tight mt-0.5 ${isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'}`}>
                               {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
                             </span>
                           </div>
@@ -464,29 +471,30 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
 
                   {/* Weekly Summary Cell */}
                   {weekSummary && (
-                    <div className={`hidden lg:flex flex-col items-center justify-center p-2 relative group transition-colors h-[84px] ${
+                    <div className={`hidden lg:flex flex-col items-center justify-center p-2 rounded-[10px] relative group transition-colors h-[84px] ${
                       weekSummary.tradesCount > 0 
-                        ? (weekSummary.isPositive ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.02]' : 'bg-red-500/[0.04] dark:bg-red-500/[0.02]') 
-                        : 'bg-transparent'
+                        ? (weekSummary.isPositive 
+                            ? 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-emerald-500/70 dark:border-l-[#34d399]/80 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
+                            : 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-rose-400/70 dark:border-l-[#f87171]/80 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
+                          ) 
+                        : 'border border-zinc-200/70 dark:border-white/5 bg-zinc-50/40 dark:bg-[#161c24]'
                     }`}>
                       {weekSummary.tradesCount > 0 ? (
                         <>
                           <div className="flex flex-col items-center text-center">
-                            <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-400">
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                               {weekSummary.tradesCount} {weekSummary.tradesCount === 1 ? 'trade' : 'trades'}
                             </span>
                           </div>
                           
-                          <div className="mt-1 flex flex-col items-center text-center">
-                            <span className={`text-xs font-black leading-none ${weekSummary.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                          <div className="mt-0.5 flex flex-col items-center text-center">
+                            <span className={`text-xs font-black tracking-tight leading-tight ${weekSummary.isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'}`}>
                               {weekSummary.isPositive ? '+' : ''}{weekSummary.totalRR.toFixed(1)}R
                             </span>
                           </div>
-
-                          <div className={`absolute right-0 top-2 bottom-2 w-0.5 rounded-l-full ${weekSummary.isPositive ? 'bg-emerald-500/30' : 'bg-red-500/30'}`} />
                         </>
                       ) : (
-                        <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-700 italic">No activity</span>
+                        <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-600 italic">No activity</span>
                       )}
                     </div>
                   )}

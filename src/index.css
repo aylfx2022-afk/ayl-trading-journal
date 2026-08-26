@@ -139,6 +139,22 @@
 
 :root {
   color-scheme: dark;
+  --bg-app: #12161c;
+  --bg-card: #181d26;
+  --bg-sidebar: #181d26;
+  --bg-nested: #12161c;
+  --accent-primary: #4d8fe0;
+  --accent-hover: #3a6fc4;
+  --accent-badge-bg: #1e2733;
+  --accent-badge-text: #7ba8e8;
+  --text-primary: #e8ebf2;
+  --text-muted: #8b93a1;
+}
+
+html.dark body,
+html:not(.light) body {
+  background-color: #12161c !important;
+  color: #e8ebf2 !important;
 }
 
 /* Global Modern Scrollbar Styling */
@@ -163,7 +179,7 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.5);
+  background: rgba(77, 143, 224, 0.6);
 }
 
 ::-webkit-scrollbar-corner {

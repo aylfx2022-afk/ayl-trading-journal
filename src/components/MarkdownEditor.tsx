@@ -92,15 +92,15 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
   ];
 
   return (
-    <div className="w-full border border-white/10 rounded-2xl bg-white/[0.02] overflow-hidden focus-within:border-emerald-500/30 transition-all">
+    <div className="w-full border border-white/10 rounded-2xl bg-[#12161c] overflow-hidden focus-within:border-[#4d8fe0]/40 transition-all">
       {/* Header / Tabs */}
-      <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-white/[0.02]">
+      <div className="flex items-center justify-between px-2 py-1 border-b border-white/5 bg-[#181d26]">
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => setMode('write')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              mode === 'write' ? 'bg-white/10 text-emerald-500' : 'text-zinc-500 hover:text-zinc-300'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              mode === 'write' ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/20' : 'text-[#8b93a1] hover:text-[#e8ebf2]'
             }`}
           >
             <Edit3 size={14} />
@@ -109,8 +109,8 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
           <button
             type="button"
             onClick={() => setMode('preview')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-              mode === 'preview' ? 'bg-white/10 text-emerald-500' : 'text-zinc-500 hover:text-zinc-300'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              mode === 'preview' ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/20' : 'text-[#8b93a1] hover:text-[#e8ebf2]'
             }`}
           >
             <Eye size={14} />
@@ -126,7 +126,7 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
                 type="button"
                 onClick={item.action}
                 title={item.label}
-                className="p-1.5 text-zinc-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all"
+                className="p-1.5 text-[#8b93a1] hover:text-[#4d8fe0] hover:bg-white/5 rounded-md transition-all cursor-pointer"
               >
                 {item.icon}
               </button>
@@ -144,18 +144,18 @@ export default function MarkdownEditor({ value, onChange, placeholder, minHeight
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full p-4 bg-transparent outline-none text-zinc-200 text-sm placeholder:text-zinc-700 resize-none overflow-hidden"
+            className="w-full p-4 bg-transparent outline-none text-[#e8ebf2] text-sm placeholder:text-[#8b93a1]/40 resize-none overflow-hidden"
             style={{ minHeight }}
           />
         ) : (
           <div 
-            className="w-full p-4 text-zinc-300 text-sm prose prose-invert prose-emerald max-w-none overflow-auto"
+            className="w-full p-4 text-[#e8ebf2] text-sm prose prose-invert max-w-none overflow-auto"
             style={{ minHeight }}
           >
             {value ? (
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{value}</ReactMarkdown>
             ) : (
-              <span className="text-zinc-700 italic">Nothing to preview</span>
+              <span className="text-[#8b93a1]/50 italic">Nothing to preview</span>
             )}
           </div>
         )}

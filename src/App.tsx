@@ -447,17 +447,17 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#12161c] flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-[#4d8fe0]/20 border-t-[#4d8fe0] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-[#0A0A0A] text-zinc-100 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="min-h-screen bg-[#12161c] text-[#e8ebf2] flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Background Glows */}
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-500/10 blur-[120px] rounded-full"></div>
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#4d8fe0]/10 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 blur-[120px] rounded-full"></div>
 
         <motion.div 
@@ -465,19 +465,19 @@ export default function App() {
           animate={{ opacity: 1, y: 0 }}
           className="max-w-md w-full text-center relative z-10"
         >
-          <div className="w-20 h-20 rounded-3xl bg-emerald-500 mx-auto flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-8">
-            <TrendingUp className="text-black w-10 h-10" />
+          <div className="w-20 h-20 rounded-3xl bg-[#4d8fe0] mx-auto flex items-center justify-center shadow-2xl shadow-[#4d8fe0]/40 mb-8">
+            <TrendingUp className="text-white w-10 h-10" />
           </div>
           
-          <h1 className="text-5xl font-bold tracking-tight mb-4">Trading Journal</h1>
-          <p className="text-zinc-500 text-lg mb-12">
+          <h1 className="text-5xl font-bold tracking-tight mb-4 text-[#e8ebf2]">Trading Journal</h1>
+          <p className="text-[#8b93a1] text-lg mb-12">
             သင့်ရဲ့ Trading ခရီးလမ်းကို ပိုမိုကောင်းမွန်စေမယ့် အဆင့်မြင့် Trading Journal။
           </p>
 
           {savedAccounts.length > 0 ? (
             <div className="space-y-4 mb-8">
-              <div className="bg-[#121214] border border-white/5 rounded-2xl p-4 text-left">
-                <p className="text-[10px] font-black text-zinc-500 mb-3 uppercase tracking-widest px-1">
+              <div className="bg-[#181d26] border border-white/5 rounded-2xl p-4 text-left">
+                <p className="text-[10px] font-black text-[#8b93a1] mb-3 uppercase tracking-widest px-1">
                   ယခင်ဝင်ထားသော အကောင့်များ (Saved Accounts)
                 </p>
                 <div className="space-y-1.5">
@@ -496,10 +496,10 @@ export default function App() {
                           className="w-9 h-9 rounded-full border border-white/10 bg-zinc-800 shrink-0"
                         />
                         <div className="min-w-0">
-                          <p className="text-sm font-semibold text-zinc-200 group-hover:text-emerald-400 transition-colors truncate">
+                          <p className="text-sm font-semibold text-[#e8ebf2] group-hover:text-[#7ba8e8] transition-colors truncate">
                             {acc.displayName}
                           </p>
-                          <p className="text-[10px] text-zinc-500 truncate">
+                          <p className="text-[10px] text-[#8b93a1] truncate">
                             {acc.email}
                           </p>
                         </div>
@@ -509,7 +509,7 @@ export default function App() {
                           e.stopPropagation();
                           handleRemoveSavedAccount(acc.email);
                         }}
-                        className="p-1.5 text-zinc-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        className="p-1.5 text-[#8b93a1] hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all cursor-pointer opacity-0 group-hover:opacity-100 focus:opacity-100"
                         title="ဖယ်ရှားရန် / Remove account"
                       >
                         <Trash2 size={13} />
@@ -521,7 +521,7 @@ export default function App() {
               
               <button
                 onClick={handleLogin}
-                className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-base hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"
+                className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-base hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 cursor-pointer"
               >
                 <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
                 အကောင့်အသစ်ဖြင့်ဝင်မည် / Use another account
@@ -530,14 +530,14 @@ export default function App() {
           ) : (
             <button
               onClick={handleLogin}
-              className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"
+              className="w-full py-4 px-6 rounded-2xl bg-white text-black font-bold text-lg hover:bg-zinc-200 transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95 cursor-pointer"
             >
               <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
               Get Started with Google
             </button>
           )}
           
-          <p className="mt-6 text-xs text-zinc-600">
+          <p className="mt-6 text-xs text-[#8b93a1]">
             By signing in, you agree to our Terms of Service and Privacy Policy.
           </p>
         </motion.div>
@@ -549,7 +549,7 @@ export default function App() {
     <div className="flex items-center gap-2">
       <button 
         onClick={() => setActiveTab('dashboard')}
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-xs font-bold uppercase tracking-widest border border-white/10 group cursor-pointer"
       >
         <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
         Back
@@ -557,7 +557,7 @@ export default function App() {
       <button 
         type="submit"
         form="add-trade-form"
-        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500 text-black hover:bg-emerald-400 transition-all text-xs font-bold uppercase tracking-widest group"
+        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#4d8fe0] text-white hover:bg-[#3a6fc4] transition-all text-xs font-bold uppercase tracking-widest group shadow-md shadow-[#4d8fe0]/20 cursor-pointer"
       >
         <TrendingUp size={16} className="group-hover:scale-110 transition-transform" />
         Save Trade
@@ -566,7 +566,7 @@ export default function App() {
   ) : activeTab === 'day-details' ? (
     <button 
       onClick={() => navigateTo('calendar')}
-      className="flex items-center justify-center gap-2 h-[32px] w-[221.016px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group text-center"
+      className="flex items-center justify-center gap-2 h-[32px] w-[221.016px] rounded-xl bg-white/5 text-zinc-300 hover:bg-white/10 transition-all text-[12px] font-bold uppercase tracking-widest border border-white/10 group text-center cursor-pointer"
     >
       <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
       Back to Calendar
@@ -784,20 +784,20 @@ export default function App() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-[#141414] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl"
+              className="bg-[#181d26] border border-white/10 rounded-3xl p-8 max-w-sm w-full shadow-2xl"
             >
               <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-6 mx-auto">
                 <AlertCircle className="text-red-500 w-8 h-8" />
               </div>
-              <h3 className="text-xl font-bold text-center mb-2">Clear All History?</h3>
-              <p className="text-zinc-500 text-center text-sm mb-8">
+              <h3 className="text-xl font-bold text-center mb-2 text-[#e8ebf2]">Clear All History?</h3>
+              <p className="text-[#8b93a1] text-center text-sm mb-8">
                 This action cannot be undone. All your trading history will be permanently deleted.
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleClearAll}
                   disabled={isDeletingAll}
-                  className="w-full py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full py-3 rounded-xl bg-red-500 text-white font-bold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {isDeletingAll ? (
                     <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
@@ -808,7 +808,7 @@ export default function App() {
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeletingAll}
-                  className="w-full py-3 rounded-xl bg-white/5 text-zinc-300 font-bold hover:bg-white/10 transition-all"
+                  className="w-full py-3 rounded-xl bg-white/5 text-[#8b93a1] hover:text-[#e8ebf2] font-bold hover:bg-white/10 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>

@@ -74,23 +74,23 @@ export default function CustomSelect({
   const selectedOption = allOptions.find(o => o.value === value);
 
   // Determine trigger button styling based on typeStyle and selected value
-  let triggerClass = "w-full flex items-center justify-between bg-[#18181b] border border-white/10 rounded-xl px-4 py-2.5 text-zinc-200 hover:border-emerald-500/30 transition-all font-bold text-sm text-left uppercase";
+  let triggerClass = "w-full flex items-center justify-between bg-[#12161c] border border-white/10 rounded-xl px-4 py-2.5 text-[#e8ebf2] hover:border-[#4d8fe0]/30 transition-all font-bold text-sm text-left uppercase";
   
   if (typeStyle === 'type') {
     if (value === 'buy') {
-      triggerClass = "w-full flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-xl px-4 py-2.5 font-bold text-sm text-left uppercase hover:bg-emerald-500/15 transition-all";
+      triggerClass = "w-full flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl px-4 py-2.5 font-bold text-sm text-left uppercase hover:bg-emerald-500/15 transition-all";
     } else if (value === 'sell') {
-      triggerClass = "w-full flex items-center justify-between bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl px-4 py-2.5 font-bold text-sm text-left uppercase hover:bg-red-500/15 transition-all";
+      triggerClass = "w-full flex items-center justify-between bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl px-4 py-2.5 font-bold text-sm text-left uppercase hover:bg-red-500/15 transition-all";
     } else {
-      triggerClass = "w-full flex items-center justify-between bg-zinc-800 border border-white/10 text-zinc-500 rounded-xl px-4 py-2.5 font-bold text-sm text-left uppercase hover:border-white/20 transition-all";
+      triggerClass = "w-full flex items-center justify-between bg-[#12161c] border border-white/10 text-[#8b93a1] rounded-xl px-4 py-2.5 font-bold text-sm text-left uppercase hover:border-white/20 transition-all";
     }
   } else if (typeStyle === 'mental' && value) {
-    triggerClass = "w-full flex items-center justify-between bg-[#111113] border border-emerald-500/30 rounded-xl px-3 py-2 text-xs font-bold text-emerald-400 text-left hover:border-emerald-500/50 transition-all";
+    triggerClass = "w-full flex items-center justify-between bg-[#12161c] border border-[#4d8fe0]/30 rounded-xl px-3 py-2 text-xs font-bold text-[#7ba8e8] text-left hover:border-[#4d8fe0]/50 transition-all";
   } else if (typeStyle === 'physical' && value) {
-    triggerClass = "w-full flex items-center justify-between bg-[#111113] border border-blue-500/30 rounded-xl px-3 py-2 text-xs font-bold text-blue-400 text-left hover:border-blue-500/50 transition-all";
+    triggerClass = "w-full flex items-center justify-between bg-[#12161c] border border-[#4d8fe0]/30 rounded-xl px-3 py-2 text-xs font-bold text-[#7ba8e8] text-left hover:border-[#4d8fe0]/50 transition-all";
   } else if (typeStyle === 'mental' || typeStyle === 'physical') {
     // defaults for mental/physical options when unselected (smaller size px-3 py-2 text-xs)
-    triggerClass = "w-full flex items-center justify-between bg-[#111113] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-zinc-400 text-left hover:border-white/20 transition-all";
+    triggerClass = "w-full flex items-center justify-between bg-[#12161c] border border-white/10 rounded-xl px-3 py-2 text-xs font-medium text-[#8b93a1] text-left hover:border-white/20 transition-all";
   }
 
   const handleSelect = (val: string) => {
@@ -111,7 +111,7 @@ export default function CustomSelect({
         </span>
         <ChevronDown 
           size={typeStyle === 'mental' || typeStyle === 'physical' ? 12 : 14} 
-          className={`text-zinc-500 shrink-0 ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180 text-emerald-500' : ''}`}
+          className={`text-[#8b93a1] shrink-0 ml-2 transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#4d8fe0]' : ''}`}
         />
       </button>
 
@@ -122,7 +122,7 @@ export default function CustomSelect({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: openUpwards ? -8 : 8, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className={`absolute z-[110] left-0 w-full bg-[#141416] border border-white/15 rounded-xl shadow-2xl overflow-hidden max-h-[285px] overflow-y-auto p-1.5 focus:outline-none ${
+            className={`absolute z-[110] left-0 w-full bg-[#181d26] border border-white/15 rounded-xl shadow-2xl overflow-hidden max-h-[285px] overflow-y-auto p-1.5 focus:outline-none ${
               openUpwards 
                 ? 'bottom-full mb-1.5 origin-bottom' 
                 : 'top-full mt-1.5 origin-top'
@@ -138,8 +138,8 @@ export default function CustomSelect({
                   onClick={() => handleSelect(opt.value)}
                   className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-bold transition-all duration-150 text-left group cursor-pointer mb-0.5 last:mb-0
                     ${isSelected 
-                      ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/10' 
-                      : 'text-zinc-400 hover:text-white hover:bg-white/[0.06] hover:translate-x-0.5 border border-transparent'
+                      ? 'bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/20' 
+                      : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/[0.06] hover:translate-x-0.5 border border-transparent'
                     }
                   `}
                 >
@@ -147,7 +147,7 @@ export default function CustomSelect({
                     {opt.emoji && <span className="transform group-hover:scale-125 transition-transform duration-150">{opt.emoji}</span>}
                     <span className="transition-colors duration-150">{opt.label}</span>
                   </span>
-                  {isSelected && <Check size={14} className="text-emerald-400" />}
+                  {isSelected && <Check size={14} className="text-[#4d8fe0]" />}
                 </button>
               );
             })}
@@ -155,7 +155,7 @@ export default function CustomSelect({
             {/* Show Grouped Options */}
             {groups && groups.map((group, gIdx) => (
               <div key={group.label} className={gIdx > 0 ? 'mt-3 border-t border-white/5 pt-2' : ''}>
-                <div className="px-3 py-1 text-[9px] font-black uppercase text-zinc-500 tracking-widest leading-none mb-1">
+                <div className="px-3 py-1 text-[9px] font-black uppercase text-[#8b93a1] tracking-widest leading-none mb-1">
                   {group.label}
                 </div>
                 <div className="space-y-0.5">
@@ -168,8 +168,8 @@ export default function CustomSelect({
                         onClick={() => handleSelect(opt.value)}
                         className={`w-full flex items-center justify-between px-3.5 py-2 rounded-lg text-[13px] font-semibold transition-all duration-150 text-left group cursor-pointer border border-transparent
                           ${isSelected 
-                            ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/10' 
-                            : 'text-zinc-400 hover:text-white hover:bg-white/[0.06] hover:translate-x-0.5'
+                            ? 'bg-[#1e2733] text-[#7ba8e8] border-[#4d8fe0]/20' 
+                            : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/[0.06] hover:translate-x-0.5'
                           }
                         `}
                       >
@@ -177,7 +177,7 @@ export default function CustomSelect({
                           {opt.emoji && <span className="transform group-hover:scale-125 transition-transform duration-150">{opt.emoji}</span>}
                           <span>{opt.label}</span>
                         </span>
-                        {isSelected && <Check size={12} className="text-emerald-400" />}
+                        {isSelected && <Check size={12} className="text-[#4d8fe0]" />}
                       </button>
                     );
                   })}
@@ -187,7 +187,7 @@ export default function CustomSelect({
 
             {/* No Option item fallback */}
             {(!options || options.length === 0) && (!groups || groups.length === 0) && (
-              <div className="px-4 py-3 text-xs text-zinc-500 text-center">No options available</div>
+              <div className="px-4 py-3 text-xs text-[#8b93a1] text-center">No options available</div>
             )}
           </motion.div>
         )}

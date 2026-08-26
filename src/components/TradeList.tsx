@@ -305,10 +305,10 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
       {/* Modal for notes */}
       {selectedNote && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedNote(null)}>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">{selectedNote.pair} Journal</h3>
-            <p className="text-zinc-300 text-sm whitespace-pre-wrap">{selectedNote.note}</p>
-            <button onClick={() => setSelectedNote(null)} className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Close</button>
+          <div className="bg-[#181d26] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black uppercase text-[#8b93a1] mb-4">{selectedNote.pair} Journal</h3>
+            <p className="text-[#e8ebf2] text-sm whitespace-pre-wrap">{selectedNote.note}</p>
+            <button onClick={() => setSelectedNote(null)} className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors cursor-pointer text-[#e8ebf2]">Close</button>
           </div>
         </div>,
         document.body
@@ -317,12 +317,12 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
       {/* Confirmation Modal */}
       {confirmModal.isOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">Confirm Action</h3>
-            <p className="text-zinc-300 text-sm mb-6">{confirmModal.message}</p>
+          <div className="bg-[#181d26] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black uppercase text-[#8b93a1] mb-4">Confirm Action</h3>
+            <p className="text-[#e8ebf2] text-sm mb-6">{confirmModal.message}</p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Cancel</button>
-              <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-red-500/80 hover:bg-red-500 rounded-lg text-xs font-bold text-white transition-colors">Confirm</button>
+              <button onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors cursor-pointer text-[#8b93a1] hover:text-[#e8ebf2]">Cancel</button>
+              <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-red-500/80 hover:bg-red-500 rounded-lg text-xs font-bold text-white transition-colors cursor-pointer">Confirm</button>
             </div>
           </div>
         </div>,
@@ -331,7 +331,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold capitalize">
+          <h2 className="text-2xl font-bold capitalize text-[#e8ebf2]">
             {pageId === 'opening-positions' ? 'Opening Positions' : 'Trade History'}
           </h2>
         </div>
@@ -339,13 +339,13 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
         <div className="flex flex-wrap items-center gap-3 ml-auto">
           {/* Search Symbol */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8b93a1] w-4 h-4" />
             <input 
               type="text" 
               placeholder="Search pair..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2 rounded-xl bg-white/5 border border-white/5 focus:border-emerald-500/50 focus:outline-none text-sm w-48 transition-all"
+              className="pl-10 pr-4 py-2 rounded-xl bg-[#181d26] border border-white/10 focus:border-[#4d8fe0]/50 focus:outline-none text-sm w-48 transition-all text-[#e8ebf2] placeholder-[#8b93a1]/60"
             />
           </div>
 
@@ -353,7 +353,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
           <select 
             value={typeFilter}
             onChange={(e) => setTypeFilter(e.target.value as any)}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 transition-all cursor-pointer h-10"
+            className="px-4 py-2 rounded-xl bg-[#181d26] border border-white/10 focus:border-[#4d8fe0]/50 focus:outline-none text-sm text-[#e8ebf2] transition-all cursor-pointer h-10"
           >
             <option value="all">All Types</option>
             <option value="buy">Buy Only</option>
@@ -364,7 +364,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
           <select 
             value={timeframeFilter}
             onChange={(e) => setTimeframeFilter(e.target.value)}
-            className="px-4 py-2 rounded-xl bg-white/5 border border-white/5 focus:border-emerald-500/50 focus:outline-none text-sm text-zinc-300 transition-all cursor-pointer h-10"
+            className="px-4 py-2 rounded-xl bg-[#181d26] border border-white/10 focus:border-[#4d8fe0]/50 focus:outline-none text-sm text-[#e8ebf2] transition-all cursor-pointer h-10"
           >
             <option value="all">All Timeframes</option>
             {uniqueTimeframes.map(tf => (
@@ -404,10 +404,10 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#0F0F0F]">
+      <div className="overflow-x-auto rounded-2xl border border-white/5 bg-[#181d26] shadow-xl">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-white/5 text-zinc-500 text-[10px] uppercase tracking-wider">
+            <tr className="border-b border-white/10 text-[#8b93a1] text-[10px] uppercase tracking-wider bg-[#12161c]/40">
               <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('pair')}>
                 <div className="flex items-center gap-1">Pair <SortIcon field="pair" /></div>
               </th>
@@ -425,9 +425,9 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                 <div className="flex items-center gap-1">RR <SortIcon field="rr" /></div>
               </th>
               <th className="px-6 py-4 font-bold">Journal</th>
-              <th className="px-6 py-4 font-bold text-emerald-500/90 whitespace-nowrap">Pre-Trade Feel</th>
-              <th className="px-6 py-4 font-bold text-emerald-500/90 whitespace-nowrap">Mid-Trade Feel</th>
-              <th className="px-6 py-4 font-bold text-emerald-500/90 whitespace-nowrap">Post-Trade Feel</th>
+              <th className="px-6 py-4 font-bold text-[#7ba8e8] whitespace-nowrap">Pre-Trade Feel</th>
+              <th className="px-6 py-4 font-bold text-[#7ba8e8] whitespace-nowrap">Mid-Trade Feel</th>
+              <th className="px-6 py-4 font-bold text-[#7ba8e8] whitespace-nowrap">Post-Trade Feel</th>
               <th className="px-6 py-4 font-bold">Tags</th>
               <th className="px-6 py-4 font-bold text-right">Actions</th>
             </tr>

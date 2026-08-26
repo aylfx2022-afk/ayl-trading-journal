@@ -412,25 +412,25 @@ export default function Dashboard({ trades }: DashboardProps) {
 
       <div className="grid grid-cols-1 gap-8">
         {/* Equity Curve / RR Growth */}
-        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5">
+        <div className="p-8 rounded-3xl bg-[#181d26] border border-white/5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
             <div>
               <h3 className="text-lg font-semibold text-zinc-100 flex items-center gap-2">
-                <TrendingUp size={18} className="text-emerald-400" />
+                <TrendingUp size={18} className="text-[#4d8fe0]" />
                 RR Growth
               </h3>
             </div>
 
             {/* Timeframe Selector */}
-            <div className="flex bg-white/[0.03] border border-white/10 rounded-2xl p-1 gap-1 self-start sm:self-auto">
+            <div className="flex bg-[#12161c] border border-white/10 rounded-2xl p-1 gap-1 self-start sm:self-auto">
               {(['daily', 'weekly', 'monthly', 'yearly'] as const).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setGrowthTimeframe(tf)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-semibold capitalize transition-all cursor-pointer ${
                     growthTimeframe === tf
-                      ? 'bg-emerald-500 text-black shadow-md font-bold'
-                      : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                      ? 'bg-[#4d8fe0] text-white shadow-md font-bold'
+                      : 'text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5'
                   }`}
                 >
                   {tf === 'daily' && 'Daily'}
@@ -452,14 +452,14 @@ export default function Dashboard({ trades }: DashboardProps) {
                 <AreaChart data={growthData} margin={{ top: 10, right: 10, left: -15, bottom: 20 }}>
                   <defs>
                     <linearGradient id="colorEquity" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#4d8fe0" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="#4d8fe0" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
                   <XAxis 
                     dataKey="period" 
-                    stroke="#52525b" 
+                    stroke="#8b93a1" 
                     fontSize={10} 
                     tickLine={false} 
                     axisLine={false} 
@@ -468,7 +468,7 @@ export default function Dashboard({ trades }: DashboardProps) {
                     height={55}
                     dy={5}
                   />
-                  <YAxis stroke="#52525b" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#8b93a1" fontSize={11} tickLine={false} axisLine={false} />
                   <Tooltip 
                     cursor={{ stroke: 'rgba(255, 255, 255, 0.1)', strokeDasharray: '3 3' }}
                     content={({ active, payload }) => {
@@ -477,22 +477,22 @@ export default function Dashboard({ trades }: DashboardProps) {
                         const cumRR = Number(data.rr);
                         const pRR = Number(data.periodRR);
                         return (
-                          <div className="bg-[#18181b] border border-white/10 rounded-xl p-3 shadow-xl space-y-1 text-xs">
+                          <div className="bg-[#181d26] border border-white/10 rounded-xl p-3 shadow-xl space-y-1 text-xs">
                             <p className="font-bold text-zinc-200 font-sans mb-1">{data.period}</p>
                             <div className="flex justify-between items-center gap-6">
-                              <span className="text-zinc-400">Cumulative RR:</span>
-                              <span className={`font-mono font-bold ${cumRR >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                              <span className="text-[#8b93a1]">Cumulative RR:</span>
+                              <span className={`font-mono font-bold ${cumRR >= 0 ? 'text-[#7ba8e8]' : 'text-red-400'}`}>
                                 {cumRR >= 0 ? `+${cumRR.toFixed(2)}` : cumRR.toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center gap-6">
-                              <span className="text-zinc-400">Period RR:</span>
-                              <span className={`font-mono font-semibold ${pRR >= 0 ? 'text-emerald-400/80' : 'text-red-400/80'}`}>
+                              <span className="text-[#8b93a1]">Period RR:</span>
+                              <span className={`font-mono font-semibold ${pRR >= 0 ? 'text-[#7ba8e8]/90' : 'text-red-400/90'}`}>
                                 {pRR >= 0 ? `+${pRR.toFixed(2)}` : pRR.toFixed(2)}
                               </span>
                             </div>
                             <div className="flex justify-between items-center gap-6 pt-1 border-t border-white/5 text-[11px]">
-                              <span className="text-zinc-500">Trades:</span>
+                              <span className="text-[#8b93a1]">Trades:</span>
                               <span className="text-zinc-300 font-mono font-medium">{data.count}</span>
                             </div>
                           </div>
@@ -501,7 +501,7 @@ export default function Dashboard({ trades }: DashboardProps) {
                       return null;
                     }}
                   />
-                  <Area type="monotone" dataKey="rr" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" activeDot={{ r: 4, fill: '#10b981' }} />
+                  <Area type="monotone" dataKey="rr" stroke="#4d8fe0" strokeWidth={2} fillOpacity={1} fill="url(#colorEquity)" activeDot={{ r: 4, fill: '#4d8fe0' }} />
                 </AreaChart>
               </ResponsiveContainer>
             )}
@@ -509,7 +509,7 @@ export default function Dashboard({ trades }: DashboardProps) {
         </div>
 
         {/* Monthly RR Chart */}
-        <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5">
+        <div className="p-8 rounded-3xl bg-[#181d26] border border-white/5">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-lg font-semibold">Monthly RR</h3>
           </div>
@@ -525,31 +525,31 @@ export default function Dashboard({ trades }: DashboardProps) {
                       <linearGradient key={`grad-${index}`} id={`colorRR-${index}`} x1="0" y1="0" x2="0" y2="1">
                         {isPos ? (
                           <>
-                            <stop offset="0%" stopColor="#38d178" stopOpacity={intensity} />
-                            <stop offset="100%" stopColor="#38d178" stopOpacity={0.05} />
+                            <stop offset="0%" stopColor="#4d8fe0" stopOpacity={intensity} />
+                            <stop offset="100%" stopColor="#4d8fe0" stopOpacity={0.05} />
                           </>
                         ) : (
                           <>
-                            <stop offset="0%" stopColor="#9b2a2a" stopOpacity={0.05} />
-                            <stop offset="100%" stopColor="#9b2a2a" stopOpacity={intensity} />
+                            <stop offset="0%" stopColor="#c96a63" stopOpacity={0.05} />
+                            <stop offset="100%" stopColor="#c96a63" stopOpacity={intensity} />
                           </>
                         )}
                       </linearGradient>
                     );
                   })}
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
-                <XAxis dataKey="month" stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#52525b" fontSize={10} tickLine={false} axisLine={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
+                <XAxis dataKey="month" stroke="#8b93a1" fontSize={10} tickLine={false} axisLine={false} />
+                <YAxis stroke="#8b93a1" fontSize={10} tickLine={false} axisLine={false} />
                 <Tooltip 
                   cursor={false}
                   content={({ payload }) => {
                     if (payload && payload.length) {
                       const rr = Number(payload[0].value);
-                      const color = rr >= 0 ? '#38d178' : '#9b2a2a';
+                      const color = rr >= 0 ? '#7ba8e8' : '#c96a63';
                       return (
-                        <div style={{ backgroundColor: '#18181b', border: '1px solid #ffffff10', borderRadius: '12px', padding: '10px' }}>
-                          <p style={{ color, fontSize: '12px', margin: 0 }}>RR: {rr.toFixed(2)}</p>
+                        <div style={{ backgroundColor: '#181d26', border: '1px solid #ffffff15', borderRadius: '12px', padding: '10px' }}>
+                          <p style={{ color, fontSize: '12px', margin: 0, fontWeight: 'bold' }}>RR: {rr.toFixed(2)}</p>
                         </div>
                       );
                     }
@@ -576,9 +576,9 @@ export default function Dashboard({ trades }: DashboardProps) {
       </div>
 
       {/* Day of Week Performance */}
-      <div className="p-8 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+      <div className="p-8 rounded-3xl bg-[#181d26] border border-white/5 flex flex-col w-full">
         <h3 className="text-lg font-semibold mb-2 font-sans">Day of Week Performance</h3>
-        <p className="text-xs text-zinc-500 mb-6 font-sans">
+        <p className="text-xs text-[#8b93a1] mb-6 font-sans">
           Monday to Friday trade win/loss distribution based on RR value
         </p>
         <div className="flex-1 flex flex-col justify-center">
@@ -589,18 +589,18 @@ export default function Dashboard({ trades }: DashboardProps) {
                 barSize={14}
                 margin={{ top: 10, right: 20, left: 20, bottom: 10 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
                 <XAxis 
                   dataKey="day" 
                   type="category" 
-                  stroke="#52525b" 
+                  stroke="#8b93a1" 
                   fontSize={11} 
                   tickLine={false} 
                   axisLine={false}
                 />
                 <YAxis 
                   type="number" 
-                  stroke="#52525b" 
+                  stroke="#8b93a1" 
                   fontSize={10} 
                   tickLine={false} 
                   axisLine={false}
@@ -612,19 +612,19 @@ export default function Dashboard({ trades }: DashboardProps) {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload;
                       return (
-                        <div className="bg-[#18181b] border border-white/10 rounded-xl p-3 shadow-xl space-y-1">
+                        <div className="bg-[#181d26] border border-white/10 rounded-xl p-3 shadow-xl space-y-1">
                           <p className="text-xs font-bold text-zinc-200 mb-1 font-sans">{data.day}</p>
-                          <p className="text-xs text-emerald-500 font-medium flex justify-between gap-6">
+                          <p className="text-xs text-[#7ba8e8] font-medium flex justify-between gap-6">
                             <span className="font-sans">{"Wins (RR > 0):"}</span>
                             <span className="font-mono font-bold">{data.wins}</span>
                           </p>
-                          <p className="text-xs text-red-500 font-medium flex justify-between gap-6">
+                          <p className="text-xs text-red-400 font-medium flex justify-between gap-6">
                             <span className="font-sans">{"Losses (RR ≤ 0):"}</span>
                             <span className="font-mono font-bold">{data.rawLosses}</span>
                           </p>
                           <div className="border-t border-white/5 my-1.5 pt-1.5 flex justify-between text-xs font-bold text-zinc-300 gap-6 font-sans">
                             <span>Total Trades:</span>
-                            <span className="font-mono text-emerald-400">{data.wins + data.rawLosses}</span>
+                            <span className="font-mono text-[#7ba8e8]">{data.wins + data.rawLosses}</span>
                           </div>
                         </div>
                       );
@@ -633,19 +633,19 @@ export default function Dashboard({ trades }: DashboardProps) {
                   }}
                 />
                 <ReferenceLine y={0} stroke="#ffffff20" />
-                <Bar dataKey="losses" fill="#ef4444" stackId="stack" barSize={14} radius={[0, 0, 4, 4]} />
-                <Bar dataKey="wins" fill="#10b981" stackId="stack" barSize={14} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="losses" fill="#c96a63" stackId="stack" barSize={14} radius={[0, 0, 4, 4]} />
+                <Bar dataKey="wins" fill="#4d8fe0" stackId="stack" barSize={14} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 mt-4 text-xs text-zinc-500 font-sans">
+          <div className="flex items-center justify-center gap-6 mt-4 text-xs text-[#8b93a1] font-sans">
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-red-500" />
+              <div className="w-3 h-3 rounded-full bg-[#c96a63]" />
               <span>{"Losses (RR ≤ 0)"}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <div className="w-3 h-3 rounded-full bg-[#4d8fe0]" />
               <span>{"Wins (RR > 0)"}</span>
             </div>
           </div>
@@ -655,7 +655,7 @@ export default function Dashboard({ trades }: DashboardProps) {
       {/* Trader Psychology Analysis */}
       <div className="space-y-6">
         <div className="border-t border-white/5 pt-6">
-          <h3 className="text-lg font-semibold text-emerald-500">Trader Psychology</h3>
+          <h3 className="text-lg font-semibold text-[#7ba8e8]">Trader Psychology</h3>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -672,22 +672,22 @@ export default function Dashboard({ trades }: DashboardProps) {
 
 function StatCard({ title, value, subValue, icon, trend }: { title: string, value: string, subValue?: React.ReactNode, icon: React.ReactNode, trend?: 'positive' | 'negative' }) {
   return (
-    <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 hover:border-white/10 transition-colors">
+    <div className="p-6 rounded-3xl bg-[#181d26] border border-white/5 hover:border-white/10 transition-colors">
       <div className="flex items-center justify-between mb-4">
-        <span className="text-zinc-500 text-sm font-medium">{title}</span>
+        <span className="text-[#8b93a1] text-sm font-medium">{title}</span>
         <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
           {icon}
         </div>
       </div>
       <div className="flex items-baseline gap-2 flex-wrap">
-        <span className="text-2xl font-bold tracking-tight">{value}</span>
+        <span className="text-2xl font-bold tracking-tight text-[#e8ebf2]">{value}</span>
         {subValue && (
           <div className="mb-0.5">
             {subValue}
           </div>
         )}
         {trend && (
-          <span className={`text-[10px] font-bold mb-1 px-1.5 py-0.5 rounded ${trend === 'positive' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+          <span className={`text-[10px] font-bold mb-1 px-1.5 py-0.5 rounded ${trend === 'positive' ? 'bg-[#1e2733] text-[#7ba8e8]' : 'bg-red-500/10 text-red-400'}`}>
             {trend === 'positive' ? '↑' : '↓'}
           </span>
         )}
@@ -703,7 +703,7 @@ function DateFilter({ startDate, endDate, setStartDate, setEndDate }: {
   setEndDate: (d: Date | null) => void
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-4 bg-[#0F0F0F] border border-white/5 rounded-3xl p-4">
+    <div className="flex flex-wrap items-center justify-end gap-4 bg-[#181d26] border border-white/5 rounded-3xl p-4">
       <h4 className="text-sm font-bold text-zinc-300">Filter:</h4>
       <DateRangePicker 
         startDate={startDate}
@@ -724,7 +724,7 @@ function PsychologyHorizontalChart({ title, data }: { title: string; data: { cle
   const xDomainMax = Math.max(maxCount + 1, 5);
 
   return (
-    <div className="p-6 rounded-3xl bg-[#0F0F0F] border border-white/5 flex flex-col w-full">
+    <div className="p-6 rounded-3xl bg-[#181d26] border border-white/5 flex flex-col w-full">
       <h4 className="text-base font-bold text-zinc-100 mb-4">{title}</h4>
       <div className="w-full h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
@@ -737,7 +737,7 @@ function PsychologyHorizontalChart({ title, data }: { title: string; data: { cle
             <XAxis 
               type="number" 
               domain={[0, xDomainMax]}
-              tick={{ fill: '#71717a', fontSize: 11 }}
+              tick={{ fill: '#8b93a1', fontSize: 11 }}
               axisLine={{ stroke: '#ffffff15' }}
               tickLine={{ stroke: '#ffffff15' }}
               allowDecimals={false}
@@ -745,7 +745,7 @@ function PsychologyHorizontalChart({ title, data }: { title: string; data: { cle
             <YAxis 
               type="category" 
               dataKey="cleanName" 
-              tick={{ fill: '#9ca3af', fontSize: 11 }}
+              tick={{ fill: '#8b93a1', fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               width={230}
@@ -755,9 +755,9 @@ function PsychologyHorizontalChart({ title, data }: { title: string; data: { cle
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;
                   return (
-                    <div className="bg-[#18181b] border border-white/10 p-2.5 rounded-xl shadow-xl text-xs">
+                    <div className="bg-[#181d26] border border-white/10 p-2.5 rounded-xl shadow-xl text-xs">
                       <span className="font-bold text-white">{item.cleanName}: </span>
-                      <span className="font-mono text-emerald-400 font-black">{item.count}</span>
+                      <span className="font-mono text-[#7ba8e8] font-black">{item.count}</span>
                     </div>
                   );
                 }

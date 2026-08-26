@@ -367,14 +367,14 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
   return (
     <div className="w-full">
-      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#0F0F0F] border border-white/5 rounded-2xl p-6 w-full text-left lg:h-[calc(100vh-110px)] lg:flex lg:flex-col lg:overflow-hidden lg:min-h-[500px]">
+      <form id="add-trade-form" onSubmit={handleSubmit} className="bg-[#181d26] border border-white/5 rounded-2xl p-6 w-full text-left lg:h-[calc(100vh-110px)] lg:flex lg:flex-col lg:overflow-hidden lg:min-h-[500px] shadow-xl">
         <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8 lg:flex-1 lg:overflow-hidden lg:min-h-0">
           
           {/* Left Column (30% width) - Form Complete */}
           <div className="lg:col-span-3 space-y-3 lg:h-full lg:overflow-y-auto lg:pr-3">
             {/* SELECT A PAIR */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Pair</label>
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Pair</label>
               <CustomSelect
                 value={formData.pair}
                 onChange={val => setFormData({...formData, pair: val})}
@@ -385,7 +385,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
             {/* DATE */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry Time</label>
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Time</label>
               <DatePicker 
                 value={formData.entryDateTime}
                 onChange={date => setFormData({...formData, entryDateTime: date})}
@@ -394,7 +394,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
             {/* SELECT TYPE */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Type</label>
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Type</label>
               <CustomSelect
                 value={formData.type}
                 onChange={val => setFormData({...formData, type: val as 'buy' | 'sell' | ''})}
@@ -410,28 +410,28 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
             <div className="grid grid-cols-2 gap-4">
               {/* ENTRY */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry</label>
+                <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry</label>
                 <input 
                   type="number" step="0.00001" required value={formData.entryPrice} 
                   onChange={e => setFormData({...formData, entryPrice: e.target.value})} 
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
+                  className="w-full bg-[#12161c] border border-white/10 rounded-xl px-4 py-2.5 focus:outline-none focus:border-[#4d8fe0]/50 text-[#e8ebf2] text-sm" 
                 />
               </div>
 
               {/* EXIT */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">Exit</label>
+                  <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest">Exit</label>
                   <button
                     type="button"
                     onClick={handlePasteExit}
-                    className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-[10px] font-bold text-[#4d8fe0] hover:text-[#7ba8e8] transition-colors cursor-pointer"
                     title="Paste Exit Price"
                   >
                     {pastedExit ? (
                       <>
-                        <Check size={11} className="text-emerald-400" />
-                        <span className="text-emerald-400">Pasted!</span>
+                        <Check size={11} className="text-[#4d8fe0]" />
+                        <span className="text-[#4d8fe0]">Pasted!</span>
                       </>
                     ) : (
                       <>
@@ -445,16 +445,16 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   <input 
                     type="number" step="0.00001" value={formData.exitPrice} 
                     onChange={e => setFormData({...formData, exitPrice: e.target.value})} 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
+                    className="w-full bg-[#12161c] border border-white/10 rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:border-[#4d8fe0]/50 text-[#e8ebf2] text-sm" 
                     placeholder="Opt."
                   />
                   <button
                     type="button"
                     onClick={handlePasteExit}
-                    className="absolute right-2.5 p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer"
+                    className="absolute right-2.5 p-1 rounded-lg text-[#8b93a1] hover:text-[#4d8fe0] hover:bg-white/10 transition-all cursor-pointer"
                     title="Paste Exit Price from Clipboard"
                   >
-                    {pastedExit ? <Check size={14} className="text-emerald-400" /> : <ClipboardPaste size={14} />}
+                    {pastedExit ? <Check size={14} className="text-[#4d8fe0]" /> : <ClipboardPaste size={14} />}
                   </button>
                 </div>
               </div>
@@ -465,12 +465,12 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               {/* SL */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">SL</label>
+                  <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest">SL</label>
                   {formData.slPrice !== '' && formData.slPrice !== null && (
                     <button
                       type="button"
                       onClick={() => handleCopyPrice(formData.slPrice, 'sl')}
-                      className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                      className="flex items-center gap-1 text-[10px] font-bold text-[#8b93a1] hover:text-red-400 transition-colors cursor-pointer"
                       title="Copy SL Price"
                     >
                       {copiedField === 'sl' ? (
@@ -491,13 +491,13 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   <input 
                     type="number" step="0.00001" required value={formData.slPrice} 
                     onChange={e => setFormData({...formData, slPrice: e.target.value})} 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:border-red-500/50 text-zinc-200 text-sm" 
+                    className="w-full bg-[#12161c] border border-white/10 rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:border-red-500/50 text-[#e8ebf2] text-sm" 
                   />
                   <button
                     type="button"
                     onClick={() => handleCopyPrice(formData.slPrice, 'sl')}
                     disabled={formData.slPrice === '' || formData.slPrice === null}
-                    className="absolute right-2.5 p-1 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="absolute right-2.5 p-1 rounded-lg text-[#8b93a1] hover:text-red-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Copy SL Price"
                   >
                     {copiedField === 'sl' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
@@ -508,18 +508,18 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               {/* TP */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                  <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest">TP</label>
+                  <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest">TP</label>
                   {formData.tpPrice !== '' && formData.tpPrice !== null && (
                     <button
                       type="button"
                       onClick={() => handleCopyPrice(formData.tpPrice, 'tp')}
-                      className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                      className="flex items-center gap-1 text-[10px] font-bold text-[#8b93a1] hover:text-[#4d8fe0] transition-colors cursor-pointer"
                       title="Copy TP Price"
                     >
                       {copiedField === 'tp' ? (
                         <>
-                          <Check size={11} className="text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
+                          <Check size={11} className="text-[#4d8fe0]" />
+                          <span className="text-[#4d8fe0]">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -534,16 +534,16 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   <input 
                     type="number" step="0.00001" required value={formData.tpPrice} 
                     onChange={e => setFormData({...formData, tpPrice: e.target.value})} 
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:border-emerald-500/50 text-zinc-200 text-sm" 
+                    className="w-full bg-[#12161c] border border-white/10 rounded-xl pl-4 pr-10 py-2.5 focus:outline-none focus:border-[#4d8fe0]/50 text-[#e8ebf2] text-sm" 
                   />
                   <button
                     type="button"
                     onClick={() => handleCopyPrice(formData.tpPrice, 'tp')}
                     disabled={formData.tpPrice === '' || formData.tpPrice === null}
-                    className="absolute right-2.5 p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="absolute right-2.5 p-1 rounded-lg text-[#8b93a1] hover:text-[#4d8fe0] hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Copy TP Price"
                   >
-                    {copiedField === 'tp' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    {copiedField === 'tp' ? <Check size={14} className="text-[#4d8fe0]" /> : <Copy size={14} />}
                   </button>
                 </div>
               </div>
@@ -551,10 +551,10 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
             {/* RR */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">RR</label>
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">RR</label>
               <input 
                 type="number" step="0.1" readOnly value={formData.rr} 
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-zinc-400 cursor-not-allowed font-bold text-sm" 
+                className="w-full bg-[#12161c] border border-white/10 rounded-xl px-4 py-2.5 text-[#8b93a1] cursor-not-allowed font-bold text-sm" 
               />
             </div>
 
@@ -563,11 +563,11 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
             {/* COMMENTS */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Comments</label>
+                <label className="block text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Comments</label>
                 <button
                   type="button"
                   onClick={() => setIsEditingNotes(!isEditingNotes)}
-                  className="text-[10px] font-bold text-emerald-500 hover:text-emerald-400 uppercase tracking-widest"
+                  className="text-[10px] font-bold text-[#4d8fe0] hover:text-[#7ba8e8] uppercase tracking-widest cursor-pointer"
                 >
                   {isEditingNotes ? 'Done' : 'Write'}
                 </button>
@@ -580,40 +580,40 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   minHeight="120px"
                 />
               ) : (
-                <div className="min-h-[120px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview text-left">
+                <div className="min-h-[120px] w-full p-4 bg-[#12161c] rounded-xl border border-white/5 text-sm text-[#e8ebf2] markdown-preview text-left">
                   {formData.notes ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{formData.notes}</ReactMarkdown>
-                  ) : <span className="text-zinc-600">No notes yet...</span>}
+                  ) : <span className="text-[#8b93a1]/60">No notes yet...</span>}
                 </div>
               )}
             </div>
 
             {/* ENTRY TIMEFRAME */}
             <div className="space-y-2">
-              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry Timeframe</label>
+              <label className="block text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Timeframe</label>
               <div className="flex flex-wrap gap-1.5 px-1">
                 {TIMEFRAME_PRESETS.map((tf) => (
                   <button
                     key={tf}
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, entryTimeframe: tf }))}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all ${
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                       formData.entryTimeframe === tf
-                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold'
-                        : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                        ? 'bg-[#1e2733] border-[#4d8fe0] text-[#7ba8e8] font-bold'
+                        : 'bg-[#12161c] border-white/5 text-[#8b93a1] hover:bg-white/10 hover:text-[#e8ebf2]'
                     }`}
                   >
                     {tf}
                   </button>
                 ))}
                 {showCustomTf ? (
-                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg pl-2 pr-1 py-0.5">
+                  <div className="flex items-center gap-1 bg-[#12161c] border border-white/10 rounded-lg pl-2 pr-1 py-0.5">
                     <input
                       type="text"
                       value={customTfValue}
                       onChange={(e) => setCustomTfValue(e.target.value)}
                       placeholder="e.g. 12h"
-                      className="bg-transparent text-xs text-zinc-200 outline-none w-14 font-semibold"
+                      className="bg-transparent text-xs text-[#e8ebf2] outline-none w-14 font-semibold"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -637,7 +637,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                           setShowCustomTf(false);
                         }
                       }}
-                      className="p-1 text-emerald-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all"
+                      className="p-1 text-[#4d8fe0] hover:text-[#7ba8e8] hover:bg-white/5 rounded-md transition-all cursor-pointer"
                     >
                       <Check size={12} />
                     </button>
@@ -647,7 +647,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                         setShowCustomTf(false);
                         setCustomTfValue('');
                       }}
-                      className="p-1 text-zinc-500 hover:text-zinc-400 hover:bg-white/5 rounded-md transition-all"
+                      className="p-1 text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 rounded-md transition-all cursor-pointer"
                     >
                       <X size={12} />
                     </button>
@@ -656,7 +656,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
                   <button
                     type="button"
                     onClick={() => setShowCustomTf(true)}
-                    className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-dashed border-zinc-700 bg-transparent text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 transition-all"
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-dashed border-white/15 bg-transparent text-[#8b93a1] hover:border-white/30 hover:text-[#e8ebf2] transition-all cursor-pointer"
                   >
                     + Custom
                   </button>
@@ -664,14 +664,14 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               </div>
               {formData.entryTimeframe && !TIMEFRAME_PRESETS.includes(formData.entryTimeframe) && (
                 <div className="flex items-center gap-1.5 mt-1.5 text-xs px-1">
-                  <span className="text-zinc-500">Selected Custom:</span>
-                  <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500 text-emerald-400 rounded-md font-semibold">
+                  <span className="text-[#8b93a1]">Selected Custom:</span>
+                  <span className="px-2 py-0.5 bg-[#1e2733] border border-[#4d8fe0] text-[#7ba8e8] rounded-md font-semibold">
                     {formData.entryTimeframe}
                   </span>
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, entryTimeframe: '' }))}
-                    className="text-zinc-500 hover:text-red-400 text-[10px] uppercase font-black tracking-widest ml-1"
+                    className="text-[#8b93a1] hover:text-red-400 text-[10px] uppercase font-black tracking-widest ml-1 cursor-pointer"
                   >
                     Clear
                   </button>
@@ -681,7 +681,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
             {/* TAGS */}
             <div className="space-y-3">
-              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Tags</label>
+              <label className="block text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Tags</label>
               <TagInput 
                 tags={formData.tags} 
                 onChange={tags => setFormData({...formData, tags})} 
@@ -690,12 +690,12 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               />
             </div>
 
-            <div className="space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
-              <p className="text-[10.5px] uppercase font-black text-emerald-500 tracking-wider">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာ)</p>
+            <div className="space-y-3 bg-[#12161c] p-3 rounded-xl border border-white/5">
+              <p className="text-[10.5px] uppercase font-black text-[#4d8fe0] tracking-wider">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာ)</p>
               
               {/* PRE-TRADE EMOTION */}
               <div className="space-y-1.5">
-                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1">Feeling BEFORE Entry (Trade မဝင်ခင် ခံစားချက်)</p>
+                <p className="text-[9px] uppercase font-bold text-[#8b93a1] px-1">Feeling BEFORE Entry (Trade မဝင်ခင် ခံစားချက်)</p>
                 <CustomSelect
                   value={formData.preTradeEmotion}
                   onChange={val => setFormData({...formData, preTradeEmotion: val})}
@@ -707,7 +707,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
               {/* DURING-TRADE EMOTION */}
               <div className="space-y-1.5">
-                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1">Feeling DURING Active Trade (ဝင်ထားစဉ် ခံစားချက်)</p>
+                <p className="text-[9px] uppercase font-bold text-[#8b93a1] px-1">Feeling DURING Active Trade (ဝင်ထားစဉ် ခံစားချက်)</p>
                 <CustomSelect
                   value={formData.duringTradeEmotion}
                   onChange={val => setFormData({...formData, duringTradeEmotion: val})}
@@ -719,7 +719,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
               {/* POST-TRADE EMOTION */}
               <div className="space-y-1.5">
-                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1">Feeling AFTER Exit (ထွက်ပြီးနောက် ခံစားချက်)</p>
+                <p className="text-[9px] uppercase font-bold text-[#8b93a1] px-1">Feeling AFTER Exit (ထွက်ပြီးနောက် ခံစားချက်)</p>
                 <CustomSelect
                   value={formData.postTradeEmotion}
                   onChange={val => setFormData({...formData, postTradeEmotion: val})}
@@ -733,13 +733,13 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
             {/* Status Messages */}
             <div className="pt-4">
               {status === 'saving' && (
-                <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium animate-pulse">
-                  <div className="w-4 h-4 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+                <div className="flex items-center justify-center gap-2 text-[#4d8fe0] text-sm font-medium animate-pulse">
+                  <div className="w-4 h-4 border-2 border-[#4d8fe0]/20 border-t-[#4d8fe0] rounded-full animate-spin"></div>
                   Saving trade entries...
                 </div>
               )}
-              {status === 'success' && <div className="flex items-center justify-center gap-2 text-emerald-500 text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
-              {status === 'error' && <div className="flex items-center justify-center gap-2 text-red-500 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
+              {status === 'success' && <div className="flex items-center justify-center gap-2 text-[#7ba8e8] text-sm font-medium"><CheckCircle2 size={16} /> Trade saved successfully!</div>}
+              {status === 'error' && <div className="flex items-center justify-center gap-2 text-red-400 text-sm font-medium"><AlertCircle size={16} /> {error}</div>}
             </div>
           </div>
 

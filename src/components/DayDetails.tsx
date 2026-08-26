@@ -104,12 +104,12 @@ export default function DayDetails({
       {/* Confirmation Modal */}
       {confirmModal.isOpen && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">Confirm Action</h3>
-            <p className="text-zinc-300 text-sm mb-6">{confirmModal.message}</p>
+          <div className="bg-[#181d26] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black uppercase text-[#8b93a1] mb-4">Confirm Action</h3>
+            <p className="text-[#e8ebf2] text-sm mb-6">{confirmModal.message}</p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Cancel</button>
-              <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-red-500/80 hover:bg-red-500 rounded-lg text-xs font-bold text-white transition-colors">Confirm</button>
+              <button onClick={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))} className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors cursor-pointer text-[#8b93a1]">Cancel</button>
+              <button onClick={confirmModal.onConfirm} className="flex-1 py-2 bg-red-500/80 hover:bg-red-500 rounded-lg text-xs font-bold text-white transition-colors cursor-pointer">Confirm</button>
             </div>
           </div>
         </div>,
@@ -119,10 +119,10 @@ export default function DayDetails({
       {/* Modal for notes */}
       {selectedNote && createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setSelectedNote(null)}>
-          <div className="bg-[#0A0A0A] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-sm font-black uppercase text-zinc-500 mb-4">{selectedNote.pair} Journal</h3>
-            <p className="text-zinc-300 text-sm whitespace-pre-wrap">{selectedNote.note}</p>
-            <button onClick={() => setSelectedNote(null)} className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors">Close</button>
+          <div className="bg-[#181d26] border border-white/10 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-sm font-black uppercase text-[#8b93a1] mb-4">{selectedNote.pair} Journal</h3>
+            <p className="text-[#e8ebf2] text-sm whitespace-pre-wrap">{selectedNote.note}</p>
+            <button onClick={() => setSelectedNote(null)} className="mt-6 w-full py-2 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold transition-colors cursor-pointer text-[#e8ebf2]">Close</button>
           </div>
         </div>,
         document.body
@@ -131,27 +131,27 @@ export default function DayDetails({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 px-1">
         <div className="text-left flex flex-col gap-2">
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Daily Summary</h2>
-            <p className="text-zinc-500 text-sm font-medium">
+            <h2 className="text-xl font-bold tracking-tight text-[#e8ebf2]">Daily Summary</h2>
+            <p className="text-[#8b93a1] text-sm font-medium">
               {date.format('MMMM DD, YYYY')}
             </p>
           </div>
         </div>
 
         <div className="flex gap-3 items-center">
-          <div className="px-4 py-2 rounded-xl bg-[#0F0F0F] border border-white/5 flex flex-col items-center min-w-[100px] h-[46px] justify-center">
-            <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">Trades</p>
-            <p className="text-lg font-bold leading-none">{tradesForDate.length}</p>
+          <div className="px-4 py-2 rounded-xl bg-[#181d26] border border-white/5 flex flex-col items-center min-w-[100px] h-[46px] justify-center shadow-md">
+            <p className="text-[9px] text-[#8b93a1] uppercase font-black tracking-widest leading-none mb-1">Trades</p>
+            <p className="text-lg font-bold leading-none text-[#e8ebf2]">{tradesForDate.length}</p>
           </div>
-          <div className="px-4 py-2 rounded-xl bg-[#0F0F0F] border border-white/5 flex flex-col items-center min-w-[100px] h-[46px] justify-center">
-            <p className="text-[9px] text-zinc-600 uppercase font-black tracking-widest leading-none mb-1">Net RR</p>
-            <p className={`text-lg font-bold leading-none ${totalRR >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+          <div className="px-4 py-2 rounded-xl bg-[#181d26] border border-white/5 flex flex-col items-center min-w-[100px] h-[46px] justify-center shadow-md">
+            <p className="text-[9px] text-[#8b93a1] uppercase font-black tracking-widest leading-none mb-1">Net RR</p>
+            <p className={`text-lg font-bold leading-none ${totalRR >= 0 ? 'text-emerald-400' : 'text-[#c96a63]'}`}>
               {totalRR >= 0 ? '+' : ''}{totalRR.toFixed(2)}
             </p>
           </div>
           <button 
             onClick={onAddTrade}
-            className="px-5 h-[46px] rounded-xl bg-emerald-500 text-black hover:bg-emerald-400 font-bold text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-lg hover:shadow-emerald-500/10 cursor-pointer active:scale-95"
+            className="px-5 h-[46px] rounded-xl bg-[#4d8fe0] text-white hover:bg-[#3a6fc4] font-bold text-xs uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-lg hover:shadow-[#4d8fe0]/20 cursor-pointer active:scale-95"
           >
             <Plus size={14} className="stroke-[3]" />
             New Trade
@@ -159,10 +159,10 @@ export default function DayDetails({
         </div>
       </div>
 
-      <div className="rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase text-zinc-500 tracking-widest">Day Activity</h3>
-          <span className="text-[10px] font-bold text-zinc-600">
+      <div className="rounded-2xl bg-[#181d26] border border-white/5 overflow-hidden shadow-lg">
+        <div className="px-5 py-3 border-b border-white/5 bg-[#12161c]/50 flex items-center justify-between">
+          <h3 className="text-xs font-black uppercase text-[#8b93a1] tracking-widest">Day Activity</h3>
+          <span className="text-[10px] font-bold text-[#8b93a1]">
             {tradesForDate.length} {tradesForDate.length === 1 ? 'Trade' : 'Trades'} Found
           </span>
         </div>
@@ -171,7 +171,7 @@ export default function DayDetails({
           <div className="overflow-x-auto">
              <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-white/[0.02] text-[10px] font-black text-zinc-600 uppercase tracking-widest">
+                <tr className="border-b border-white/[0.02] text-[10px] font-black text-[#8b93a1] uppercase tracking-widest">
                   <th className="px-5 py-3 font-black">Pair</th>
                   <th className="px-5 py-3 font-black">Type</th>
                   <th className="px-5 py-3 font-black">Timeframe</th>
@@ -192,40 +192,40 @@ export default function DayDetails({
                     className="group hover:bg-white/[0.02] transition-colors cursor-pointer text-[11px]"
                   >
                     <td className="px-5 py-3 whitespace-nowrap">
-                      <span className="font-bold text-zinc-300">{trade.pair || trade.item}</span>
+                      <span className="font-bold text-[#e8ebf2]">{trade.pair || trade.item}</span>
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       <span className={`text-[9px] font-black px-2 py-0.5 rounded-sm uppercase ${
-                        trade.type === 'buy' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'
+                        trade.type === 'buy' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'
                       }`}>
                         {trade.type}
                       </span>
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       {trade.entryTimeframe ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/15 text-xs text-emerald-400 font-bold">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded bg-[#1e2733] border border-[#4d8fe0]/30 text-xs text-[#7ba8e8] font-bold">
                           {trade.entryTimeframe}
                         </span>
                       ) : (
-                        <span className="text-zinc-600 font-medium">-</span>
+                        <span className="text-[#8b93a1] font-medium">-</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.entryPrice?.toFixed(5) || trade.openPrice?.toFixed(5) || '-'}</td>
-                    <td className="px-5 py-3 font-mono whitespace-nowrap">{trade.exitPrice?.toFixed(5) || trade.closePrice?.toFixed(5) || '-'}</td>
+                    <td className="px-5 py-3 font-mono whitespace-nowrap text-[#e8ebf2]">{trade.entryPrice?.toFixed(5) || trade.openPrice?.toFixed(5) || '-'}</td>
+                    <td className="px-5 py-3 font-mono whitespace-nowrap text-[#e8ebf2]">{trade.exitPrice?.toFixed(5) || trade.closePrice?.toFixed(5) || '-'}</td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       {(() => {
                         const rr = trade.rr || 0;
                         const exitPrice = trade.exitPrice || trade.closePrice;
                         let status = 'Open';
-                        let statusClass = 'bg-emerald-500/10 text-emerald-400';
+                        let statusClass = 'bg-[#1e2733] text-[#7ba8e8]';
 
                         if (exitPrice) {
                           if (rr > 0) {
                             status = 'Profit';
-                            statusClass = 'bg-emerald-500/10 text-emerald-500';
+                            statusClass = 'bg-emerald-500/10 text-emerald-400';
                           } else if (rr < 0) {
                             status = 'Loss';
-                            statusClass = 'bg-red-500/10 text-red-500';
+                            statusClass = 'bg-red-500/10 text-red-400';
                           } else {
                             status = 'BE';
                             statusClass = 'bg-zinc-500/10 text-zinc-400';
@@ -238,7 +238,7 @@ export default function DayDetails({
                         );
                       })()}
                     </td>
-                    <td className={`px-5 py-3 font-black whitespace-nowrap ${(trade.rr || 0) > 0 ? 'text-emerald-500' : (trade.rr || 0) < 0 ? 'text-red-500' : 'text-zinc-300'}`}>
+                    <td className={`px-5 py-3 font-black whitespace-nowrap ${(trade.rr || 0) > 0 ? 'text-emerald-400' : (trade.rr || 0) < 0 ? 'text-[#c96a63]' : 'text-[#e8ebf2]'}`}>
                       {(trade.rr || 0).toFixed(2)}R
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">
@@ -247,15 +247,15 @@ export default function DayDetails({
                           onClick={(e) => { e.stopPropagation(); setSelectedNote({ note: trade.notes!, pair: trade.pair || trade.item || 'Trade' }); }}
                           className="group"
                         >
-                          <StickyNote className="w-4 h-4 text-zinc-400 group-hover:text-emerald-500 transition-colors" />
+                          <StickyNote className="w-4 h-4 text-[#8b93a1] group-hover:text-[#4d8fe0] transition-colors" />
                         </button>
-                      ) : <span className="text-zinc-700">-</span>}
+                      ) : <span className="text-[#8b93a1]/40">-</span>}
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       {trade.tags && trade.tags.length > 0 && (
                         <div className="flex gap-1 overflow-x-auto max-w-[120px] no-scrollbar">
                           {trade.tags.map((tag, i) => (
-                            <span key={i} className="text-[8px] font-bold px-1 py-0 rounded-sm bg-emerald-500/10 text-emerald-500 border border-emerald-500/10 whitespace-nowrap">
+                            <span key={i} className="text-[8px] font-bold px-1 py-0 rounded-sm bg-[#1e2733] text-[#7ba8e8] border border-[#4d8fe0]/20 whitespace-nowrap">
                               #{tag}
                             </span>
                           ))}
@@ -278,7 +278,7 @@ export default function DayDetails({
                             }
                           }
                         });
-                      }} className="text-zinc-500 hover:text-red-500 transition-colors">
+                      }} className="text-[#8b93a1] hover:text-red-400 transition-colors cursor-pointer">
                         <Trash2 size={16} />
                       </button>
                     </td>
@@ -290,29 +290,29 @@ export default function DayDetails({
         ) : (
           <div className="py-16 text-center">
             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4 grayscale opacity-10">
-              <CalendarDays className="text-zinc-400 w-6 h-6" />
+              <CalendarDays className="text-[#8b93a1] w-6 h-6" />
             </div>
-            <p className="text-zinc-500 text-sm font-medium">No trading activity recorded for this date.</p>
+            <p className="text-[#8b93a1] text-sm font-medium">No trading activity recorded for this date.</p>
           </div>
         )}
       </div>
 
       {/* Daily Journal Section */}
-      <div className="rounded-2xl bg-[#0F0F0F] border border-white/5 overflow-hidden">
-        <div className="px-5 py-3 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
+      <div className="rounded-2xl bg-[#181d26] border border-white/5 overflow-hidden shadow-lg">
+        <div className="px-5 py-3 border-b border-white/5 bg-[#12161c]/50 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <h3 className="text-xs font-black uppercase text-zinc-500 tracking-widest">Daily Journal</h3>
+            <h3 className="text-xs font-black uppercase text-[#8b93a1] tracking-widest">Daily Journal</h3>
             {saveStatus === 'saving' && (
-              <span className="text-[10px] text-amber-500 font-bold animate-pulse">Auto-saving...</span>
+              <span className="text-[10px] text-amber-400 font-bold animate-pulse">Auto-saving...</span>
             )}
             {saveStatus === 'saved' && (
-              <span className="text-[10px] text-emerald-500 font-bold">Saved ✔</span>
+              <span className="text-[10px] text-[#7ba8e8] font-bold">Saved ✔</span>
             )}
           </div>
           <button
             type="button"
             onClick={() => setIsEditingJournal(!isEditingJournal)}
-            className="text-emerald-500 hover:text-emerald-400 font-bold uppercase tracking-widest text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-[#4d8fe0] hover:text-[#7ba8e8] font-bold uppercase tracking-widest text-[10px] flex items-center gap-1 cursor-pointer transition-colors"
           >
             <PenSquare size={12} />
             {isEditingJournal ? 'Done' : 'Write'}
@@ -328,13 +328,13 @@ export default function DayDetails({
               minHeight="140px"
             />
           ) : (
-            <div className={`min-h-[140px] w-full p-5 bg-white/[0.02] rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview leading-relaxed ${!journalText ? 'flex items-center justify-center' : ''}`}>
+            <div className={`min-h-[140px] w-full p-5 bg-[#12161c] rounded-xl border border-white/5 text-sm text-[#e8ebf2] markdown-preview leading-relaxed ${!journalText ? 'flex items-center justify-center' : ''}`}>
               {journalText ? (
                 <div className="markdown-body">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{journalText}</ReactMarkdown>
                 </div>
               ) : (
-                <span className="text-zinc-600 italic">No journal entries recorded for today. Click 'Write' to add notes...</span>
+                <span className="text-[#8b93a1]/60 italic">No journal entries recorded for today. Click 'Write' to add notes...</span>
               )}
             </div>
           )}

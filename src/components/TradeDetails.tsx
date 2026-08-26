@@ -364,14 +364,14 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
   return (
     <div className="w-full">
-      <div className="bg-[#0F0F0F] border border-white/10 rounded-2xl p-6 text-left w-full lg:h-[calc(100vh-110px)] lg:flex lg:flex-col lg:overflow-hidden lg:min-h-[500px]">
+      <div className="bg-[#181d26] border border-white/10 rounded-2xl p-6 text-left w-full lg:h-[calc(100vh-110px)] lg:flex lg:flex-col lg:overflow-hidden lg:min-h-[500px] shadow-2xl">
         <div className="w-full grid grid-cols-1 lg:grid-cols-10 gap-8 lg:flex-1 lg:overflow-hidden lg:min-h-0">
           
           {/* Left Column (30% width) - Form Complete */}
           <div className="lg:col-span-3 space-y-3 lg:h-full lg:overflow-y-auto lg:pr-3">
             {/* Pair Name */}
             <div className="space-y-1.5">
-              <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Pair</p>
+              <p className="text-[10px] text-[#8b93a1] uppercase font-black px-1 tracking-widest">Pair</p>
               <CustomSelect
                 value={pair}
                 onChange={setPair}
@@ -392,7 +392,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
             {/* Type */}
             <div className="space-y-1.5">
-              <label className="text-[10px] uppercase font-black px-1 tracking-widest text-zinc-500">Type</label>
+              <label className="text-[10px] uppercase font-black px-1 tracking-widest text-[#8b93a1]">Type</label>
               <CustomSelect
                 value={type}
                 onChange={val => setType(val as 'buy' | 'sell')}
@@ -408,24 +408,24 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             <div className="grid grid-cols-2 gap-4">
               {/* Entry Price */}
               <div className="space-y-1.5">
-                <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">Entry</p>
-                <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                <p className="text-[10px] text-[#8b93a1] uppercase font-black px-1 tracking-widest">Entry</p>
+                <input type="number" step="0.00001" value={entryPrice} onChange={e => setEntryPrice(e.target.value)} className="w-full bg-[#12161c] border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-[#e8ebf2] focus:outline-none focus:border-[#4d8fe0]/50" />
               </div>
 
               {/* Exit Price */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">Exit</p>
+                  <p className="text-[10px] text-[#8b93a1] uppercase font-black tracking-widest">Exit</p>
                   <button
                     type="button"
                     onClick={handlePasteExit}
-                    className="flex items-center gap-1 text-[10px] font-bold text-emerald-500 hover:text-emerald-400 transition-colors cursor-pointer"
+                    className="flex items-center gap-1 text-[10px] font-bold text-[#4d8fe0] hover:text-[#7ba8e8] transition-colors cursor-pointer"
                     title="Paste Exit Price"
                   >
                     {pastedExit ? (
                       <>
-                        <Check size={11} className="text-emerald-400" />
-                        <span className="text-emerald-400">Pasted!</span>
+                        <Check size={11} className="text-[#7ba8e8]" />
+                        <span className="text-[#7ba8e8]">Pasted!</span>
                       </>
                     ) : (
                       <>
@@ -436,14 +436,14 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                   </button>
                 </div>
                 <div className="relative flex items-center">
-                  <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                  <input type="number" step="0.00001" value={exitPrice} onChange={e => setExitPrice(e.target.value)} className="w-full bg-[#12161c] border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-[#e8ebf2] focus:outline-none focus:border-[#4d8fe0]/50" />
                   <button
                     type="button"
                     onClick={handlePasteExit}
-                    className="absolute right-2 p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer"
+                    className="absolute right-2 p-1 rounded-lg text-[#8b93a1] hover:text-[#4d8fe0] hover:bg-white/10 transition-all cursor-pointer"
                     title="Paste Exit Price from Clipboard"
                   >
-                    {pastedExit ? <Check size={14} className="text-emerald-400" /> : <ClipboardPaste size={14} />}
+                    {pastedExit ? <Check size={14} className="text-[#7ba8e8]" /> : <ClipboardPaste size={14} />}
                   </button>
                 </div>
               </div>
@@ -454,18 +454,18 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               {/* Stop Loss SL Price */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">SL</p>
+                  <p className="text-[10px] text-[#8b93a1] uppercase font-black tracking-widest">SL</p>
                   {slPrice !== '' && slPrice !== null && (
                     <button
                       type="button"
                       onClick={() => handleCopyPrice(slPrice, 'sl')}
-                      className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-red-400 transition-colors cursor-pointer"
+                      className="flex items-center gap-1 text-[10px] font-bold text-[#8b93a1] hover:text-red-400 transition-colors cursor-pointer"
                       title="Copy SL Price"
                     >
                       {copiedField === 'sl' ? (
                         <>
-                          <Check size={11} className="text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
+                          <Check size={11} className="text-[#7ba8e8]" />
+                          <span className="text-[#7ba8e8]">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -477,15 +477,15 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                   )}
                 </div>
                 <div className="relative flex items-center">
-                  <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-red-500/50" />
+                  <input type="number" step="0.00001" value={slPrice} onChange={e => setSlPrice(e.target.value)} className="w-full bg-[#12161c] border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-[#e8ebf2] focus:outline-none focus:border-red-500/50" />
                   <button
                     type="button"
                     onClick={() => handleCopyPrice(slPrice, 'sl')}
                     disabled={!slPrice}
-                    className="absolute right-2 p-1 rounded-lg text-zinc-500 hover:text-red-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="absolute right-2 p-1 rounded-lg text-[#8b93a1] hover:text-red-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Copy SL Price"
                   >
-                    {copiedField === 'sl' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    {copiedField === 'sl' ? <Check size={14} className="text-[#7ba8e8]" /> : <Copy size={14} />}
                   </button>
                 </div>
               </div>
@@ -493,18 +493,18 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               {/* Take Profit TP Price */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between px-1">
-                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">TP</p>
+                  <p className="text-[10px] text-[#8b93a1] uppercase font-black tracking-widest">TP</p>
                   {tpPrice !== '' && tpPrice !== null && (
                     <button
                       type="button"
                       onClick={() => handleCopyPrice(tpPrice, 'tp')}
-                      className="flex items-center gap-1 text-[10px] font-bold text-zinc-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                      className="flex items-center gap-1 text-[10px] font-bold text-[#8b93a1] hover:text-[#4d8fe0] transition-colors cursor-pointer"
                       title="Copy TP Price"
                     >
                       {copiedField === 'tp' ? (
                         <>
-                          <Check size={11} className="text-emerald-400" />
-                          <span className="text-emerald-400">Copied!</span>
+                          <Check size={11} className="text-[#7ba8e8]" />
+                          <span className="text-[#7ba8e8]">Copied!</span>
                         </>
                       ) : (
                         <>
@@ -516,15 +516,15 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                   )}
                 </div>
                 <div className="relative flex items-center">
-                  <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-zinc-200 focus:outline-none focus:border-emerald-500/50" />
+                  <input type="number" step="0.00001" value={tpPrice} onChange={e => setTpPrice(e.target.value)} className="w-full bg-[#12161c] border border-white/10 rounded-xl pl-3 pr-9 py-2 text-sm font-bold text-[#e8ebf2] focus:outline-none focus:border-[#4d8fe0]/50" />
                   <button
                     type="button"
                     onClick={() => handleCopyPrice(tpPrice, 'tp')}
                     disabled={!tpPrice}
-                    className="absolute right-2 p-1 rounded-lg text-zinc-500 hover:text-emerald-400 hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="absolute right-2 p-1 rounded-lg text-[#8b93a1] hover:text-[#4d8fe0] hover:bg-white/10 transition-all cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
                     title="Copy TP Price"
                   >
-                    {copiedField === 'tp' ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                    {copiedField === 'tp' ? <Check size={14} className="text-[#7ba8e8]" /> : <Copy size={14} />}
                   </button>
                 </div>
               </div>
@@ -532,20 +532,20 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
             {/* RR Ratio */}
             <div className="space-y-1.5">
-              <p className="text-[10px] text-zinc-500 uppercase font-black px-1 tracking-widest">RR</p>
-              <input type="number" step="0.01" value={rr} readOnly className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-zinc-400 focus:outline-none cursor-not-allowed" />
+              <p className="text-[10px] text-[#8b93a1] uppercase font-black px-1 tracking-widest">RR</p>
+              <input type="number" step="0.01" value={rr} readOnly className="w-full bg-[#12161c] border border-white/10 rounded-xl px-3 py-2 text-sm font-bold text-[#8b93a1] focus:outline-none cursor-not-allowed" />
             </div>
 
             <hr className="border-white/5 my-2.5" />
 
             {/* Comments Area */}
             <div className="space-y-3">
-              <label className="flex items-center justify-between gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+              <label className="flex items-center justify-between gap-2 text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">
                 Comments
                 <button
                   type="button"
                   onClick={() => setIsEditingNotes(!isEditingNotes)}
-                  className="text-emerald-500 hover:text-emerald-400 uppercase tracking-widest text-[10px]"
+                  className="text-[#4d8fe0] hover:text-[#7ba8e8] uppercase tracking-widest text-[10px]"
                 >
                   {isEditingNotes ? 'Done' : 'Write'}
                 </button>
@@ -553,45 +553,45 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               {isEditingNotes ? (
                 <MarkdownEditor 
                   value={notes} 
-                  onChange={setNotes}
+                  onChange={setNotes} 
                   placeholder="Analysis notes..."
                   minHeight="140px"
                 />
               ) : (
-                <div className="min-h-[140px] w-full p-4 bg-white/5 rounded-xl border border-white/5 text-sm text-zinc-300 markdown-preview text-left">
+                <div className="min-h-[140px] w-full p-4 bg-[#12161c] rounded-xl border border-white/5 text-sm text-[#e8ebf2] markdown-preview text-left">
                   {notes ? (
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{notes}</ReactMarkdown>
-                  ) : <span className="text-zinc-600">No notes yet...</span>}
+                  ) : <span className="text-[#8b93a1]/60">No notes yet...</span>}
                 </div>
               )}
             </div>
 
             {/* ENTRY TIMEFRAME */}
             <div className="space-y-2">
-              <label className="block text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">Entry Timeframe</label>
+              <label className="block text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Timeframe</label>
               <div className="flex flex-wrap gap-1.5 px-1">
                 {TIMEFRAME_PRESETS.map((tf) => (
                   <button
                     key={tf}
                     type="button"
                     onClick={() => setEntryTimeframe(tf)}
-                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all ${
+                    className={`px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
                       entryTimeframe === tf
-                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400 font-bold'
-                        : 'bg-white/5 border-white/5 text-zinc-400 hover:bg-white/10 hover:text-zinc-200'
+                        ? 'bg-[#1e2733] border-[#4d8fe0]/50 text-[#7ba8e8] font-bold'
+                        : 'bg-[#12161c] border-white/5 text-[#8b93a1] hover:bg-white/10 hover:text-[#e8ebf2]'
                     }`}
                   >
                     {tf}
                   </button>
                 ))}
                 {showCustomTf ? (
-                  <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg pl-2 pr-1 py-0.5">
+                  <div className="flex items-center gap-1 bg-[#12161c] border border-white/10 rounded-lg pl-2 pr-1 py-0.5">
                     <input
                       type="text"
                       value={customTfValue}
                       onChange={(e) => setCustomTfValue(e.target.value)}
                       placeholder="e.g. 12h"
-                      className="bg-transparent text-xs text-zinc-200 outline-none w-14 font-semibold"
+                      className="bg-transparent text-xs text-[#e8ebf2] outline-none w-14 font-semibold"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -615,7 +615,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                           setShowCustomTf(false);
                         }
                       }}
-                      className="p-1 text-emerald-500 hover:text-emerald-400 hover:bg-white/5 rounded-md transition-all"
+                      className="p-1 text-[#4d8fe0] hover:text-[#7ba8e8] hover:bg-white/5 rounded-md transition-all cursor-pointer"
                     >
                       <Check size={12} />
                     </button>
@@ -625,7 +625,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                         setShowCustomTf(false);
                         setCustomTfValue('');
                       }}
-                      className="p-1 text-zinc-500 hover:text-zinc-400 hover:bg-white/5 rounded-md transition-all"
+                      className="p-1 text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/5 rounded-md transition-all cursor-pointer"
                     >
                       <X size={12} />
                     </button>
@@ -634,7 +634,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
                   <button
                     type="button"
                     onClick={() => setShowCustomTf(true)}
-                    className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-dashed border-zinc-700 bg-transparent text-zinc-500 hover:border-zinc-500 hover:text-zinc-300 transition-all"
+                    className="px-2.5 py-1 text-xs font-semibold rounded-lg border border-dashed border-white/20 bg-transparent text-[#8b93a1] hover:border-white/40 hover:text-[#e8ebf2] transition-all cursor-pointer"
                   >
                     + Custom
                   </button>
@@ -642,14 +642,14 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               </div>
               {entryTimeframe && !TIMEFRAME_PRESETS.includes(entryTimeframe) && (
                 <div className="flex items-center gap-1.5 mt-1.5 text-xs px-1">
-                  <span className="text-zinc-500">Selected Custom:</span>
-                  <span className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500 text-emerald-400 rounded-md font-semibold">
+                  <span className="text-[#8b93a1]">Selected Custom:</span>
+                  <span className="px-2 py-0.5 bg-[#1e2733] border border-[#4d8fe0]/40 text-[#7ba8e8] rounded-md font-semibold">
                     {entryTimeframe}
                   </span>
                   <button
                     type="button"
                     onClick={() => setEntryTimeframe('')}
-                    className="text-zinc-500 hover:text-red-400 text-[10px] uppercase font-black tracking-widest ml-1"
+                    className="text-[#8b93a1] hover:text-red-400 text-[10px] uppercase font-black tracking-widest ml-1 cursor-pointer"
                   >
                     Clear
                   </button>
@@ -659,7 +659,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
             {/* Tags area */}
             <div className="space-y-3">
-              <label className="flex items-center gap-2 text-[10px] font-black uppercase text-zinc-500 tracking-widest px-1">
+              <label className="flex items-center gap-2 text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">
                 # Tags
               </label>
               <TagInput 
@@ -670,12 +670,12 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               />
             </div>
 
-            <div className="space-y-3 bg-white/[0.02] p-3 rounded-xl border border-white/5">
-              <p className="text-[10.5px] uppercase font-black text-emerald-500 tracking-wider font-sans">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာ)</p>
+            <div className="space-y-3 bg-[#12161c] p-3 rounded-xl border border-white/5">
+              <p className="text-[10.5px] uppercase font-black text-[#4d8fe0] tracking-wider font-sans">Trader Psychology (စိတ်ပိုင်းဆိုင်ရာ)</p>
               
               {/* PRE-TRADE EMOTION */}
               <div className="space-y-1.5">
-                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1 font-sans">Feeling BEFORE Entry (Trade မဝင်ခင် ခံစားချက်)</p>
+                <p className="text-[9px] uppercase font-bold text-[#8b93a1] px-1 font-sans">Feeling BEFORE Entry (Trade မဝင်ခင် ခံစားချက်)</p>
                 <CustomSelect
                   value={preTradeEmotion}
                   onChange={setPreTradeEmotion}
@@ -687,7 +687,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
               {/* DURING-TRADE EMOTION */}
               <div className="space-y-1.5">
-                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1 font-sans">Feeling DURING Active Trade (ဝင်ထားစဉ် ခံစားချက်)</p>
+                <p className="text-[9px] uppercase font-bold text-[#8b93a1] px-1 font-sans">Feeling DURING Active Trade (ဝင်ထားစဉ် ခံစားချက်)</p>
                 <CustomSelect
                   value={duringTradeEmotion}
                   onChange={setDuringTradeEmotion}
@@ -699,7 +699,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
               {/* POST-TRADE EMOTION */}
               <div className="space-y-1.5">
-                <p className="text-[9px] uppercase font-bold text-zinc-400 px-1 font-sans">Feeling AFTER Exit (ထွက်ပြီးနောက် ခံစားချက်)</p>
+                <p className="text-[9px] uppercase font-bold text-[#8b93a1] px-1 font-sans">Feeling AFTER Exit (ထွက်ပြီးနောက် ခံစားချက်)</p>
                 <CustomSelect
                   value={postTradeEmotion}
                   onChange={setPostTradeEmotion}
@@ -712,9 +712,9 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
 
             {/* Saving history footer status message */}
             <div className="pt-4">
-              <div className="text-[10px] font-black uppercase tracking-widest text-zinc-500 px-1">
-                {savingStatus === 'saving' && <span className="text-emerald-500/70 animate-pulse">Saving Changes...</span>}
-                {savingStatus === 'saved' && <span className="text-emerald-500">All Changes Saved</span>}
+              <div className="text-[10px] font-black uppercase tracking-widest text-[#8b93a1] px-1">
+                {savingStatus === 'saving' && <span className="text-[#4d8fe0] animate-pulse">Saving Changes...</span>}
+                {savingStatus === 'saved' && <span className="text-[#7ba8e8]">All Changes Saved</span>}
                 {savingStatus === 'idle' && 'Last entry auto-saved'}
               </div>
             </div>
