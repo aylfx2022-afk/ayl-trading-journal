@@ -394,12 +394,12 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
             {WEEKDAYS.map(day => (
               <div 
                 key={day} 
-                className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-500 dark:text-zinc-400 tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24] border border-zinc-200/70 dark:border-white/5"
+                className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-500 dark:text-zinc-400 tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24]"
               >
                 {day}
               </div>
             ))}
-            <div className="hidden lg:flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-400 leading-tight text-center tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24] border border-zinc-200/70 dark:border-white/5">
+            <div className="hidden lg:flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-400 leading-tight text-center tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24]">
               Weekly<br />Summary
             </div>
           </div>
@@ -422,20 +422,20 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     const hasNotes = tradesOnDay.some(t => t.notes);
                     const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
 
-                    // Corporate Dashboard style with subtle slim left accent indicator line and rounded-[10px]
+                    // Corporate Dashboard style with top accent indicator line (no outer subtle border)
                     const borderAccentClass = totalRR !== null 
                       ? (isPositive 
-                          ? 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-emerald-500/90 dark:border-l-[#34d399] bg-emerald-500/[0.03] dark:bg-emerald-500/[0.04]' 
-                          : 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-rose-400/90 dark:border-l-[#f87171] bg-rose-500/[0.03] dark:bg-rose-500/[0.04]'
+                          ? 'border-t-2 border-t-emerald-500/50 dark:border-t-[#34d399]/50 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.04]' 
+                          : 'border-t-2 border-t-rose-400/50 dark:border-t-[#f87171]/50 bg-rose-500/[0.03] dark:bg-rose-500/[0.04]'
                         )
-                      : 'border border-zinc-200/70 dark:border-white/5 bg-white dark:bg-[#161c24]';
+                      : 'bg-white dark:bg-[#161c24]';
 
                     return (
                       <div
                         key={currentKey}
                         onClick={() => isCurrentMonth && onSelectDay(value)}
                         className={`transition-all duration-200 ease-out h-[84px] rounded-[10px] flex flex-col justify-between p-2 relative group hover:z-20
-                          ${!isCurrentMonth ? 'opacity-25 pointer-events-none grayscale' : 'cursor-pointer hover:border-zinc-300 dark:hover:border-white/20 hover:bg-zinc-50 dark:hover:bg-[#1c2430] hover:shadow-sm'}
+                          ${!isCurrentMonth ? 'opacity-25 pointer-events-none grayscale' : 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-[#1c2430] hover:shadow-sm'}
                           ${borderAccentClass}
                         `}
                       >
@@ -474,10 +474,10 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     <div className={`hidden lg:flex flex-col items-center justify-center p-2 rounded-[10px] relative group transition-colors h-[84px] ${
                       weekSummary.tradesCount > 0 
                         ? (weekSummary.isPositive 
-                            ? 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-emerald-500/70 dark:border-l-[#34d399]/80 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
-                            : 'border border-zinc-200/80 dark:border-white/10 border-l-2 border-l-rose-400/70 dark:border-l-[#f87171]/80 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
+                            ? 'border-t-2 border-t-emerald-500/50 dark:border-t-[#34d399]/50 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
+                            : 'border-t-2 border-t-rose-400/50 dark:border-t-[#f87171]/50 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
                           ) 
-                        : 'border border-zinc-200/70 dark:border-white/5 bg-zinc-50/40 dark:bg-[#161c24]'
+                        : 'bg-zinc-50/40 dark:bg-[#161c24]'
                     }`}>
                       {weekSummary.tradesCount > 0 ? (
                         <>

@@ -66,10 +66,10 @@ export default function YearlyPerformance({ trades }: YearlyPerformanceProps) {
                     return (
                       <td key={month} className={`rounded-lg p-2 transition-colors ${
                         stats.count === 0 
-                          ? 'border border-zinc-100 dark:border-white/5 text-zinc-300 dark:text-zinc-700' 
+                          ? 'text-zinc-300 dark:text-zinc-700' 
                           : isPositive 
-                            ? 'border-l-2 border-l-emerald-500/80 dark:border-l-[#34d399]/90 border-t border-r border-b border-zinc-200 dark:border-white/10 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
-                            : 'border-l-2 border-l-rose-400/80 dark:border-l-[#f87171]/90 border-t border-r border-b border-zinc-200 dark:border-white/10 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
+                            ? 'border-t-2 border-t-emerald-500/50 dark:border-t-[#34d399]/50 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
+                            : 'border-t-2 border-t-rose-400/50 dark:border-t-[#f87171]/50 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
                       }`}>
                         {stats.count === 0 ? '-' : (
                           <>
