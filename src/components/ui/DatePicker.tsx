@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Check } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface DatePickerProps {
@@ -23,7 +24,12 @@ export default function DatePicker({
   clearable = false
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const dateValue = value ? (typeof value === 'string' ? new Date(value) : value) : null;
 
@@ -55,15 +61,18 @@ export default function DatePicker({
     }
   }, [isOpen]);
 
+  // Handle ESC key to close modal
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape' && isOpen) {
         setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen]);
 
   const handleDateChange = (newDate: Date) => {
     const updated = new Date(newDate);
@@ -197,16 +206,52 @@ export default function DatePicker({
         </button>
       </div>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute z-[100] mt-2 left-0 origin-top-left"
-          >
-            <div className="bg-[#181d26] border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-[310px] p-4 text-[#e8ebf2]">
-              
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isOpen && (
+            <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm select-none pointer-events-auto">
+              {/* Backdrop click to close */}
+              <div 
+                className="absolute inset-0 z-0"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
+              />
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.94, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.94, y: 12 }}
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                className="relative z-10 bg-[#181d26] border border-white/10 rounded-2xl shadow-2xl overflow-hidden w-full max-w-[340px] p-5 text-[#e8ebf2] pointer-events-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+              {/* Modal Top Header */}
+              <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-white/10 text-left">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-[#4d8fe0]/10 text-[#4d8fe0] border border-[#4d8fe0]/20">
+                    <CalendarIcon size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-black uppercase tracking-wider text-[#e8ebf2]">
+                      {label || (showTime ? 'Select Date & Time' : 'Select Date')}
+                    </h3>
+                    <p className="text-[11px] font-bold text-[#7ba8e8] font-mono mt-0.5">
+                      {dateValue ? format(dateValue, displayFormat) : (placeholder || 'No date selected')}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="p-1.5 rounded-lg text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/10 transition-all cursor-pointer"
+                  title="Close Modal"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
               {/* Header based on viewMode */}
               {viewMode === 'days' && (
                 <div className="flex items-center justify-between mb-3 text-left">
@@ -538,10 +583,12 @@ export default function DatePicker({
                 </button>
               </div>
 
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </div>
   );
 }

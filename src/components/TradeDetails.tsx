@@ -323,7 +323,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
       handleSave();
     }, 1000);
     return () => clearTimeout(timer);
-  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, pair, tags, mentalState, physicalState, preTradeEmotion, duringTradeEmotion, postTradeEmotion, type, entryTimeframe]);
+  }, [notes, charts, entryPrice, slPrice, tpPrice, exitPrice, rr, entryDateTime, exitDateTime, pair, tags, mentalState, physicalState, preTradeEmotion, duringTradeEmotion, postTradeEmotion, type, entryTimeframe]);
 
   const handleSave = async () => {
     if (!trade.id) return;
