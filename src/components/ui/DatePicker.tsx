@@ -4,12 +4,13 @@ import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Check } fro
 import { motion, AnimatePresence } from 'motion/react';
 
 interface DatePickerProps {
-  value: Date | string | null;
+  value: Date | string | null | undefined;
   onChange: (date: Date | null) => void;
   label?: string;
   compact?: boolean;
   placeholder?: string;
   showTime?: boolean;
+  clearable?: boolean;
 }
 
 export default function DatePicker({ 
@@ -18,7 +19,8 @@ export default function DatePicker({
   label, 
   compact, 
   placeholder,
-  showTime = true
+  showTime = true,
+  clearable = false
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -185,7 +187,7 @@ export default function DatePicker({
           onClick={() => setIsOpen(!isOpen)}
           className={`w-full flex items-center justify-between bg-[#12161c] border border-white/10 rounded-xl ${compact ? 'px-3 py-2.5' : 'px-4 py-2.5'} text-[#e8ebf2] hover:border-[#4d8fe0]/30 transition-all text-left overflow-hidden font-bold text-sm cursor-pointer`}
         >
-          <span className="truncate">
+          <span className={`truncate ${!dateValue ? 'text-[#8b93a1] font-medium text-xs' : ''}`}>
             {dateValue ? format(dateValue, displayFormat) : (placeholder || 'Select...')}
           </span>
           <div className="flex items-center gap-1.5 text-[#8b93a1] shrink-0 ml-2">
@@ -502,6 +504,18 @@ export default function DatePicker({
 
               {/* Custom Action buttons */}
               <div className="mt-3 pt-3 border-t border-white/5 flex gap-2">
+                {clearable && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(null);
+                      setIsOpen(false);
+                    }}
+                    className="px-3 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-red-400 bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all text-center cursor-pointer"
+                  >
+                    Clear
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

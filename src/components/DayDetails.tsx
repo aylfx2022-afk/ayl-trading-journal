@@ -178,7 +178,8 @@ export default function DayDetails({
              <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/[0.02] text-[10px] font-black text-[#8b93a1] uppercase tracking-widest">
-                  <th className="px-5 py-3 font-black">Time</th>
+                  <th className="px-5 py-3 font-black">Entry Time</th>
+                  <th className="px-5 py-3 font-black">Exit Time</th>
                   <th className="px-5 py-3 font-black">Pair</th>
                   <th className="px-5 py-3 font-black">Type</th>
                   <th className="px-5 py-3 font-black">Timeframe</th>
@@ -200,6 +201,13 @@ export default function DayDetails({
                   >
                     <td className="px-5 py-3 whitespace-nowrap text-[#8b93a1] font-mono text-[11px] font-bold">
                       {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'hh:mm a') : '-'}
+                    </td>
+                    <td className="px-5 py-3 whitespace-nowrap text-[#8b93a1] font-mono text-[11px] font-bold">
+                      {(trade.closeTime || trade.exitDateTime) && getSafeDate(trade.closeTime || trade.exitDateTime) ? (
+                        format(getSafeDate(trade.closeTime || trade.exitDateTime)!, 'hh:mm a')
+                      ) : (
+                        <span className="text-zinc-600 font-medium">-</span>
+                      )}
                     </td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       <span className="font-bold text-[#e8ebf2]">{trade.pair || trade.item}</span>

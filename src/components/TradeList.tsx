@@ -17,7 +17,7 @@ interface TradeListProps {
   pageId?: string;
 }
 
-type SortField = 'date' | 'pair' | 'rr' | 'type' | 'createdAt';
+type SortField = 'date' | 'exitDate' | 'pair' | 'rr' | 'type' | 'createdAt';
 type SortOrder = 'asc' | 'desc';
 
 const MENTAL_STATES: Record<string, { label: string; tooltip: string; bg: string; text: string; border: string }> = {
@@ -272,6 +272,17 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
             }
           }
           break;
+        case 'exitDate':
+          const exitA = getSafeDate(a.closeTime || a.exitDateTime)?.getTime() || 0;
+          const exitB = getSafeDate(b.closeTime || b.exitDateTime)?.getTime() || 0;
+          if (exitA !== exitB) {
+            comparison = exitA - exitB;
+          } else {
+            const openTimeA = getSafeDate(a.openTime)?.getTime() || 0;
+            const openTimeB = getSafeDate(b.openTime)?.getTime() || 0;
+            comparison = openTimeA - openTimeB;
+          }
+          break;
         case 'pair':
           comparison = (a.pair || a.item || '').localeCompare(b.pair || b.item || '');
           break;
@@ -417,6 +428,9 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
               <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('date')}>
                 <div className="flex items-center gap-1">Entry Date <SortIcon field="date" /></div>
               </th>
+              <th className="px-6 py-4 font-bold cursor-pointer hover:text-zinc-300 transition-colors" onClick={() => handleSort('exitDate')}>
+                <div className="flex items-center gap-1">Exit Date <SortIcon field="exitDate" /></div>
+              </th>
               <th className="px-6 py-4 font-bold">Timeframe</th>
               <th className="px-6 py-4 font-bold">Entry Price</th>
               <th className="px-6 py-4 font-bold">Exit Price</th>
@@ -452,6 +466,13 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">
                   {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy hh:mm a') : '-'}
+                </td>
+                <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">
+                  {(trade.closeTime || trade.exitDateTime) && getSafeDate(trade.closeTime || trade.exitDateTime) ? (
+                    format(getSafeDate(trade.closeTime || trade.exitDateTime)!, 'dd/MM/yyyy hh:mm a')
+                  ) : (
+                    <span className="text-zinc-600 font-medium">-</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {trade.entryTimeframe ? (

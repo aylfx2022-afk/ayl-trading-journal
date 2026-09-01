@@ -181,6 +181,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
     notes: '',
     tags: [] as string[],
     entryDateTime: initialDate || new Date(),
+    exitDateTime: null as Date | null,
     mentalState: '',
     physicalState: '',
     preTradeEmotion: '',
@@ -325,12 +326,14 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
     try {
       const entryDate = formData.entryDateTime || new Date();
+      const exitDate = formData.exitDateTime || null;
       await addDoc(collection(db, 'trades'), {
         openTime: Timestamp.fromDate(entryDate),
         size: 0,
         item: formData.pair,
         openPrice: Number(formData.entryPrice) || 0,
-        closeTime: null,
+        closeTime: exitDate ? Timestamp.fromDate(exitDate) : null,
+        exitDateTime: exitDate ? Timestamp.fromDate(exitDate) : null,
         closePrice: Number(formData.exitPrice) || 0,
         profit: 0,
         type: formData.type,
@@ -383,13 +386,26 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               />
             </div>
 
-            {/* DATE */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Date & Time</label>
-              <DatePicker 
-                value={formData.entryDateTime}
-                onChange={date => setFormData({...formData, entryDateTime: date})}
-              />
+            {/* ENTRY & EXIT DATE ROW */}
+            <div className="grid grid-cols-2 gap-3 relative z-30">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Date & Time</label>
+                <DatePicker 
+                  value={formData.entryDateTime}
+                  onChange={date => setFormData({...formData, entryDateTime: date || new Date()})}
+                  compact
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Exit Date & Time</label>
+                <DatePicker 
+                  value={formData.exitDateTime}
+                  onChange={date => setFormData({...formData, exitDateTime: date})}
+                  placeholder="Optional Exit Time"
+                  clearable
+                  compact
+                />
+              </div>
             </div>
 
             {/* SELECT TYPE */}

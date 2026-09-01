@@ -174,6 +174,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
   const [exitPrice, setExitPrice] = useState(trade.exitPrice?.toString() || '');
   const [rr, setRr] = useState(trade.rr?.toString() || '');
   const [entryDateTime, setEntryDateTime] = useState<Date | null>(getSafeDate(trade.openTime));
+  const [exitDateTime, setExitDateTime] = useState<Date | null>(getSafeDate(trade.closeTime || trade.exitDateTime));
   const [copiedField, setCopiedField] = useState<'sl' | 'tp' | null>(null);
   const [pastedExit, setPastedExit] = useState(false);
 
@@ -343,7 +344,8 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
         exitPrice: exitPrice !== '' ? Number(exitPrice) : null,
         rr: rr !== '' ? Number(rr) : null,
         openTime: entryDateTime ? Timestamp.fromDate(entryDateTime) : trade.openTime,
-        closeTime: null,
+        closeTime: exitDateTime ? Timestamp.fromDate(exitDateTime) : null,
+        exitDateTime: exitDateTime ? Timestamp.fromDate(exitDateTime) : null,
         mentalState,
         physicalState,
         preTradeEmotion,
@@ -380,14 +382,26 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               />
             </div>
 
-            {/* Entry Date */}
-            <div className="space-y-1.5 relative z-50">
-              <DatePicker 
-                label="Entry Date & Time"
-                value={entryDateTime}
-                onChange={setEntryDateTime}
-                compact
-              />
+            {/* Entry & Exit Date Row */}
+            <div className="grid grid-cols-2 gap-3 relative z-30">
+              <div className="space-y-1.5">
+                <DatePicker 
+                  label="Entry Date & Time"
+                  value={entryDateTime}
+                  onChange={setEntryDateTime}
+                  compact
+                />
+              </div>
+              <div className="space-y-1.5">
+                <DatePicker 
+                  label="Exit Date & Time"
+                  value={exitDateTime}
+                  onChange={setExitDateTime}
+                  placeholder="No Exit Time"
+                  clearable
+                  compact
+                />
+              </div>
             </div>
 
             {/* Type */}
