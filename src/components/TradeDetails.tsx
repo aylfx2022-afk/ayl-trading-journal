@@ -382,26 +382,24 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
               />
             </div>
 
-            {/* Entry & Exit Date Row */}
-            <div className="grid grid-cols-2 gap-3 relative z-30">
-              <div className="space-y-1.5">
-                <DatePicker 
-                  label="Entry Date & Time"
-                  value={entryDateTime}
-                  onChange={setEntryDateTime}
-                  compact
-                />
-              </div>
-              <div className="space-y-1.5">
-                <DatePicker 
-                  label="Exit Date & Time"
-                  value={exitDateTime}
-                  onChange={setExitDateTime}
-                  placeholder="No Exit Time"
-                  clearable
-                  compact
-                />
-              </div>
+            {/* Entry Date & Time */}
+            <div className="space-y-1.5 relative z-30">
+              <DatePicker 
+                label="Entry Date & Time"
+                value={entryDateTime}
+                onChange={setEntryDateTime}
+              />
+            </div>
+
+            {/* Exit Date & Time */}
+            <div className="space-y-1.5 relative z-20">
+              <DatePicker 
+                label="Exit Date & Time"
+                value={exitDateTime}
+                onChange={setExitDateTime}
+                placeholder="No Exit Time"
+                clearable
+              />
             </div>
 
             {/* Type */}

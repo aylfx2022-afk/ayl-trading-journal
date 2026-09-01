@@ -386,26 +386,24 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
               />
             </div>
 
-            {/* ENTRY & EXIT DATE ROW */}
-            <div className="grid grid-cols-2 gap-3 relative z-30">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Date & Time</label>
-                <DatePicker 
-                  value={formData.entryDateTime}
-                  onChange={date => setFormData({...formData, entryDateTime: date || new Date()})}
-                  compact
-                />
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Exit Date & Time</label>
-                <DatePicker 
-                  value={formData.exitDateTime}
-                  onChange={date => setFormData({...formData, exitDateTime: date})}
-                  placeholder="Optional Exit Time"
-                  clearable
-                  compact
-                />
-              </div>
+            {/* ENTRY DATE & TIME */}
+            <div className="space-y-1.5 relative z-30">
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Date & Time</label>
+              <DatePicker 
+                value={formData.entryDateTime}
+                onChange={date => setFormData({...formData, entryDateTime: date || new Date()})}
+              />
+            </div>
+
+            {/* EXIT DATE & TIME */}
+            <div className="space-y-1.5 relative z-20">
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Exit Date & Time</label>
+              <DatePicker 
+                value={formData.exitDateTime}
+                onChange={date => setFormData({...formData, exitDateTime: date})}
+                placeholder="Optional Exit Time"
+                clearable
+              />
             </div>
 
             {/* SELECT TYPE */}
