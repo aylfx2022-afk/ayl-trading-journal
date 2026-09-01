@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface DatePickerProps {
@@ -9,9 +9,17 @@ interface DatePickerProps {
   label?: string;
   compact?: boolean;
   placeholder?: string;
+  showTime?: boolean;
 }
 
-export default function DatePicker({ value, onChange, label, compact, placeholder }: DatePickerProps) {
+export default function DatePicker({ 
+  value, 
+  onChange, 
+  label, 
+  compact, 
+  placeholder,
+  showTime = true
+}: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -21,6 +29,13 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
   const [viewDate, setViewDate] = useState(() => dateValue || new Date());
   const [viewMode, setViewMode] = useState<'days' | 'months' | 'years'>('days');
   const [yearRangeStart, setYearRangeStart] = useState(() => Math.floor(viewDate.getFullYear() / 12) * 12);
+
+  // Time values (12-hour format)
+  const currentHours24 = dateValue ? dateValue.getHours() : new Date().getHours();
+  const currentMinutes = dateValue ? dateValue.getMinutes() : new Date().getMinutes();
+  const isPM = currentHours24 >= 12;
+  const currentHours12 = currentHours24 % 12 === 0 ? 12 : currentHours24 % 12;
+  const ampm: 'AM' | 'PM' = isPM ? 'PM' : 'AM';
 
   // Update view space when date value shifts
   useEffect(() => {
@@ -49,8 +64,30 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
   }, []);
 
   const handleDateChange = (newDate: Date) => {
-    onChange(newDate);
-    setIsOpen(false);
+    const updated = new Date(newDate);
+    updated.setHours(currentHours24, currentMinutes, 0, 0);
+    onChange(updated);
+  };
+
+  const handleTimeChange = (newHours24: number, newMinutes: number) => {
+    const base = dateValue ? new Date(dateValue) : new Date();
+    base.setHours(newHours24, newMinutes, 0, 0);
+    onChange(base);
+  };
+
+  const handleHour12Change = (h12: number) => {
+    const new24 = (h12 % 12) + (isPM ? 12 : 0);
+    handleTimeChange(new24, currentMinutes);
+  };
+
+  const handleMinuteChange = (m: number) => {
+    handleTimeChange(currentHours24, m);
+  };
+
+  const handleAmPmToggle = (newPeriod: 'AM' | 'PM') => {
+    const newIsPM = newPeriod === 'PM';
+    const new24 = (currentHours12 % 12) + (newIsPM ? 12 : 0);
+    handleTimeChange(new24, currentMinutes);
   };
 
   // Calendar Helpers
@@ -131,6 +168,10 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
       date.getFullYear() === dateValue.getFullYear();
   };
 
+  const displayFormat = showTime 
+    ? (compact ? 'dd/MM/yyyy hh:mm a' : 'MMM dd, yyyy hh:mm a')
+    : (compact ? 'dd/MM/yy' : 'MMM dd, yyyy');
+
   return (
     <div className="relative w-full" ref={containerRef}>
       {label && (
@@ -145,9 +186,12 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
           className={`w-full flex items-center justify-between bg-[#12161c] border border-white/10 rounded-xl ${compact ? 'px-3 py-2.5' : 'px-4 py-2.5'} text-[#e8ebf2] hover:border-[#4d8fe0]/30 transition-all text-left overflow-hidden font-bold text-sm cursor-pointer`}
         >
           <span className="truncate">
-            {dateValue ? format(dateValue, compact ? 'dd/MM/yy' : 'MMM dd, yyyy') : (placeholder || 'Select...')}
+            {dateValue ? format(dateValue, displayFormat) : (placeholder || 'Select...')}
           </span>
-          <CalendarIcon size={14} className="text-[#8b93a1] shrink-0 ml-2" />
+          <div className="flex items-center gap-1.5 text-[#8b93a1] shrink-0 ml-2">
+            {showTime && <Clock size={13} className="text-[#4d8fe0]/70" />}
+            <CalendarIcon size={14} />
+          </div>
         </button>
       </div>
 
@@ -163,7 +207,7 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
               
               {/* Header based on viewMode */}
               {viewMode === 'days' && (
-                <div className="flex items-center justify-between mb-4 text-left">
+                <div className="flex items-center justify-between mb-3 text-left">
                   <button
                     type="button"
                     onClick={prevMonth}
@@ -203,7 +247,7 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
               )}
 
               {viewMode === 'months' && (
-                <div className="flex items-center justify-between mb-4 text-left">
+                <div className="flex items-center justify-between mb-3 text-left">
                   <button
                     type="button"
                     onClick={prevYear}
@@ -237,7 +281,7 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
               )}
 
               {viewMode === 'years' && (
-                <div className="flex items-center justify-between mb-4 text-left">
+                <div className="flex items-center justify-between mb-3 text-left">
                   <button
                     type="button"
                     onClick={() => setYearRangeStart(yearRangeStart - 12)}
@@ -351,26 +395,132 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
                 </div>
               )}
 
+              {/* TIME SELECTION SECTION (12-Hour Format with AM/PM) */}
+              {showTime && (
+                <div className="mt-3 pt-3 border-t border-white/5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-[#8b93a1] tracking-wider">
+                      <Clock size={12} className="text-[#4d8fe0]" />
+                      <span>Time (12h)</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const now = new Date();
+                        const base = dateValue ? new Date(dateValue) : new Date();
+                        base.setHours(now.getHours(), now.getMinutes(), 0, 0);
+                        onChange(base);
+                      }}
+                      className="text-[10px] font-bold text-[#4d8fe0] hover:text-[#7ba8e8] transition-colors cursor-pointer"
+                    >
+                      Current Time
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {/* 12-Hour selector */}
+                    <div className="flex-1 flex items-center bg-[#12161c] border border-white/10 rounded-xl px-2 py-1.5 focus-within:border-[#4d8fe0]/50 transition-all">
+                      <span className="text-[10px] text-[#8b93a1] font-bold mr-1 select-none">H:</span>
+                      <select
+                        value={currentHours12}
+                        onChange={(e) => handleHour12Change(parseInt(e.target.value, 10))}
+                        className="bg-transparent text-xs font-bold text-[#e8ebf2] focus:outline-none w-full cursor-pointer"
+                      >
+                        {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                          <option key={h} value={h} className="bg-[#181d26] text-[#e8ebf2]">
+                            {String(h).padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <span className="text-sm font-black text-[#8b93a1] select-none">:</span>
+
+                    {/* Minutes selector */}
+                    <div className="flex-1 flex items-center bg-[#12161c] border border-white/10 rounded-xl px-2 py-1.5 focus-within:border-[#4d8fe0]/50 transition-all">
+                      <span className="text-[10px] text-[#8b93a1] font-bold mr-1 select-none">M:</span>
+                      <select
+                        value={currentMinutes}
+                        onChange={(e) => handleMinuteChange(parseInt(e.target.value, 10))}
+                        className="bg-transparent text-xs font-bold text-[#e8ebf2] focus:outline-none w-full cursor-pointer"
+                      >
+                        {Array.from({ length: 60 }, (_, i) => (
+                          <option key={i} value={i} className="bg-[#181d26] text-[#e8ebf2]">
+                            {String(i).padStart(2, '0')}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* AM / PM Segmented Control */}
+                    <div className="flex items-center bg-[#12161c] border border-white/10 rounded-xl p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => handleAmPmToggle('AM')}
+                        className={`px-2 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
+                          ampm === 'AM'
+                            ? 'bg-[#4d8fe0] text-white shadow-sm'
+                            : 'text-[#8b93a1] hover:text-[#e8ebf2]'
+                        }`}
+                      >
+                        AM
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAmPmToggle('PM')}
+                        className={`px-2 py-1 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
+                          ampm === 'PM'
+                            ? 'bg-[#4d8fe0] text-white shadow-sm'
+                            : 'text-[#8b93a1] hover:text-[#e8ebf2]'
+                        }`}
+                      >
+                        PM
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Minute quick presets */}
+                  <div className="flex items-center gap-1.5 pt-0.5">
+                    <span className="text-[9px] text-[#8b93a1] font-bold select-none">Quick:</span>
+                    {[0, 15, 30, 45].map((m) => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => handleMinuteChange(m)}
+                        className={`px-2 py-0.5 text-[10px] font-bold rounded-md border transition-all cursor-pointer ${
+                          currentMinutes === m
+                            ? 'bg-[#1e2733] border-[#4d8fe0]/40 text-[#7ba8e8]'
+                            : 'bg-white/5 border-transparent text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/10'
+                        }`}
+                      >
+                        :{String(m).padStart(2, '0')}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Custom Action buttons */}
-              <div className="mt-4 pt-3 border-t border-white/5 flex gap-2">
+              <div className="mt-3 pt-3 border-t border-white/5 flex gap-2">
                 <button
                   type="button"
                   onClick={() => {
                     const now = new Date();
                     setViewDate(now);
                     setViewMode('days');
-                    handleDateChange(now);
+                    onChange(now);
                   }}
                   className="flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider text-[#7ba8e8] bg-[#1e2733] border border-[#4d8fe0]/20 hover:bg-[#4d8fe0]/20 transition-all text-center cursor-pointer"
                 >
-                  Today
+                  Now
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-white/5 border border-white/5 text-[#8b93a1] hover:text-[#e8ebf2] hover:bg-white/10 transition-all cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider bg-[#4d8fe0] text-white hover:bg-[#3a6fc4] transition-all cursor-pointer flex items-center justify-center gap-1"
                 >
-                  Close
+                  <Check size={12} className="stroke-[3]" />
+                  Done
                 </button>
               </div>
 
@@ -381,4 +531,5 @@ export default function DatePicker({ value, onChange, label, compact, placeholde
     </div>
   );
 }
+
 

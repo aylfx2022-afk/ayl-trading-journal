@@ -385,7 +385,7 @@ export default function AddTrade({ onBack, initialDate, activeAccountId }: AddTr
 
             {/* DATE */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Time</label>
+              <label className="text-[10px] font-black uppercase text-[#8b93a1] tracking-widest px-1">Entry Date & Time</label>
               <DatePicker 
                 value={formData.entryDateTime}
                 onChange={date => setFormData({...formData, entryDateTime: date})}

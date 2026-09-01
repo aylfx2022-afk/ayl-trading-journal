@@ -130,13 +130,13 @@ export default function Dashboard({ trades }: DashboardProps) {
     const allClosedTrades = [...trades]
       .filter(t => t.rr !== undefined && t.rr !== null)
       .sort((a, b) => {
+        const timeA = getSafeDate(a.openTime)?.getTime() || getSafeDate(a.createdAt)?.getTime() || 0;
+        const timeB = getSafeDate(b.openTime)?.getTime() || getSafeDate(b.createdAt)?.getTime() || 0;
+        if (timeA !== timeB) return timeA - timeB;
+
         const createA = getSafeDate(a.createdAt)?.getTime() || 0;
         const createB = getSafeDate(b.createdAt)?.getTime() || 0;
         if (createA !== createB) return createA - createB;
-
-        const timeA = getSafeDate(a.openTime)?.getTime() || 0;
-        const timeB = getSafeDate(b.openTime)?.getTime() || 0;
-        if (timeA !== timeB) return timeA - timeB;
 
         // If timestamps are identical, use a consistent identifier for stability
         return (a.ticket || '').localeCompare(b.ticket || '');

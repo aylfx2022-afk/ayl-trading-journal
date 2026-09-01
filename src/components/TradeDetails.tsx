@@ -383,7 +383,7 @@ export default function TradeDetails({ trade, onBack }: TradeDetailsProps) {
             {/* Entry Date */}
             <div className="space-y-1.5 relative z-50">
               <DatePicker 
-                label="Entry Date"
+                label="Entry Date & Time"
                 value={entryDateTime}
                 onChange={setEntryDateTime}
                 compact

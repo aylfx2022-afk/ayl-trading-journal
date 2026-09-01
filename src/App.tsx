@@ -276,7 +276,7 @@ export default function App() {
         ...doc.data()
       })) as Trade[];
 
-      // Sort client-side by closeTime desc to avoid composite index requirements
+      // Sort client-side by openTime / createdAt desc to include exact date & time
       tradeData.sort((a, b) => {
         const getMillis = (timeVal: any): number => {
           if (!timeVal) return 0;
@@ -288,7 +288,12 @@ export default function App() {
           return isNaN(d.getTime()) ? 0 : d.getTime();
         };
 
-        return getMillis(b.closeTime) - getMillis(a.closeTime);
+        const timeA = getMillis(a.openTime) || getMillis(a.createdAt);
+        const timeB = getMillis(b.openTime) || getMillis(b.createdAt);
+        if (timeA !== timeB) {
+          return timeB - timeA;
+        }
+        return getMillis(b.createdAt) - getMillis(a.createdAt);
       });
 
       setTrades(tradeData);

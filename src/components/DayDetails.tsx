@@ -91,11 +91,17 @@ export default function DayDetails({
     return () => clearTimeout(timer);
   }, [journalText, dateKey, journalForDate, activeAccountId, activeAccountIsDefault]);
   
-  const tradesForDate = trades.filter(trade => {
-    if (!trade.openTime) return false;
-    const date = getSafeDate(trade.openTime);
-    return date && format(date, 'yyyy-MM-dd') === dateKey;
-  });
+  const tradesForDate = trades
+    .filter(trade => {
+      if (!trade.openTime) return false;
+      const date = getSafeDate(trade.openTime);
+      return date && format(date, 'yyyy-MM-dd') === dateKey;
+    })
+    .sort((a, b) => {
+      const timeA = getSafeDate(a.openTime)?.getTime() || getSafeDate(a.createdAt)?.getTime() || 0;
+      const timeB = getSafeDate(b.openTime)?.getTime() || getSafeDate(b.createdAt)?.getTime() || 0;
+      return timeA - timeB;
+    });
 
   const totalRR = tradesForDate.reduce((acc, t) => acc + (t.rr || 0), 0);
 
@@ -172,6 +178,7 @@ export default function DayDetails({
              <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-white/[0.02] text-[10px] font-black text-[#8b93a1] uppercase tracking-widest">
+                  <th className="px-5 py-3 font-black">Time</th>
                   <th className="px-5 py-3 font-black">Pair</th>
                   <th className="px-5 py-3 font-black">Type</th>
                   <th className="px-5 py-3 font-black">Timeframe</th>
@@ -191,6 +198,9 @@ export default function DayDetails({
                     onClick={() => onSelectTrade(trade)}
                     className="group hover:bg-white/[0.02] transition-colors cursor-pointer text-[11px]"
                   >
+                    <td className="px-5 py-3 whitespace-nowrap text-[#8b93a1] font-mono text-[11px] font-bold">
+                      {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'hh:mm a') : '-'}
+                    </td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       <span className="font-bold text-[#e8ebf2]">{trade.pair || trade.item}</span>
                     </td>

@@ -258,8 +258,8 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
           }
           break;
         case 'date':
-          const timeA = getSafeDate(a.openTime)?.getTime() || 0;
-          const timeB = getSafeDate(b.openTime)?.getTime() || 0;
+          const timeA = getSafeDate(a.openTime)?.getTime() || getSafeDate(a.createdAt)?.getTime() || 0;
+          const timeB = getSafeDate(b.openTime)?.getTime() || getSafeDate(b.createdAt)?.getTime() || 0;
           if (timeA !== timeB) {
             comparison = timeA - timeB;
           } else {
@@ -451,7 +451,7 @@ export default function TradeList({ trades, onSelectTrade, isTrash, onClearHisto
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm font-medium text-zinc-400 whitespace-nowrap">
-                  {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy') : '-'}
+                  {trade.openTime && getSafeDate(trade.openTime) ? format(getSafeDate(trade.openTime)!, 'dd/MM/yyyy hh:mm a') : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {trade.entryTimeframe ? (

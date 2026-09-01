@@ -179,8 +179,8 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
 
     // Sort order
     result.sort((a, b) => {
-      const dateA = getSafeDate(a.openTime)?.getTime() || 0;
-      const dateB = getSafeDate(b.openTime)?.getTime() || 0;
+      const dateA = getSafeDate(a.openTime)?.getTime() || getSafeDate(a.createdAt)?.getTime() || 0;
+      const dateB = getSafeDate(b.openTime)?.getTime() || getSafeDate(b.createdAt)?.getTime() || 0;
 
       if (sortType === 'newest') {
         return dateB - dateA;
@@ -202,7 +202,7 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
     const list: { url: string; trade: Trade; dateStr: string }[] = [];
     processedTrades.forEach(trade => {
       const safeDate = getSafeDate(trade.openTime);
-      const dateStr = safeDate ? format(safeDate, 'MMM dd, yyyy HH:mm') : 'Unknown';
+      const dateStr = safeDate ? format(safeDate, 'MMM dd, yyyy hh:mm a') : 'Unknown';
       const firstUrl = trade.chartUrls?.[0];
       if (firstUrl) {
         list.push({
@@ -371,7 +371,7 @@ export default function GalleryView({ trades, onSelectTrade, onAddTrade }: Galle
             const hasMultipleImages = trade.chartUrls && trade.chartUrls.length > 1;
             const imagesCount = trade.chartUrls?.length || 0;
             const safeDate = getSafeDate(trade.openTime);
-            const dateStr = safeDate ? format(safeDate, 'MMM dd, yyyy HH:mm') : 'Unknown';
+            const dateStr = safeDate ? format(safeDate, 'MMM dd, yyyy hh:mm a') : 'Unknown';
             const isProfit = trade.profit > 0;
             const isLoss = trade.profit <= 0;
             const isOpen = !trade.exitPrice;

@@ -480,7 +480,7 @@ export default function ReviewView({
                 <div className="pt-4 mt-3 border-t border-white/5 flex items-center justify-between text-[10px] text-[#8b93a1]">
                   <span className="flex items-center gap-1">
                     <Clock size={11} />
-                    {review.updatedAt ? format(parseISO(review.updatedAt), 'MMM dd, yyyy HH:mm') : 'Just now'}
+                    {review.updatedAt ? format(parseISO(review.updatedAt), 'MMM dd, yyyy hh:mm a') : 'Just now'}
                   </span>
 
                   <button
@@ -727,7 +727,7 @@ export default function ReviewView({
             {/* Modal Actions */}
             <div className="flex items-center justify-between pt-4 border-t border-white/5">
               <span className="text-[10px] text-[#8b93a1]">
-                Last updated: {viewingReview.updatedAt ? format(parseISO(viewingReview.updatedAt), 'MMMM dd, yyyy HH:mm') : ''}
+                Last updated: {viewingReview.updatedAt ? format(parseISO(viewingReview.updatedAt), 'MMMM dd, yyyy hh:mm a') : ''}
               </span>
 
               <div className="flex gap-2">
