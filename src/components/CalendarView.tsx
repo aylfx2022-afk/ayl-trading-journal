@@ -388,30 +388,30 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
         </div>
 
         {/* Custom Calendar Grid & Weekly Summary */}
-        <div className="p-3 flex flex-col gap-[6px]">
-          {/* Weekdays Header Row */}
-          <div className="grid grid-cols-7 lg:grid-cols-8 gap-[6px]">
+        <div className="p-3 sm:p-4">
+          {/* Weekdays Header Row - Clean horizontal text as in image */}
+          <div className="grid grid-cols-7 lg:grid-cols-8 pb-3 pt-1">
             {WEEKDAYS.map(day => (
               <div 
                 key={day} 
-                className="flex items-center justify-center text-[10px] font-black uppercase text-zinc-500 dark:text-zinc-400 tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24]"
+                className="text-center text-xs font-normal text-zinc-400 dark:text-zinc-400 tracking-wide"
               >
                 {day}
               </div>
             ))}
-            <div className="hidden lg:flex items-center justify-center text-[9px] font-black uppercase text-zinc-400 dark:text-zinc-400 leading-tight text-center tracking-wider h-8 rounded-[8px] bg-zinc-50/80 dark:bg-[#161c24]">
-              Weekly<br />Summary
+            <div className="hidden lg:block text-center text-xs font-normal text-zinc-400 dark:text-zinc-400 tracking-wide">
+              Weekly Summary
             </div>
           </div>
 
-          {/* 6 Week Rows */}
-          <div className="flex flex-col gap-[6px]">
+          {/* Continuous Table Grid Container */}
+          <div className="border border-zinc-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-[#14171d] shadow-xs">
             {weeksChunked.map((weekDays, weekIdx) => {
               const weekSummary = weeklyData[weekIdx];
               return (
-                <div key={weekIdx} className="grid grid-cols-7 lg:grid-cols-8 gap-[6px]">
+                <div key={weekIdx} className="grid grid-cols-7 lg:grid-cols-8 border-b border-zinc-200 dark:border-white/10 last:border-b-0">
                   {/* 7 Days in Week */}
-                  {weekDays.map((value) => {
+                  {weekDays.map((value, dayIdx) => {
                     const isCurrentMonth = value.month() === panelDate.month() && value.year() === panelDate.year();
                     const currentKey = value.format('YYYY-MM-DD');
                     const dayData = tradesByDate[currentKey];
@@ -422,48 +422,70 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     const hasNotes = tradesOnDay.some(t => t.notes);
                     const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
 
-                    // Calendar cell styling with clean borders at ~80% brightness/opacity for profit/loss
-                    const cellBorderAndBg = totalRR !== null 
-                      ? (isPositive 
-                          ? 'border border-emerald-500/80 dark:border-[#34d399]/80 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.10]' 
-                          : 'border border-rose-500/80 dark:border-[#f87171]/80 bg-rose-500/[0.08] dark:bg-rose-500/[0.10]'
+                    const hasTrades = totalRR !== null;
+
+                    // Display date format: e.g. "Sep 1" or "Oct 1" on the 1st of month, otherwise "2", "3", etc.
+                    const isFirstDay = value.date() === 1;
+                    const dateDisplay = isFirstDay ? `${value.format('MMM')} 1` : `${value.date()}`;
+
+                    // Cell background based on trade profit/loss or standard dark/light background
+                    const cellBg = hasTrades
+                      ? (isPositive
+                          ? 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.10] hover:bg-emerald-500/[0.14] dark:hover:bg-emerald-500/[0.14]'
+                          : 'bg-rose-500/[0.08] dark:bg-rose-500/[0.10] hover:bg-rose-500/[0.14] dark:hover:bg-rose-500/[0.14]'
                         )
-                      : (isToday
-                          ? 'border border-emerald-500/50 dark:border-emerald-500/50 bg-white dark:bg-[#161c24]'
-                          : 'border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#161c24]'
+                      : (isCurrentMonth
+                          ? 'bg-white dark:bg-[#14171d] hover:bg-zinc-50 dark:hover:bg-[#191d25]'
+                          : 'bg-zinc-50/50 dark:bg-[#101318]/70 hover:bg-zinc-100/60 dark:hover:bg-[#161920]'
                         );
 
                     return (
                       <div
                         key={currentKey}
                         onClick={() => isCurrentMonth && onSelectDay(value)}
-                        className={`transition-all duration-200 ease-out h-[84px] rounded-[10px] flex flex-col justify-between p-2 relative group hover:z-20
-                          ${!isCurrentMonth ? 'opacity-25 pointer-events-none grayscale' : 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-[#1c2430] hover:shadow-sm'}
-                          ${cellBorderAndBg}
-                        `}
+                        className={`relative transition-colors duration-150 min-h-[92px] sm:min-h-[104px] p-2 sm:p-2.5 flex flex-col justify-between ${
+                          dayIdx === 6 ? 'border-r-0 lg:border-r' : 'border-r'
+                        } border-zinc-200 dark:border-white/10 ${
+                          !isCurrentMonth ? 'cursor-default' : 'cursor-pointer'
+                        } ${cellBg}`}
                       >
-                        {/* Top: Date Number & Indicators */}
+                        {/* Top: Indicators (Left) & Date Number (Right) */}
                         <div className="flex justify-between items-start w-full">
-                          <span className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-[6px] ${isToday ? 'bg-emerald-500/15 text-emerald-600 dark:text-[#34d399] font-black border border-emerald-500/20' : 'text-zinc-500 dark:text-zinc-400'}`}>
-                            {value.date()}
-                          </span>
-                          <div className="flex gap-1">
+                          {/* Journal / Note indicators on Left */}
+                          <div className="flex items-center gap-1 min-h-[18px]">
                             {hasJournal && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-sm" title="Daily Journal written" />
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-xs" title="Daily Journal written" />
                             )}
                             {hasNotes && (
-                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 shadow-sm" title="Day has notes" />
+                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 shadow-xs" title="Day has notes" />
                             )}
                           </div>
+
+                          {/* Date Display on Right */}
+                          {isToday ? (
+                            <div className="w-6 h-6 rounded-full bg-[#d9534f] text-white flex items-center justify-center text-xs font-semibold shadow-xs">
+                              {value.date()}
+                            </div>
+                          ) : (
+                            <span className={`text-xs sm:text-sm leading-none pt-0.5 ${
+                              isCurrentMonth 
+                                ? 'font-medium text-zinc-800 dark:text-zinc-200' 
+                                : 'font-normal text-zinc-400 dark:text-zinc-600'
+                            }`}>
+                              {dateDisplay}
+                            </span>
+                          )}
                         </div>
-                        
+
                         {/* Center: Text Hierarchy - Trade Count (secondary) & R-Value (primary) */}
-                        {totalRR !== null && (
-                          <div className="flex-1 flex flex-col items-center justify-center text-center -mt-1">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                        {hasTrades && (
+                          <div className="flex-1 flex flex-col items-center justify-center text-center my-auto py-1">
+                            <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                               {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
                             </span>
-                            <span className={`text-xs font-black tracking-tight leading-tight mt-0.5 ${isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'}`}>
+                            <span className={`text-xs sm:text-sm font-black tracking-tight leading-tight mt-0.5 ${
+                              isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'
+                            }`}>
                               {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
                             </span>
                           </div>
@@ -472,32 +494,34 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     );
                   })}
 
-                  {/* Weekly Summary Cell */}
+                  {/* Weekly Summary Cell (8th Column) */}
                   {weekSummary && (
-                    <div className={`hidden lg:flex flex-col items-center justify-center p-2 rounded-[10px] relative group transition-colors h-[84px] border ${
+                    <div className={`hidden lg:flex flex-col items-center justify-center p-2.5 transition-colors min-h-[92px] sm:min-h-[104px] ${
                       weekSummary.tradesCount > 0 
                         ? (weekSummary.isPositive 
-                            ? 'border-emerald-500/80 dark:border-[#34d399]/80 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08]' 
-                            : 'border-rose-500/80 dark:border-[#f87171]/80 bg-rose-500/[0.05] dark:bg-rose-500/[0.08]'
+                            ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06]' 
+                            : 'bg-rose-500/[0.04] dark:bg-rose-500/[0.06]'
                           ) 
-                        : 'border-zinc-200 dark:border-white/10 bg-zinc-50/40 dark:bg-[#161c24]'
+                        : 'bg-zinc-50/40 dark:bg-[#101318]/50'
                     }`}>
                       {weekSummary.tradesCount > 0 ? (
                         <>
                           <div className="flex flex-col items-center text-center">
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                            <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                               {weekSummary.tradesCount} {weekSummary.tradesCount === 1 ? 'trade' : 'trades'}
                             </span>
                           </div>
                           
                           <div className="mt-0.5 flex flex-col items-center text-center">
-                            <span className={`text-xs font-black tracking-tight leading-tight ${weekSummary.isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'}`}>
+                            <span className={`text-xs sm:text-sm font-black tracking-tight leading-tight ${
+                              weekSummary.isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'
+                            }`}>
                               {weekSummary.isPositive ? '+' : ''}{weekSummary.totalRR.toFixed(1)}R
                             </span>
                           </div>
                         </>
                       ) : (
-                        <span className="text-[10px] font-semibold text-zinc-400 dark:text-zinc-600 italic">No activity</span>
+                        <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-600 italic">No activity</span>
                       )}
                     </div>
                   )}
