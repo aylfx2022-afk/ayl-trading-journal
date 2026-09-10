@@ -64,12 +64,12 @@ export default function YearlyPerformance({ trades }: YearlyPerformanceProps) {
                     totalRR += stats.rr;
                     const isPositive = stats.rr >= 0;
                     return (
-                      <td key={month} className={`rounded-lg p-2 transition-colors ${
+                      <td key={month} className={`rounded-lg p-2 transition-colors border ${
                         stats.count === 0 
-                          ? 'text-zinc-300 dark:text-zinc-700' 
+                          ? 'border-transparent text-zinc-300 dark:text-zinc-700' 
                           : isPositive 
-                            ? 'border-t-2 border-t-emerald-500/50 dark:border-t-[#34d399]/50 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
-                            : 'border-t-2 border-t-rose-400/50 dark:border-t-[#f87171]/50 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
+                            ? 'border-emerald-500/80 dark:border-[#34d399]/80 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08]' 
+                            : 'border-rose-500/80 dark:border-[#f87171]/80 bg-rose-500/[0.05] dark:bg-rose-500/[0.08]'
                       }`}>
                         {stats.count === 0 ? '-' : (
                           <>
@@ -84,10 +84,10 @@ export default function YearlyPerformance({ trades }: YearlyPerformanceProps) {
                       </td>
                     );
                   })}
-                  <td className={`rounded-lg p-2 ${
+                  <td className={`rounded-lg p-2 border ${
                     totalRR >= 0 
-                      ? 'border-l-2 border-l-emerald-500/80 dark:border-l-[#34d399]/90 border-t border-r border-b border-emerald-500/20 text-emerald-600 dark:text-[#34d399] bg-emerald-500/5 dark:bg-emerald-500/10' 
-                      : 'border-l-2 border-l-rose-400/80 dark:border-l-[#f87171]/90 border-t border-r border-b border-rose-500/20 text-rose-500 dark:text-[#f87171] bg-rose-500/5 dark:bg-rose-500/10'
+                      ? 'border-emerald-500/80 dark:border-[#34d399]/80 text-emerald-600 dark:text-[#34d399] bg-emerald-500/10 dark:bg-emerald-500/15' 
+                      : 'border-rose-500/80 dark:border-[#f87171]/80 text-rose-500 dark:text-[#f87171] bg-rose-500/10 dark:bg-rose-500/15'
                   }`}>
                     <div className="text-[10px] font-black">
                       {totalRR >= 0 ? '+' : ''}{totalRR.toFixed(2)} RR

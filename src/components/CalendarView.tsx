@@ -422,13 +422,16 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     const hasNotes = tradesOnDay.some(t => t.notes);
                     const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
 
-                    // Corporate Dashboard style with top accent indicator line (no outer subtle border)
-                    const borderAccentClass = totalRR !== null 
+                    // Calendar cell styling with clean borders at ~80% brightness/opacity for profit/loss
+                    const cellBorderAndBg = totalRR !== null 
                       ? (isPositive 
-                          ? 'border-t-2 border-t-emerald-500/50 dark:border-t-[#34d399]/50 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.04]' 
-                          : 'border-t-2 border-t-rose-400/50 dark:border-t-[#f87171]/50 bg-rose-500/[0.03] dark:bg-rose-500/[0.04]'
+                          ? 'border border-emerald-500/80 dark:border-[#34d399]/80 bg-emerald-500/[0.08] dark:bg-emerald-500/[0.10]' 
+                          : 'border border-rose-500/80 dark:border-[#f87171]/80 bg-rose-500/[0.08] dark:bg-rose-500/[0.10]'
                         )
-                      : 'bg-white dark:bg-[#161c24]';
+                      : (isToday
+                          ? 'border border-emerald-500/50 dark:border-emerald-500/50 bg-white dark:bg-[#161c24]'
+                          : 'border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#161c24]'
+                        );
 
                     return (
                       <div
@@ -436,7 +439,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                         onClick={() => isCurrentMonth && onSelectDay(value)}
                         className={`transition-all duration-200 ease-out h-[84px] rounded-[10px] flex flex-col justify-between p-2 relative group hover:z-20
                           ${!isCurrentMonth ? 'opacity-25 pointer-events-none grayscale' : 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-[#1c2430] hover:shadow-sm'}
-                          ${borderAccentClass}
+                          ${cellBorderAndBg}
                         `}
                       >
                         {/* Top: Date Number & Indicators */}
@@ -471,13 +474,13 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
 
                   {/* Weekly Summary Cell */}
                   {weekSummary && (
-                    <div className={`hidden lg:flex flex-col items-center justify-center p-2 rounded-[10px] relative group transition-colors h-[84px] ${
+                    <div className={`hidden lg:flex flex-col items-center justify-center p-2 rounded-[10px] relative group transition-colors h-[84px] border ${
                       weekSummary.tradesCount > 0 
                         ? (weekSummary.isPositive 
-                            ? 'border-t-2 border-t-emerald-500/50 dark:border-t-[#34d399]/50 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.03]' 
-                            : 'border-t-2 border-t-rose-400/50 dark:border-t-[#f87171]/50 bg-rose-500/[0.02] dark:bg-rose-500/[0.03]'
+                            ? 'border-emerald-500/80 dark:border-[#34d399]/80 bg-emerald-500/[0.05] dark:bg-emerald-500/[0.08]' 
+                            : 'border-rose-500/80 dark:border-[#f87171]/80 bg-rose-500/[0.05] dark:bg-rose-500/[0.08]'
                           ) 
-                        : 'bg-zinc-50/40 dark:bg-[#161c24]'
+                        : 'border-zinc-200 dark:border-white/10 bg-zinc-50/40 dark:bg-[#161c24]'
                     }`}>
                       {weekSummary.tradesCount > 0 ? (
                         <>
