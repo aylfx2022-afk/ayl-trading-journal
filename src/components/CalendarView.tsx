@@ -405,7 +405,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
           </div>
 
           {/* Continuous Table Grid Container */}
-          <div className="border border-zinc-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-[#14171d] shadow-xs">
+          <div className="border border-zinc-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-[#191919] shadow-xs">
             {weeksChunked.map((weekDays, weekIdx) => {
               const weekSummary = weeklyData[weekIdx];
               return (
@@ -423,20 +423,25 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                     const hasJournal = journals?.some(j => j.dateYMD === currentKey && j.content?.trim() !== '');
 
                     const hasTrades = totalRR !== null;
+                    const isWeekend = dayIdx === 0 || dayIdx === 6;
 
                     // Display date format: e.g. "Sep 1" or "Oct 1" on the 1st of month, otherwise "2", "3", etc.
                     const isFirstDay = value.date() === 1;
                     const dateDisplay = isFirstDay ? `${value.format('MMM')} 1` : `${value.date()}`;
 
-                    // Cell background based on trade profit/loss or standard dark/light background
+                    // Cell background:
+                    // When trades exist: profit/loss tinted background
+                    // When no trades (both current month & adjacent months):
+                    // - Sat & Sun: #202020
+                    // - Mon - Fri: #191919
                     const cellBg = hasTrades
                       ? (isPositive
                           ? 'bg-emerald-500/[0.08] dark:bg-emerald-500/[0.10] hover:bg-emerald-500/[0.14] dark:hover:bg-emerald-500/[0.14]'
                           : 'bg-rose-500/[0.08] dark:bg-rose-500/[0.10] hover:bg-rose-500/[0.14] dark:hover:bg-rose-500/[0.14]'
                         )
-                      : (isCurrentMonth
-                          ? 'bg-white dark:bg-[#14171d] hover:bg-zinc-50 dark:hover:bg-[#191d25]'
-                          : 'bg-zinc-50/50 dark:bg-[#101318]/70 hover:bg-zinc-100/60 dark:hover:bg-[#161920]'
+                      : (isWeekend
+                          ? 'bg-zinc-100/60 dark:bg-[#202020] hover:bg-zinc-200/50 dark:hover:bg-[#262626]'
+                          : 'bg-white dark:bg-[#191919] hover:bg-zinc-50 dark:hover:bg-[#212121]'
                         );
 
                     return (
@@ -477,9 +482,9 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                           )}
                         </div>
 
-                        {/* Center: Text Hierarchy - Trade Count (secondary) & R-Value (primary) */}
+                        {/* Bottom-Right: Trade Count & R-Value aligned to the right corner */}
                         {hasTrades && (
-                          <div className="flex-1 flex flex-col items-center justify-center text-center my-auto py-1">
+                          <div className="flex-1 flex flex-col items-end justify-end text-right mt-auto pt-1">
                             <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                               {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
                             </span>
@@ -502,7 +507,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                             ? 'bg-emerald-500/[0.04] dark:bg-emerald-500/[0.06]' 
                             : 'bg-rose-500/[0.04] dark:bg-rose-500/[0.06]'
                           ) 
-                        : 'bg-zinc-50/40 dark:bg-[#101318]/50'
+                        : 'bg-zinc-50/40 dark:bg-[#191919]'
                     }`}>
                       {weekSummary.tradesCount > 0 ? (
                         <>
