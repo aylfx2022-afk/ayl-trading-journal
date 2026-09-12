@@ -3,7 +3,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { Trade } from '../types';
 import { format } from 'date-fns';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BarChart3, Clock } from 'lucide-react';
 import YearlyPerformance from './YearlyPerformance';
 import { getSafeDate } from '../lib/dateUtils';
 
@@ -16,10 +16,23 @@ interface CalendarViewProps {
   journals?: any[];
 }
 
+interface AssignedTimelineTrade {
+  trade: Trade;
+  startDayIdx: number;
+  endDayIdx: number;
+  span: number;
+  slot: number;
+  timeDisplay: string;
+  durationDisplay: string | null;
+}
+
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function CalendarView({ trades, onSelectTrade, onSelectDay, panelDate, setPanelDate, journals }: CalendarViewProps) {
+  const [calendarMode, setCalendarMode] = useState<'summary' | 'timeline'>(() => {
+    return (localStorage.getItem('preferred_calendar_mode') as 'summary' | 'timeline') || 'timeline';
+  });
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [pickerMode, setPickerMode] = useState<'months' | 'years'>('months');
   const [yearRangeStart, setYearRangeStart] = useState(() => Math.floor(panelDate.year() / 12) * 12);
@@ -141,6 +154,139 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
     }
     return chunks;
   }, [gridDays]);
+
+  // Pre-calculate timeline slot layout for each week chunk to support spanning trade bars
+  const weeksTimelineLayout = useMemo(() => {
+    return weeksChunked.map(weekDays => {
+      const weekStart = weekDays[0].startOf('day').toDate();
+      const weekEnd = weekDays[6].endOf('day').toDate();
+
+      // Collect trades touching this week
+      const weekTrades: Array<{
+        trade: Trade;
+        startIdx: number;
+        endIdx: number;
+        span: number;
+        openDate: Date;
+        closeDate: Date | null;
+        timeDisplay: string;
+        durationDisplay: string | null;
+      }> = [];
+
+      trades.forEach(trade => {
+        const openDate = getSafeDate(trade.openTime || trade.entryDateTime);
+        if (!openDate) return;
+        const closeDate = getSafeDate(trade.closeTime || trade.exitDateTime);
+
+        const tradeStart = openDate;
+        const tradeEnd = closeDate || openDate;
+
+        // Check if trade overlaps this week
+        if (tradeEnd < weekStart || tradeStart > weekEnd) return;
+
+        // Determine start day in week (0 to 6)
+        let startIdx = 0;
+        if (tradeStart >= weekStart) {
+          const openKey = format(openDate, 'yyyy-MM-dd');
+          const found = weekDays.findIndex(d => d.format('YYYY-MM-DD') === openKey);
+          startIdx = found !== -1 ? found : 0;
+        }
+
+        // Determine end day in week (0 to 6)
+        let endIdx = 6;
+        if (tradeEnd <= weekEnd) {
+          const closeKey = closeDate ? format(closeDate, 'yyyy-MM-dd') : format(openDate, 'yyyy-MM-dd');
+          const found = weekDays.findIndex(d => d.format('YYYY-MM-DD') === closeKey);
+          endIdx = found !== -1 && found >= startIdx ? found : startIdx;
+        }
+
+        const span = Math.max(1, endIdx - startIdx + 1);
+
+        // Time format display: e.g. "17:30 → 13:30" or "17:30"
+        const openStr = openDate ? format(openDate, 'HH:mm') : '';
+        const closeStr = closeDate ? format(closeDate, 'HH:mm') : '';
+        let timeDisplay = openStr;
+        if (openStr && closeStr && openStr !== closeStr) {
+          timeDisplay = `${openStr} → ${closeStr}`;
+        } else if (!openStr && closeStr) {
+          timeDisplay = closeStr;
+        }
+
+        // Duration string display: e.g. "2h 45m" or "1d 3h"
+        let durationDisplay: string | null = null;
+        if (openDate && closeDate) {
+          const diffMs = Math.abs(closeDate.getTime() - openDate.getTime());
+          const diffMins = Math.round(diffMs / (1000 * 60));
+          const hrs = Math.floor(diffMins / 60);
+          const mins = diffMins % 60;
+          const days = Math.floor(hrs / 24);
+          if (days > 0) {
+            durationDisplay = `${days}d ${hrs % 24}h`;
+          } else if (hrs > 0) {
+            durationDisplay = `${hrs}h ${mins}m`;
+          } else if (mins > 0) {
+            durationDisplay = `${mins}m`;
+          }
+        }
+
+        weekTrades.push({
+          trade,
+          startIdx,
+          endIdx,
+          span,
+          openDate,
+          closeDate,
+          timeDisplay,
+          durationDisplay,
+        });
+      });
+
+      // Sort trades: startDayIdx asc, span desc (multi-day first), openDate asc
+      weekTrades.sort((a, b) => {
+        if (a.startIdx !== b.startIdx) return a.startIdx - b.startIdx;
+        if (b.span !== a.span) return b.span - a.span;
+        return a.openDate.getTime() - b.openDate.getTime();
+      });
+
+      // Assign non-colliding slots (0, 1, 2, ...) across days
+      const daySlots: Array<Set<number>> = Array.from({ length: 7 }, () => new Set<number>());
+      const assignedTrades: AssignedTimelineTrade[] = [];
+
+      for (const item of weekTrades) {
+        let slot = 0;
+        while (true) {
+          let conflict = false;
+          for (let d = item.startIdx; d <= item.endIdx; d++) {
+            if (daySlots[d].has(slot)) {
+              conflict = true;
+              break;
+            }
+          }
+          if (!conflict) break;
+          slot++;
+        }
+
+        for (let d = item.startIdx; d <= item.endIdx; d++) {
+          daySlots[d].add(slot);
+        }
+
+        assignedTrades.push({
+          trade: item.trade,
+          startDayIdx: item.startIdx,
+          endDayIdx: item.endIdx,
+          span: item.span,
+          slot,
+          timeDisplay: item.timeDisplay,
+          durationDisplay: item.durationDisplay,
+        });
+      }
+
+      return {
+        assignedTrades,
+        daySlots,
+      };
+    });
+  }, [weeksChunked, trades]);
 
   return (
     <div className="grid grid-cols-1 gap-4">
@@ -372,8 +518,44 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
               )}
             </div>
 
-            {/* Middle/Right: stats */}
-            <div className="flex flex-wrap items-center gap-4">
+            {/* Middle/Right: Mode Toggle & stats */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {/* Calendar View Mode Toggle */}
+              <div className="flex items-center p-1 rounded-xl border border-zinc-200 dark:border-white/10 bg-white dark:bg-[#1a212b] shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCalendarMode('summary');
+                    localStorage.setItem('preferred_calendar_mode', 'summary');
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    calendarMode === 'summary'
+                      ? 'bg-zinc-100 dark:bg-[#282d38] text-zinc-900 dark:text-white shadow-xs'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  }`}
+                  title="P&L Summary Mode: Trade count and R-value"
+                >
+                  <BarChart3 size={14} />
+                  <span>Summary</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCalendarMode('timeline');
+                    localStorage.setItem('preferred_calendar_mode', 'timeline');
+                  }}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    calendarMode === 'timeline'
+                      ? 'bg-zinc-100 dark:bg-[#282d38] text-zinc-900 dark:text-white shadow-xs'
+                      : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200'
+                  }`}
+                  title="Timeline Mode: Trade pair, entry/exit times & duration"
+                >
+                  <Clock size={14} />
+                  <span>Timeline</span>
+                </button>
+              </div>
+
               {/* Monthly Stats */}
               <div className="flex items-center gap-3 text-[10px] font-black uppercase text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-white/10 rounded-xl px-3 py-1.5 bg-white dark:bg-[#1a212b]">
                 <span>Tr: <span className="text-zinc-800 dark:text-zinc-200 font-bold">{monthlyStats.totalTrades}</span></span>
@@ -408,6 +590,7 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
           <div className="border border-zinc-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-[#191919] shadow-xs">
             {weeksChunked.map((weekDays, weekIdx) => {
               const weekSummary = weeklyData[weekIdx];
+              const weekTimeline = weeksTimelineLayout[weekIdx];
               return (
                 <div key={weekIdx} className="grid grid-cols-7 lg:grid-cols-8 border-b border-zinc-200 dark:border-white/10 last:border-b-0">
                   {/* 7 Days in Week */}
@@ -482,18 +665,109 @@ export default function CalendarView({ trades, onSelectTrade, onSelectDay, panel
                           )}
                         </div>
 
-                        {/* Bottom-Right: Trade Count & R-Value aligned to the right corner */}
-                        {hasTrades && (
-                          <div className="flex-1 flex flex-col items-end justify-end text-right mt-auto pt-1">
-                            <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                              {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
-                            </span>
-                            <span className={`text-xs sm:text-sm font-black tracking-tight leading-tight mt-0.5 ${
-                              isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'
-                            }`}>
-                              {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
-                            </span>
+                        {/* Body Content based on calendarMode */}
+                        {calendarMode === 'timeline' ? (
+                          <div className="flex-1 flex flex-col gap-1 mt-1 w-full overflow-visible">
+                            {(() => {
+                              if (!weekTimeline) return null;
+                              const { assignedTrades, daySlots } = weekTimeline;
+                              const currentDaySlots = daySlots[dayIdx];
+                              if (!currentDaySlots || currentDaySlots.size === 0) return null;
+
+                              const maxSlot = Math.max(...Array.from(currentDaySlots));
+                              const renderedSlots = [];
+
+                              for (let s = 0; s <= maxSlot; s++) {
+                                // 1. Trade starting on this day at slot s
+                                const startingTrade = assignedTrades.find(t => t.startDayIdx === dayIdx && t.slot === s);
+                                if (startingTrade) {
+                                  const tradeRR = startingTrade.trade.rr ?? (startingTrade.trade.profit !== undefined ? (startingTrade.trade.profit > 0 ? 1 : startingTrade.trade.profit < 0 ? -1 : 0) : 0);
+                                  const isProfit = tradeRR > 0;
+                                  const isLoss = tradeRR < 0;
+
+                                  const pillStyle = isProfit
+                                    ? 'bg-emerald-500/15 hover:bg-emerald-500/25 border-emerald-500/30 dark:bg-emerald-950/80 dark:hover:bg-emerald-900/90 dark:border-emerald-500/40'
+                                    : isLoss
+                                    ? 'bg-rose-500/15 hover:bg-rose-500/25 border-rose-500/30 dark:bg-rose-950/80 dark:hover:bg-rose-900/90 dark:border-rose-500/40'
+                                    : 'bg-zinc-100 hover:bg-zinc-200 border-zinc-300 dark:bg-[#292c34] dark:hover:bg-[#353944] dark:border-white/10';
+
+                                  const pairTextColor = isProfit
+                                    ? 'text-emerald-950 dark:text-[#34d399]'
+                                    : isLoss
+                                    ? 'text-rose-950 dark:text-[#f87171]'
+                                    : 'text-zinc-800 dark:text-zinc-100';
+
+                                  const timeTextColor = isProfit
+                                    ? 'text-emerald-800/90 dark:text-emerald-300/80'
+                                    : isLoss
+                                    ? 'text-rose-800/90 dark:text-rose-300/80'
+                                    : 'text-zinc-500 dark:text-zinc-400';
+
+                                  renderedSlots.push(
+                                    <div
+                                      key={`trade-${startingTrade.trade.id || `${dayIdx}-${s}`}`}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        onSelectTrade(startingTrade.trade);
+                                      }}
+                                      style={{
+                                        width: startingTrade.span > 1 
+                                          ? `calc(${startingTrade.span * 100}% + ${(startingTrade.span - 1)}px)` 
+                                          : '100%',
+                                        zIndex: startingTrade.span > 1 ? 25 : 10,
+                                      }}
+                                      className={`h-[22px] sm:h-[24px] rounded-[5px] border px-1.5 sm:px-2 flex items-center justify-between gap-1.5 cursor-pointer shadow-xs transition-all select-none group/pill relative shrink-0 ${pillStyle}`}
+                                      title={`${startingTrade.trade.item || startingTrade.trade.pair || 'Trade'} | ${startingTrade.timeDisplay}${startingTrade.durationDisplay ? ` (Duration: ${startingTrade.durationDisplay})` : ''} | ${startingTrade.trade.profit >= 0 ? '+' : ''}$${startingTrade.trade.profit.toFixed(2)} (${(startingTrade.trade.rr || 0) >= 0 ? '+' : ''}${(startingTrade.trade.rr || 0).toFixed(1)}R)`}
+                                    >
+                                      {/* Left: Pair Name */}
+                                      <div className="flex items-center min-w-0 overflow-hidden">
+                                        <span className={`text-[10px] sm:text-[11px] font-bold lowercase tracking-tight truncate ${pairTextColor}`}>
+                                          {startingTrade.trade.item || startingTrade.trade.pair || 'trade'}
+                                        </span>
+                                      </div>
+
+                                      {/* Right: Time Range */}
+                                      <div className={`flex items-center gap-1 shrink-0 ml-auto text-[9px] sm:text-[10px] font-mono ${timeTextColor}`}>
+                                        <span>{startingTrade.timeDisplay}</span>
+                                      </div>
+                                    </div>
+                                  );
+                                  continue;
+                                }
+
+                                // 2. Trade spanning through this day at slot s from a previous day
+                                const isSpanned = assignedTrades.some(t => t.startDayIdx < dayIdx && t.endDayIdx >= dayIdx && t.slot === s);
+                                if (isSpanned) {
+                                  // Placeholder spacer so slot height matches across columns
+                                  renderedSlots.push(
+                                    <div key={`spacer-${s}`} className="h-[22px] sm:h-[24px] pointer-events-none shrink-0" />
+                                  );
+                                  continue;
+                                }
+
+                                // 3. Empty slot spacer if a higher slot is used
+                                renderedSlots.push(
+                                  <div key={`empty-${s}`} className="h-[22px] sm:h-[24px] pointer-events-none shrink-0" />
+                                );
+                              }
+
+                              return renderedSlots;
+                            })()}
                           </div>
+                        ) : (
+                          /* Summary Mode: Trade Count & R-Value aligned to the right corner */
+                          hasTrades && (
+                            <div className="flex-1 flex flex-col items-end justify-end text-right mt-auto pt-1">
+                              <span className="text-[9px] sm:text-[10px] font-medium uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+                                {tradesOnDay.length} {tradesOnDay.length === 1 ? 'trade' : 'trades'}
+                              </span>
+                              <span className={`text-xs sm:text-sm font-black tracking-tight leading-tight mt-0.5 ${
+                                isPositive ? 'text-emerald-600 dark:text-[#34d399]' : 'text-rose-500 dark:text-[#f87171]'
+                              }`}>
+                                {isPositive ? '+' : ''}{totalRR.toFixed(1)}R
+                              </span>
+                            </div>
+                          )
                         )}
                       </div>
                     );
